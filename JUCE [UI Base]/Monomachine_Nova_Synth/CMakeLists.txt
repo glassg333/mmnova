@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.22)
+project(MonomachineNovaUnifiedSynth VERSION 1.2.0 LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(JUCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/JUCE" CACHE PATH "Path to JUCE 8 source checkout")
+if(NOT TARGET juce::juce_audio_utils)
+    if(NOT EXISTS "${JUCE_DIR}/CMakeLists.txt")
+        message(FATAL_ERROR "Set JUCE_DIR to a JUCE 8 checkout, or clone JUCE into this project.")
+    endif()
+    add_subdirectory("${JUCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/JUCE")
+endif()
+juce_add_plugin(MonomachineNovaUnifiedSynth
+    COMPANY_NAME "MonomachineNova"
+    BUNDLE_ID "com.monomachinenova.unified.synth"
+    PLUGIN_MANUFACTURER_CODE MnOn
+    PLUGIN_CODE NvSy
+    PRODUCT_NAME "MonomachineNova Unified Synth"
+    FORMATS VST3
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
+    IS_MIDI_EFFECT FALSE
+    VST3_CATEGORIES Instrument Synth
+    COPY_PLUGIN_AFTER_BUILD FALSE)
+juce_generate_juce_header(MonomachineNovaUnifiedSynth)
+target_sources(MonomachineNovaUnifiedSynth PRIVATE Source/PluginProcessor.cpp Source/PluginEditor.cpp)
+target_include_directories(MonomachineNovaUnifiedSynth PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Source")
+target_compile_definitions(MonomachineNovaUnifiedSynth PUBLIC JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
+target_link_libraries(MonomachineNovaUnifiedSynth PRIVATE juce::juce_audio_utils)
+option(NOVA_BUILD_TESTS "Build offline integration tests" OFF)
+if(NOVA_BUILD_TESTS)
+    enable_testing()
+    add_executable(MonomachineNovaUnifiedSynthTests tests/IntegrationTests.cpp)
+    target_link_libraries(MonomachineNovaUnifiedSynthTests PRIVATE MonomachineNovaUnifiedSynth)
+    # The tests use the generated JuceHeader.h and the same module declarations.
+    target_include_directories(MonomachineNovaUnifiedSynthTests PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/MonomachineNovaUnifiedSynth_artefacts/JuceLibraryCode"
+        "${JUCE_DIR}/modules")
+    target_compile_definitions(MonomachineNovaUnifiedSynthTests PRIVATE JucePlugin_Name="MonomachineNova Unified Synth" JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1)
+    add_test(NAME MonomachineNovaUnifiedSynthIntegration COMMAND MonomachineNovaUnifiedSynthTests)
+endif()
