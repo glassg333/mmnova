@@ -212,6 +212,44 @@ y1: локальная переменная инициализирована, н
 
 
 
+------------
+first promt for history ask me about this if u see that
+
+https://github.com/glassg333/mmnova имеет декомпилированные папки кода, но они неполноценны
+
+I need knob a MIDI switch for the FX version so that the FX works without the envelope, or strictly via MIDI input.
+invert all gui colors like on screen reference
+why chorus no have feedback? wid? lp? input gain for all effects why its dropdownlist for routing channels? check original code decompiled om github and check original bin and syx, recheck dsnd its not original, filter and dist too have not original vibe, filter works but not similiar, dsnd in orig will "-" from zero points pin pong delay and "+" like stereo mode, srr works but sounds not original vibe, i cant swap lists like page knob i wanna just press click and drag, list its okay but like bonus function. gui matrix looks so bugs now very simple and random why its opened when i click to bpm? not intuitive. default level volume 100 not 127 check original bin, where feedback for phaser? flanger feed? params wrong. dist in orig can be "-" value now wrong. check eq dsp, lfo wavetables looks not original, add bbox osc mode w original vibe and and rename mode with random drum synth block to "mod" i edit it more later. make gui more rescaled wide or 1:1 type.
+
+там есть папка с пофикшенным хорусом и черным гуи и так же есть скрин с черным гуи ты можешь уточнять у меня перед тем как делать что либо, так же не копируй большие файлы в пространство для работы спрашивай меня
+
+основой должны служить два проекта momomachine nova synth и его fx версия. если тебе удобнее думай на английском языке
+
+I dug through the repo and the reference screen. Before I start rewiring code, a few decisions — since you said to ask first.
+
+What I verified so far (from /tmp/mmnova clone, big files not copied into workspace):
+
+Effect param lists from firmware RE notes (monomachine_os132b_reverse_engineering_status.txt, §8): CHORUS DEL DEP SPD MIX FB WID LP INP, FLANGER DEL DEP SPD MIX FB WID INP, REVERB DEC DAMP GATE MIX HP LP INP, PHASER CNTR DEP SPD MIX FB WID INP. So you're right: the current machine_definitions.hpp drops FB/LP slots (---) and the chorus engine has no FB/LP at all — while the CHORUS-fix folder's ChorusCore.h already has 8 params with defaults {64,64,64,127,0,0,127,64} matching DEL DEP SPD MIX FB WID LP INP.
+The BIN itself is aplib-compressed — grep 'CHORUS'/'DIST' on elektron_sfx6-60_os1.32b.bin returns 0 hits (container at 0x4000 starts with the packed header), so param tables can only be read from the already-extracted notes in your repo, not raw BIN. For DIST sign I'll rely on your word + firmware notes.
+Current FX plugin: level defaults to 1.0f (=127) in FX mode, VOL default 127; the "FX MIDI gate" toggle exists but only inside the MENU settings list, and clicking BPM opens that same settings viewport (that's the "why its opened when i click to bpm" bug — tempoButton.onClick=[this]{showSettings(false);}).
+Reference screen is 1262×575 (≈2.195:1), pure 1-bit black/white, section headers are outlined white-on-black boxes (not filled black bars), top row = machine selector + ARP + matrix button.
+My working assumption unless you say otherwise: I edit the two JUCE projects (Monomachine_Nova_Synth + Monomachine_Nova_FX share identical sources except NovaConfig.h), deliver a folder of changed/new source files + a CHANGELOG, no binaries.
+
+Summary
+Формат результата: как отдать изменения?
+git patch (.diff)
+CHORUS: портировать оригинальное ядро ChorusCore (24-бит фикс. точка, FB/LP/INP, таблицы ~44КБ) из папки 'CHORUS black ui and fixed' в общий FX-проект вместо аппроксимации?
+Да, портировать ядро
+DIST в оригинале '-' значения: что должен делать отрицательный DIST у меня в DSP? (BIN сжат, проверить не могу — говорю как есть)
+-63 0 +63 в минус в ориге он будто не сатурирует а в плюс работает по другому на слух нежели чем сейчас
+'default level volume 100 not 127' — что именно ставим 100?
+level LEV сбоку плагина 100 из 127
+------------
+
+
+
+
+
 
 
 
