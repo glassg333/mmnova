@@ -1,0 +1,34 @@
+[
+  {
+    "exporter": "VisualStudio2022",
+    "source_files": [
+      "..\\..\\Source\\PluginEditor.cpp",
+      "..\\..\\Source\\PluginProcessor.cpp",
+      "..\\..\\Source\\dsp\\AudioAdapter.cpp",
+      "..\\..\\Source\\dsp\\ChorusCore.cpp"
+    ],
+    "total_compile_files": 18,
+    "missing": [],
+    "language_standards": [
+      "stdcpp17",
+      "stdcpp17"
+    ],
+    "fx_no_midi": true
+  },
+  {
+    "exporter": "VisualStudio2019",
+    "source_files": [
+      "..\\..\\Source\\PluginEditor.cpp",
+      "..\\..\\Source\\PluginProcessor.cpp",
+      "..\\..\\Source\\dsp\\AudioAdapter.cpp",
+      "..\\..\\Source\\dsp\\ChorusCore.cpp"
+    ],
+    "total_compile_files": 18,
+    "missing": [],
+    "language_standards": [
+      "stdcpp17",
+      "stdcpp17"
+    ],
+    "fx_no_midi": true
+  }
+]
