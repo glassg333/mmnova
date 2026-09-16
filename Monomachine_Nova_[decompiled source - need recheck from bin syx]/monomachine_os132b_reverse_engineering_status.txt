@@ -1,0 +1,203 @@
+ELEKTRON MONOMACHINE OS 1.32b — СВОДКА REVERSE ENGINEERING
+Дата: 2026-09-16
+
+1. ПРОШИВКА
+ТОЧНО:
+- BIN = 8,388,608 bytes (8 MiB)
+- SHA-1 = 11a37460a5f47fd1a4d911414288690e6e7da605
+- FNV-1a = e1c1b461b6d0f21b
+- Gearmulator fingerprint OS 1.32b = 0xe1c1b461b6d0f21b
+- samplerate = 44,100 Hz
+- Hardware: ColdFire MCF5206e + 2 × DSP56303
+- Gearmulator: DSP1 = mixer/main, DSP2 = producer
+- DSP1 HI08 = 0x500000–0x500008
+- DSP2 HI08 = 0x600000–0x600008
+
+2. SYSEX / CONTAINER
+ТОЧНО:
+- 8,065 SysEx messages
+- 112-byte messages carry 96-byte encoded payload
+- Legacy transport decode:
+  w = ((p[k]&3)<<14) | ((p[k+1]&127)<<7) | (p[k+2]&127)
+- Decoded container ≈ 515,968 bytes
+- Sections:
+  section 0: 0x000000, stored size 0x286E4 = 165,604
+  section 1: 0x286EC, stored size 0x01EBE = 7,870
+  section 2: 0x2A5B2, stored size 0x01E67 = 7,783
+  section 3: 0x2C421, stored size 0x49779 = 300,921
+  section 4: ≈ 0x75BA2
+- APLIB decoder parameters confirmed:
+  REUSE_GAMMA=2
+  OFFSET_BIAS=767
+  FAR_THRESHOLD=3328
+
+3. DSP PROGRAMS
+ТОЧНО:
+- DSP1 = 3,674 × 24-bit words = 11,022 bytes
+- DSP2 = 3,674 × 24-bit words = 11,022 bytes
+- Native DSP byte order = 24-bit big-endian
+- First DSP words:
+  P:$0000 030000
+  P:$0001 660000
+  P:$0002 000000
+  P:$0003 000000
+  P:$0004 660000
+  P:$0005 80f00a
+  P:$0006 0000ff
+  P:$0007 02000c
+  P:$0008 000000
+  P:$0009 04000c
+
+COMMON DSP CODE:
+- 2,045 consecutive words are identical byte-for-byte
+- DSP1: P:$0328–$0B24
+- DSP2: P:$02DF–$0ADB
+- This is confirmed shared DSP code, not an inferred similarity.
+
+4. DSP56300 ISA FACTS
+ТОЧНО:
+- instruction width = 24 bits
+- RTS = 0x0C0000
+- RTI = 0x000004
+- direct JMP target = low 12 bits
+- direct JSR target = low 12 bits
+- JCC / JSCC use the documented 12-bit target field
+
+Register numbers:
+  X0=4 X1=5 Y0=6 Y1=7
+  A0=8 B0=9 A2=10 B2=11
+  A1=12 B1=13 A=14 B=15
+  R0..R7=16..23
+  N0..N7=24..31
+  M0..M7=32..39
+  EP=42 VBA=48 SC=49 SZ=56 SR=57 OMR=58
+  SP=59 SSH=60 SSL=61 LA=62 LC=63
+
+IMPORTANT CORRECTION:
+- Earlier interpretation of 0x770A/0x770B as X/Y memory addresses/state
+  variables was WRONG / unproven.
+- Words such as 8D770A, 89770B, CF770A, C9770B must be decoded as
+  parallel-move instructions (Pm8) together with their extension words.
+- Therefore 0x770A/0x770B must NOT currently be called LFO state,
+  chorus state, delay state, or memory addresses.
+
+5. CONFIRMED DIRECT CALLS — DSP1
+  P:$0070  0d4900 -> JSR P:$0900
+  P:$007b  0d4d00 -> JSR P:$0D00
+  P:$00b3  0d0c05 -> JSR P:$0C05
+  P:$00f2  0da405 -> JSR P:$0405
+  P:$01fc  0d0000 -> JSR P:$0000
+  P:$0209  0d0000 -> JSR P:$0000
+  P:$026d  0d0020 -> JSR P:$0020
+  P:$027b  0d0020 -> JSR P:$0020
+  P:$04d2  0d2405 -> JSR P:$0405
+  P:$0518  0d0c05 -> JSR P:$0C05
+  P:$0946  0df04e -> JSR P:$004E
+  P:$0b59  0d9bcb -> JSR P:$0BCB
+  P:$0c0c  0df5ff -> JSR P:$05FF
+  P:$0c6a  0d6bff -> JSR P:$0BFF
+  P:$0df8  0dff00 -> JSR P:$0F00
+
+DSP2 contains corresponding calls, with shifted positions.
+
+6. FUNCTION P:$03D7–$0442
+ТОЧНО:
+- P:$0442 = RTS
+- P:$0412 loads R2 = 0x047F
+- P:$041A loads R0 = 0x0480
+- P:$03DF loads immediate 0xFFFFFF
+
+НЕИЗВЕСТНО:
+- Meaning of 0x047F/0x0480
+- Buffer size/type
+- Whether this is chorus memory
+- No direct JSR to P:$0412 exists; P:$0412 is inside this function.
+
+7. PROCESSING AREA P:$0900–$0B20
+ТОЧНО:
+- P:$0900 is a direct JSR target.
+- P:$0977–$0B20 belongs to a larger processing flow; it is not
+  justified to call it a standalone helper.
+- Repeated parallel-move sequences occur around P:$0977 onward:
+    8D770A
+    71FFFF
+    89770B
+    71FFFF
+    ...
+    C5700A
+    C4700A
+- Similar sequences occur around P:$0993–$09A5 and P:$09B9–$09E5.
+- Immediate constants 0x0CCCCD and 0x733333 occur around P:$09C9.
+- These constants are real machine-code constants.
+
+NOT YET PROVEN:
+- What 0x0CCCCD and 0x733333 represent
+- Whether they are filter/LFO/feedback/delay coefficients
+- Exact operands of the Pm8 sequences
+- Exact recurrence implemented by this block
+
+8. EFFECT PARAMETERS FOUND IN COLDFIRE IMAGE
+ТОЧНО:
+CHORUS:  DEL DEP SPD MIX FB WID LP INP
+FLANGER: DEL DEP SPD MIX FB WID INP
+REVERB:  DEC DAMP GATE MIX HP LP INP
+PHASER:  CNTR DEP SPD MIX FB WID INP
+Also present: RINGMOD, DYNAMIX
+
+Chorus descriptor near 0x58a10 contains:
+  CHORUS
+  00 02 DEL
+  00 00 DEP
+  00 00 SPD
+  00 00 MIX
+  00 00 FB
+  00 00 WID
+  00 00 LP
+  00 00 INP
+
+Descriptors are approximately 176 bytes apart.
+
+KNOWN:
+- Parameter names and their firmware descriptors are real.
+- Internal DSP representation, scaling and exact state/register mapping
+  are not yet fully traced.
+
+9. DEFINITIVELY ESTABLISHED
+- Firmware is MM OS 1.32b.
+- Real DSP1/DSP2 images were extracted from the supplied firmware.
+- Both DSPs contain 3,674 24-bit words.
+- They share a confirmed 2,045-word common processing block.
+- DSP1 is mixer/main; DSP2 is producer in Gearmulator.
+- Chorus/Flanger/Reverb/Phaser parameter descriptors exist in the
+  ColdFire image.
+- P:$0900 is a callable DSP function.
+- P:$03D7–$0442 is a real function ending in RTS.
+- R2=0x047F and R0=0x0480 are loaded inside that function.
+- 0x0CCCCD and 0x733333 are actual constants in processing code.
+
+10. NOT DEFINITIVELY ESTABLISHED
+- Exact Monomachine chorus equation
+- Exact delay-line length
+- Exact chorus buffer size
+- Exact meaning of R2=0x047F / R0=0x0480
+- Exact meaning of the Pm8 sequences containing 0x770A/0x770B
+- Exact coefficients for DEL/DEP/SPD/MIX/FB/WID/LP
+- Fixed-point scaling
+- UI parameter -> DSP memory/register mapping
+- LFO waveform and exact rate mapping
+- Delay interpolation method
+- Feedback/filter topology
+- Meaning of individual DSP state variables
+
+11. NEXT REVERSE-ENGINEERING TARGETS
+1) Decode Pm8 + extension words completely.
+2) Reconstruct the recurrence in P:$0977–$0B20.
+3) Trace the source of values entering that loop.
+4) Trace DEL/DEP/SPD/MIX/FB/WID/LP from ColdFire/HI08 into DSP.
+5) Identify R/N/M register setup and actual delay-memory accesses.
+6) Determine the real X/Y memory ranges used by chorus.
+7) Only then derive the chorus formula from machine code.
+
+RULE:
+Do not turn a plausible DSP interpretation into a fact until the
+instruction decoding and/or data-flow tracing confirms it.
