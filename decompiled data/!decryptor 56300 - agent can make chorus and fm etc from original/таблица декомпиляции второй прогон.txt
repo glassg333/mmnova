@@ -1,0 +1,113 @@
+| Компонент | Листинг | Таблица | Алгоритм понятен | Bit-accurate возможно? |
+|-----------|---------|---------|------------------|------------------------|
+| **Фильтр LP** | ✅ 5 машин | ✅ P:$144AC7 | ✅ biquad-recursion | ✅ **ДА** |
+| **Дисторшн** | ✅ 4 машины | — | ✅ saturation mode | ✅ **ДА** |
+| **Биткраш (m33)** | ✅ | ✅ P:$101AFB/BFB/CFB | ⚠️ частично (downsample) | ⚠️ нужен анализ pitch-lookup |
+| **Хорус** | ✅ | ✅ X:$14A000/$14A800 | ✅ полностью | ✅ **ДА** (уже сделано) |
+| **Phaser** | ✅ | ✅ 4 all-pass tables | ⚠️ inline LFO | ⚠️ 80% (LFO-фаза нужно отдельно) |
+| **Flanger** | ✅ | ✅ X:$114000 | ⚠️ inline LFO | ⚠️ 80% |
+| **Reverb** | ✅ 1263 строк | ✅ P:$123EF5/$133191 | ❌ алгоритм complex | ❌ нужен серьёзный анализ |
+| **Compressor (FX-DYN)** | ✅ 155 строк | ✅ attack/release/RMS | ⚠️ short, нужен анализ | ⚠️ 70% |
+| **Ring mod** | ✅ | — | ✅ simple | ✅ **ДА** |
+| **Delay (m32)** | ✅ | ✅ X:$114000 | ⚠️ нужен анализ | ⚠️ 70% |
+| **EQ** | ❌ **НЕ СУЩЕСТВУЕТ** | — | — | — |
+| **LFO** | ✅ inline | ✅ Y:$0132 + Y:$0334 | ✅ accumulator + sine | ✅ **ДА** |
+| **Кривые параметров** | — | ❌ не декодированы | ❌ | ❌ |
+
+
+
+Если хочешь порт фильтра LP — у тебя уже есть всё (tables/P_144ac7_LP_filter_coeffs.bin + код из любого из 5 листингов).
+Если хочешь биткраш m33 — листинг есть, pitch-таблицы есть, нужно проследить как WAVE-параметр индексирует $101AFB/$101BFB/$101CFB.
+Если хочешь точные кривые параметров (чтобы SPD=64 → конкретная частота LFO в Гц) — это отдельная задача: нужно декодировать 32-байтные curve data в каждом дескрипторе. Сказать, на чём остановиться?
+
+
+
+Полный аудит: что найдено, чего нет, что возможно
+✅ ПОЛНОСТЬЮ НАЙДЕНО (можно воспроизвести bit-accurate)
+Компонент
+Источник
+Статус
+Все 21 машины (листинги init+config+process)	listings/*.txt	✅ 100% покрытия P:$141A98–$148063
+LP-фильтр (shared таблица + алгоритм)	tables/P_144ac7_LP_filter_coeffs.bin + 5 листингов	✅ коэффициенты + код
+Дисторшн (saturation mode)	bset #$14,sr в chorus/phaser/flanger/m33	✅
+LFO (синус + triangle таблицы)	tables/Y_000132_sine_table_FM.bin + Y_000334_LFO_wave_triangle.bin	✅ inline в каждой FX-машине
+Хорус (полностью)	original_pack/listings/chorus_full.txt + width tables	✅ уже портировано в C++
+FM-машины (STAT/PAR/DYN)	original_pack/listings/fm_*.txt + ratio table + DYN wavetable	✅
+Phaser all-pass таблицы (4 шт)	tables/P_141{900,980,a00,b18}_PHASER_stage*.bin	✅
+Flanger (delay buffer X:$114000)	listings/19_FX-FLA_full.txt	✅
+Ring mod	listings/17_FX-RING_full.txt	✅
+Delay (m32)	listings/32_FX-DLY_full.txt + helper table	✅
+Bitcrush (m33)	listings/33_FX-EXT_full.txt + pitch tables	✅
+Структура страниц (PTCH/SYNT/AMP/FILT/EFFX/LFO1/2/3)	page_templates/page_templates.json	✅ все 21 машины
+Дескрипторы параметров (SYNT-page 8 params × 21 машины)	descriptors/all_machine_descriptors.json	✅
+Полные образы памяти (DSP1+DSP2 P/X/Y)	memory_images/dsp{1,2}_{p,x,y}mem.bin	✅ 0 расхождений с BIN
+Полный дизассемблированный листинг (P,X,Y памяти)	memory_images/dsp{1,2}_{dispatch,machine_code,machines_fx,vectors_core}.txt	✅ 36 865 строк
+ColdFire main image (распакованный, 425KB)	descriptors/coldfire_main.bin	✅
+Pitch conversion constant (0x0BE37C)	видна в FM листингах	✅
+Audio buffer base pointers	tables/X_0002c0_audio_buffer_bases.bin	✅
+
+⚠️ ЧАСТИЧНО НАЙДЕНО (есть данные, но нужна расшифровка)
+Компонент
+Что есть
+Чего не хватает
+Reverb (FX-REV)	Листинг 1263 строки + decay/damp таблицы	Алгоритм сложный, нужен глубокий анализ
+Compressor (FX-DYN)	Листинг 155 строк + attack/release/RMS таблицы	Короткий, нужно проследить RAT/GAIN/THRS логику
+EQ (per-voice)	Параметры EQF/EQG на EFFX-странице	Код обработки в kernel — дизассемблер плохо справляется
+Delay send (per-voice)	Параметры DTIM/DSND/DFB/DBAS/DWID на EFFX-странице	Код в kernel
+Bitcrush SRR (per-voice)	Параметр SRR на EFFX-странице	Код в kernel
+AMP envelope	Параметры ATK/HOLD/DEC/REL на AMP-странице	Код в kernel
+FILT multi-mode	Параметры BASE/WDTH/HPQ/LPQ/BOFS/WOFS на FILT-странице	Код в kernel
+LFO1/LFO2/LFO3	Параметры PAGE/DEST/TRIG/WAVE/MULT/SPD/INTL/DPTH	Код в kernel + routing matrix
+SID-6581	Листинг 323 строки + 2 wavetables + filter table	Алгоритм сложный (4-полосный фильтр + waveform mixing)
+VO-6	Листинг 2273 строки (самая большая машина!)	Нужен глубокий анализ вокодера
+DPRO-BBOX	Листинг 283 строки + 4 helper tables	Нужен анализ
+SWAVE-ENS	Листинг 462 строки	Нужен анализ superwave ensemble
+
+❌ НЕ НАЙДЕНО / НЕВОЗМОЖНО БЕЗ ДОПОЛНИТЕЛЬНОЙ РАБОТЫ
+Компонент
+Почему
+Что нужно
+Кривые параметров (curve data в дескрипторах)	32 байта на параметр в каждом дескрипторе, формат не расшифрован	A/B-сравнение с железом (~32 часа работы)
+MIDI note → engine_pitch	В ColdFire main, не в DSP	Реверс ColdFire кода (MCF5206e)
+Modulation matrix routing (LFO DEST → param)	В ColdFire main + kernel	Реверс ColdFire + kernel
+Voice state layout (X/Y:(r6+offsets))	В runtime буферах X:$100000+, не в static image	Динамический анализ или реверс kernel
+Kernel AMP/FILT/EFFX/LFO обработка	В dsp1_dispatch.txt P:$100000+, но дизассемблер плохо справляется с dual-move инструкциями DSP56300	Лучший дизассемблер (mot dsp56300-gdb или IDA + плагин)
+Reverb algorithm details	1263 строки, сложная routing с multiple delay lines	Глубокий анализ листинга
+Полная семантика VO-6	2273 строки вокодера	Глубокий анализ
+
+📊 Покрытие P-памяти
+Регион
+Размер
+Статус
+P:$0000–$00B4E (kernel)	2 894 слов	⚠️ дизассемблирован, но плохо (dual-move не парсится)
+P:$00B4E–$100000	1 045 682 слов	✅ пусто (0% non-zero) — это нормально
+P:$100000–$1001D0 (dispatch)	464 слов	✅ извлечено в dsp1_dispatch.txt
+P:$1001D1–$101A52 (parametric data)	6 273 слов	⚠️ 4 банка × 1568 слов (pitch scaling?), НЕ извлечены как именованные таблицы
+P:$101A7B–$104210 (tables)	10 133 слов	⚠️ частично (6 таблиц извлечено, ещё ~30 маленьких таблиц не названы)
+P:$104210–$1134C5 (wavetables/data)	62 133 слов	⚠️ частично (5 wavetables извлечено, но регион огромный — ещё ~60KB данных не названы)
+P:$1134C5–$140000	183 099 слов	✅ пусто (0% non-zero)
+P:$140000–$141A98 (machine-indep data)	6 808 слов	⚠️ SID wavetables извлечены, остальное (ramp/saw table at $141000, small tables) не названо
+P:$141A98–$148064 (machine procedures)	26 060 слов	✅ 100% в dsp1_machines_fx.txt (22 837 инструкций)
+
+🎯 Что РЕАЛЬНО нужно сделать для полного воспроизведения
+Приоритет 1 (критично для портирования):
+Лучший дизассемблер DSP56300 — текущий не парсит dual-move параллельные инструкции (группы 0000/0001). Без этого kernel AMP/FILT/EFFX/LFO код непонятен. Варианты: mot dsp56300-gdb, IDA Pro + плагин, или допилить scripts/dis56300.py.
+Декодирование кривых параметров (32 байта curve data в дескрипторе) — без этого SPD=64 не переводится в конкретную частоту LFO в Гц. Метод: A/B-сравнение с железом — записать звук при разных значениях параметра, измерить частоту, восстановить функцию.
+Приоритет 2 (важно):
+Реверс ColdFire main (425KB) — там MIDI→pitch, modulation matrix routing, UI logic. ColdFire MCF5206e дизассемблируется capstone (уже есть scripts/cf_disasm.py), но нужен анализ.
+Voice state layout — нужно понять, какие X/Y:(r6+offset) соответствуют каким параметрам. Метод: поставить известные значения параметров, прочитать состояние через MIDI sysex, сопоставить.
+Приоритет 3 (опционально):
+Извлечь оставшиеся ~30 маленьких таблиц в P:$101A7B–$104210 и P:$104210–$1134C5. Это wavetables для VO-6, DPRO, SID — они есть в образе, просто не названы.
+Глубокий анализ reverb (1263 строки) и VO-6 (2273 строки) — это самые сложные машины, требуют часового анализа каждой.
+💡 Что МОЖНО сделать прямо сейчас с имеющимися данными
+✅ Порт хоруса (уже сделано в original_pack)
+✅ Порт FM-машин (STAT/PAR/DYN) — все данные есть
+✅ Порт LP-фильтра — таблица + алгоритм
+✅ Порт phaser/flanger/ring-mod — листинги + таблицы
+✅ Порт delay (m32) и bitcrush (m33) — листинги + таблицы
+⚠️ Порт reverb — возможно, но потребует усилий
+⚠️ Порт компрессора — возможно, листинг короткий
+❌ Порт EQ/EFFX-page delay/SRR — нужен kernel код
+❌ Порт AMP envelope / FILT multi-mode — нужен kernel код
+❌ Порт LFO1/2/3 с routing — нужен kernel код + modulation matrix
+Хочешь, чтобы я попытался извлечь ещё что-то конкретное из списка выше? Или перейдём к чему-то другому?

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="MonoJ07" name="MonoJuice" projectType="audioplug" version="0.8.0"
+              jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova"
+              bundleIdentifier="com.monomachinenova.fx5" pluginName="MonoJuice"
+              pluginDesc="Five-slot FX: dual COMB models, Classic Spectre, master feedback, output clipper and DC block"
+              pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn"
+              pluginCode="NvF5" pluginFormats="buildVST3,buildStandalone" pluginCharacteristicsValue=""
+              pluginVST3Category="Fx" useAppConfig="1" addUsingNamespaceToJuceHeader="0"
+              defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+  <MAINGROUP id="MainFX06" name="MonoJuice">
+    <GROUP id="MJ08src" name="Source">
+      <FILE id="MJ08file0" name="FactoryPresets.h" file="Source/FactoryPresets.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file1" name="Parameters.h" file="Source/Parameters.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file2" name="PluginEditor.cpp" file="Source/PluginEditor.cpp"
+            compile="1" resource="0"/>
+      <FILE id="MJ08file3" name="PluginEditor.h" file="Source/PluginEditor.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file4" name="PluginProcessor.cpp" file="Source/PluginProcessor.cpp"
+            compile="1" resource="0"/>
+      <FILE id="MJ08file5" name="PluginProcessor.h" file="Source/PluginProcessor.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file7" name="AudioAdapter.cpp" file="Source/dsp/AudioAdapter.cpp"
+            compile="1" resource="0"/>
+      <FILE id="MJ08file8" name="AudioAdapter.h" file="Source/dsp/AudioAdapter.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file9" name="ChorusCore.cpp" file="Source/dsp/ChorusCore.cpp"
+            compile="1" resource="0"/>
+      <FILE id="MJ08file10" name="ChorusCore.h" file="Source/dsp/ChorusCore.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file11" name="ChorusTables.h" file="Source/dsp/ChorusTables.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file12" name="CombColour.h" file="Source/dsp/CombColour.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file13" name="FXChain.h" file="Source/dsp/FXChain.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file14" name="FirmwarePrimitives.h" file="Source/dsp/FirmwarePrimitives.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file15" name="NewEffects.h" file="Source/dsp/NewEffects.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file16" name="OdinComb.h" file="Source/dsp/OdinComb.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file17" name="ParallelCombModel.h" file="Source/dsp/ParallelCombModel.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file18" name="Rack.h" file="Source/dsp/Rack.h" compile="0"
+            resource="0"/>
+      <FILE id="MJ08file19" name="Spectre.h" file="Source/dsp/Spectre.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file20" name="SpectreClassic.h" file="Source/dsp/SpectreClassic.h"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file26" name="easygate.hpp" file="Source/third_party/Uhhyou/ParallelComb/source/dsp/easygate.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file27" name="parallelcomb.hpp" file="Source/third_party/Uhhyou/ParallelComb/source/dsp/parallelcomb.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file30" name="basiclimiter.hpp" file="Source/third_party/Uhhyou/common/dsp/basiclimiter.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file31" name="constants.hpp" file="Source/third_party/Uhhyou/common/dsp/constants.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file32" name="multirate.hpp" file="Source/third_party/Uhhyou/common/dsp/multirate.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file33" name="multiratecoefficient.hpp" file="Source/third_party/Uhhyou/common/dsp/multiratecoefficient.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file34" name="smoother.hpp" file="Source/third_party/Uhhyou/common/dsp/smoother.hpp"
+            compile="0" resource="0"/>
+      <FILE id="MJ08file36" name="PixelFont.h" file="Source/ui/PixelFont.h"
+            compile="0" resource="0"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022" extraCompilerFlags="/fp:precise"
+            extraDefs="NOMINMAX=1">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="MonoJuice" optimisation="1"
+                       headerPath="../../Source" winArchitecture="x64"/>
+        <CONFIGURATION name="Release" isDebug="0" targetName="MonoJuice" optimisation="3"
+                       headerPath="../../Source" winArchitecture="x64"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors_headless" path="F:/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+    <VS2019 targetFolder="Builds/VisualStudio2019" extraCompilerFlags="/fp:precise"
+            extraDefs="NOMINMAX=1">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="MonoJuice" optimisation="1"
+                       headerPath="../../Source" winArchitecture="x64"/>
+        <CONFIGURATION name="Release" isDebug="0" targetName="MonoJuice" optimisation="3"
+                       headerPath="../../Source" winArchitecture="x64"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors_headless" path="F:/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraCompilerFlags="-fno-fast-math -ffp-contract=off">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="MonoJuice" optimisation="1"
+                       headerPath="../../Source"/>
+        <CONFIGURATION name="Release" isDebug="0" targetName="MonoJuice" optimisation="3"
+                       headerPath="../../Source"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors_headless" path="F:/JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="0" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+</JUCERPROJECT>
