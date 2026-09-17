@@ -1,0 +1,3 @@
+need buttons like screen mseg and matrix under. knobs for edit mseg, page for add new mseg random sample hold generation
+
+and dot like patchcord when drag cable from modulator to knob, list [not forever only when mod mode]
