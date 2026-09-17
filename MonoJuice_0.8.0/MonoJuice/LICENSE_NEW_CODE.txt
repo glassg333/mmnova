@@ -1,0 +1,35 @@
+MonoJuice 0.8.0 — new contribution license and scope
+Copyright (C) 2026 MonomachineNova / MonoJuice contributors
+
+The independent rack integration, factory patches, randomization, creative COMB
+control layer, master feedback/output processing, processor/editor changes and
+tests are provided under GNU General Public License version 3 only.
+License text: Licenses/Uhhyou-GPL-3.0.txt.
+This code is provided WITHOUT ANY WARRANTY, including MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
+ParallelCombModel.h and Source/third_party/Uhhyou derive from ParallelComb by
+Takamitsu Endo (ryukau@gmail.com), SPDX-License-Identifier: GPL-3.0-only.
+OdinComb.h derives from Odin 2 by TheWaveWarden, GPL-3.0-or-later; this model is
+included again in 0.8.0. Preserve Licenses/ODIN2-GPL-3.0.txt and upstream notices.
+
+Spectre.h / SpectreClassic.h retain the BSD-3-Clause attribution of Spectrum
+Pixelator, Copyright (c) 2019 Michael Nuzzo. Independently written native spectral
+code is also available under the attached BSD-3-Clause terms.
+See Licenses/SpectrumPixelator-BSD-3-Clause.txt.
+Prior independent FX3 contributions retain their scoped MIT notice in
+Licenses/FX3-MIT-CONTRIBUTIONS.txt. Earlier applicable notices remain in force.
+The test-only JUCE ScopedNoDenormal helper retains its embedded ISC notice.
+
+NO NEW LICENSE IS GRANTED FOR original Elektron firmware, reconstructed
+instructions, ChorusCore, ChorusTables, original coefficients or firmware-derived
+portions. No rights to underlying firmware are granted or relicensed here.
+
+This statement does not waive GPL requirements for a combined derivative work or
+resolve firmware permissions/license compatibility. Public/commercial distribution
+of a combined binary requires separate rights verification. Do not describe the
+whole archive as MIT or as freely licensed GPL firmware. See NOTICE_RU.md.
+
+JUCE SDK is not included; obey the terms of the installation used to build.
+The upstream oracle and historic firmware-analysis materials are test/research
+artifacts, not runtime plugin hosts, ROM loaders or emulators.

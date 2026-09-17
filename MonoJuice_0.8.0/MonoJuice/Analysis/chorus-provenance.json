@@ -1,0 +1,103 @@
+{
+  "rom_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+  "rom_size": 8388608,
+  "container_offset": "0x4000",
+  "container_size": 516024,
+  "container_byte_equality": true,
+  "sections": [
+    {
+      "index": 0,
+      "rom_offset": "0x4000",
+      "compressed_size": 165612,
+      "unpacked_size": 425858,
+      "sha256": "34aa611265241d0f3dd6ffc5eb8faba083829e310586853a70f27a7ff6a1a676"
+    },
+    {
+      "index": 1,
+      "rom_offset": "0x2c6ec",
+      "compressed_size": 7878,
+      "unpacked_size": 11226,
+      "sha256": "2bb21926ef5ae090e8912c2e50bd955e480a20f84c5cbc570c0acc3ef857db9b"
+    },
+    {
+      "index": 2,
+      "rom_offset": "0x2e5b2",
+      "compressed_size": 7791,
+      "unpacked_size": 11022,
+      "sha256": "190df676ee838667c95a07af49dffcf594f6000514f7874e7c0db48fbe5f3733"
+    },
+    {
+      "index": 3,
+      "rom_offset": "0x30421",
+      "compressed_size": 300929,
+      "unpacked_size": 336945,
+      "sha256": "97fa879968a31ce1f0c782094f233e2a7c0e624bd650d3dbe2294ef5e615ddd6"
+    },
+    {
+      "index": 4,
+      "rom_offset": "0x79baa",
+      "compressed_size": 33804,
+      "unpacked_size": 1048448,
+      "sha256": "acd97619787921912e1363198b0c1fcfb382ddc0a88dbbeb19e99162a582ef27"
+    }
+  ],
+  "records": [
+    {
+      "section": 3,
+      "header_byte_offset": "0xe0c7",
+      "area": "P",
+      "address": "0x144ac7",
+      "word_count": 258,
+      "sha256_le24": "73715272ba0dccb0a3121ae53a41079b2a8899e9914020a8c1ed5f23625712b4"
+    },
+    {
+      "section": 3,
+      "header_byte_offset": "0x1646d",
+      "area": "P",
+      "address": "0x147661",
+      "word_count": 381,
+      "sha256_le24": "159476c24cd10be4dd8865ce6735c62846f2a9f4707bd4ac1b29922f25740303"
+    }
+  ],
+  "chorus": {
+    "machine_id": 15,
+    "init_slot": "0x10017a",
+    "config_slot": "0x10019c",
+    "process_slot": "0x1001be",
+    "init": "0x147661",
+    "config": "0x14767a",
+    "process": "0x14767b",
+    "last": "0x1477dd",
+    "word_count": 381,
+    "loaded_code_byte_equality": true,
+    "code_sha256_be24": "45710b1eb4f2740e17efdfdd2f902b96481d30dc6ee4cbf053ebaf70ba9ac510"
+  },
+  "tables": {
+    "width": {
+      "address": "0x14a000",
+      "words": 4096,
+      "sha256_be24": "bf223f73206ab0d15ae4150d4a39b85487c387020f14667c44d5262964dbb524",
+      "origin": "Original OS loaded-memory capture"
+    },
+    "lowpass": {
+      "address": "0x144ac7",
+      "words": 258,
+      "sha256_be24": "976a61c5aeb6082c875cae54a1f4336c9f07c815d0d74dee80ab41fb0ccdbe16",
+      "origin": "Direct BIN decompression; loaded-memory byte equality confirmed"
+    }
+  },
+  "static_translation": {
+    "instruction_addresses": 292,
+    "address_order_equal": true,
+    "runtime_instruction_decoder": false
+  },
+  "comparison": {
+    "blocks": 24576,
+    "frames": 393216,
+    "compared_words": 103809024,
+    "mismatches": 0,
+    "golden_fnv1a64_le24": "7007ca4d75708b0f",
+    "oracle_sm_correction": true,
+    "hardware_ab": false
+  }
+}

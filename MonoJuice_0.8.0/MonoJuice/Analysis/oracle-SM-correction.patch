@@ -1,0 +1,13 @@
+diff --git a/source/dsp56kEmu/dsp_ops_alu.inl b/source/dsp56kEmu/dsp_ops_alu.inl
+index 6143591..2bf5430 100644
+--- a/source/dsp56kEmu/dsp_ops_alu.inl
++++ b/source/dsp56kEmu/dsp_ops_alu.inl
+@@ -388,6 +388,8 @@ namespace dsp56k
+ 
+ 		d.var = res;
+ 		aluMask(d);
++		// Analysis-only SM correction: DSP56300FM 3.2.3.
++		limit_arithmeticSaturation(d);
+ 
+ 		// Update SR
+ 		sr_z_update(d);
