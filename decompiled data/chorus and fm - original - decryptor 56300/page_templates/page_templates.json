@@ -1,0 +1,613 @@
+{
+  "page_names": [
+    "PTCH",
+    "SYNT",
+    "AMP",
+    "FILT",
+    "EFFX",
+    "LFO1",
+    "LFO2",
+    "LFO3"
+  ],
+  "shared_page_templates": {
+    "AMP": [
+      "K",
+      "HOLD",
+      "DEC",
+      "REL",
+      "DIST",
+      "VOL",
+      "PAN",
+      "PORT"
+    ],
+    "FILT": [
+      "BASE",
+      "WDTH",
+      "HPQ",
+      "LPQ",
+      "ATK",
+      "DEC",
+      "BOFS",
+      "WOFS"
+    ],
+    "EFFX": [
+      "EQF",
+      "EQG",
+      "SRR",
+      "DTIM",
+      "DSND",
+      "DFB",
+      "DBAS",
+      "DWID"
+    ],
+    "LFO1": [
+      "PAGE",
+      "DEST",
+      "TRIG",
+      "WAVE",
+      "MULT",
+      "SPD",
+      "INTL",
+      "DPTH"
+    ],
+    "LFO2": [
+      "PAGE",
+      "DEST",
+      "TRIG",
+      "WAVE",
+      "MULT",
+      "SPD",
+      "INTL",
+      "DPTH"
+    ],
+    "LFO3": []
+  },
+  "machines": [
+    {
+      "coldfire_offset": "0x57fb0",
+      "short_name": "GND",
+      "display_name": "GND",
+      "full_name": "GND-GND",
+      "synt_params": [
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58060",
+      "short_name": "GND",
+      "display_name": "SIN",
+      "full_name": "GND-SIN",
+      "synt_params": [
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58110",
+      "short_name": "GND",
+      "display_name": "NOIS",
+      "full_name": "GND-NOIS",
+      "synt_params": [
+        "ST",
+        "RED",
+        "STON",
+        "---",
+        "---",
+        "---",
+        "---",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58270",
+      "short_name": "SWAVE",
+      "display_name": "SAW",
+      "full_name": "SWAVE-SAW",
+      "synt_params": [
+        "UNIL",
+        "UNIW",
+        "UNIX",
+        "---",
+        "SUBX",
+        "SUB1",
+        "SUB2",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58320",
+      "short_name": "SWAVE",
+      "display_name": "PULS",
+      "full_name": "SWAVE-PULS",
+      "synt_params": [
+        "UNIL",
+        "UNIW",
+        "SUB1",
+        "SUB2",
+        "PW",
+        "PWAD",
+        "PWRS",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x583d0",
+      "short_name": "DPRO",
+      "display_name": "WAVE",
+      "full_name": "DPRO-WAVE",
+      "synt_params": [
+        "WAVE",
+        "WP",
+        "WPM",
+        "WPRS",
+        "SYNC",
+        "SFRQ",
+        "---",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x60",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58480",
+      "short_name": "DPRO",
+      "display_name": "BBOX",
+      "full_name": "DPRO-BBOX",
+      "synt_params": [
+        "PTCH",
+        "STRT",
+        "---",
+        "---",
+        "RTRG",
+        "RTIM",
+        "---",
+        "---"
+      ],
+      "defaults": [
+        "0x40",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58530",
+      "short_name": "FM+",
+      "display_name": "STAT",
+      "full_name": "FM+-STAT",
+      "synt_params": [
+        "1FRQ",
+        "1FIN",
+        "1ENV",
+        "1FB",
+        "2FRQ",
+        "2VOL",
+        "TONE",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x3c",
+        "0x40",
+        "0x50",
+        "0x1e",
+        "0x50",
+        "0x40",
+        "0x62",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x585e0",
+      "short_name": "FM+",
+      "display_name": "PAR",
+      "full_name": "FM+-PAR",
+      "synt_params": [
+        "1FRQ",
+        "1ENV",
+        "2FRQ",
+        "2ENV",
+        "3FRQ",
+        "3ENV",
+        "TONE",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x3c",
+        "0x40",
+        "0x50",
+        "0x40",
+        "0x66",
+        "0x50",
+        "0x62",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58690",
+      "short_name": "FM+",
+      "display_name": "DYN",
+      "full_name": "FM+-DYN",
+      "synt_params": [
+        "1FRQ",
+        "1FEN",
+        "1VOL",
+        "1VEN",
+        "2FRQ",
+        "2ENV",
+        "2FB",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x4a",
+        "0x50",
+        "0x1e",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58740",
+      "short_name": "VO",
+      "display_name": "VO-6",
+      "full_name": "VO-VO-6",
+      "synt_params": [
+        "VOC1",
+        "VOC2",
+        "V-SW",
+        "VOIC",
+        "CONS",
+        "CLEN",
+        "CVOL",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x60",
+        "0x0",
+        "0x0",
+        "0x40",
+        "0x40",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x587f0",
+      "short_name": "FX",
+      "display_name": "THRU",
+      "full_name": "FX-THRU",
+      "synt_params": [
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "---",
+        "INP"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x588a0",
+      "short_name": "FX",
+      "display_name": "REVERB",
+      "full_name": "FX-REVERB",
+      "synt_params": [
+        "DEC",
+        "DAMP",
+        "GATE",
+        "MIX",
+        "HP",
+        "LP",
+        "---",
+        "INP"
+      ],
+      "defaults": [
+        "0x40",
+        "0x2",
+        "0x7f",
+        "0x20",
+        "0x0",
+        "0x7f",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58950",
+      "short_name": "SWAVE",
+      "display_name": "ENS",
+      "full_name": "SWAVE-ENS",
+      "synt_params": [
+        "PCH2",
+        "PCH3",
+        "PCH4",
+        "WAVE",
+        "PW",
+        "CHRL",
+        "CHRW",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x3f",
+        "0x3f",
+        "0x3f",
+        "0x0",
+        "0x40",
+        "0x0",
+        "0x7f",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58a00",
+      "short_name": "FX",
+      "display_name": "CHORUS",
+      "full_name": "FX-CHORUS",
+      "synt_params": [
+        "DEL",
+        "DEP",
+        "SPD",
+        "MIX",
+        "FB",
+        "WID",
+        "LP",
+        "INP"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x7f",
+        "0x0",
+        "0x0",
+        "0x7f",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58ab0",
+      "short_name": "FX",
+      "display_name": "DYNAMIX",
+      "full_name": "FX-DYNAMIX",
+      "synt_params": [
+        "ATK",
+        "REL",
+        "THRS",
+        "MIX",
+        "RAT",
+        "GAIN",
+        "RMS",
+        "INP"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x7f",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58b60",
+      "short_name": "FX",
+      "display_name": "RINGMOD",
+      "full_name": "FX-RINGMOD",
+      "synt_params": [
+        "WAVE",
+        "EXT",
+        "---",
+        "MIX",
+        "---",
+        "---",
+        "---",
+        "INP"
+      ],
+      "defaults": [
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58c10",
+      "short_name": "FX",
+      "display_name": "PHASER",
+      "full_name": "FX-PHASER",
+      "synt_params": [
+        "CNTR",
+        "DEP",
+        "SPD",
+        "MIX",
+        "FB",
+        "WID",
+        "---",
+        "INP"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x7f",
+        "0x2d",
+        "0x0",
+        "0x7f",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58cc0",
+      "short_name": "FX",
+      "display_name": "FLANGER",
+      "full_name": "FX-FLANGER",
+      "synt_params": [
+        "DEL",
+        "DEP",
+        "SPD",
+        "MIX",
+        "FB",
+        "WID",
+        "---",
+        "INP"
+      ],
+      "defaults": [
+        "0x40",
+        "0x40",
+        "0x40",
+        "0x7f",
+        "0x2d",
+        "0x0",
+        "0x7f",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58d70",
+      "short_name": "DPRO",
+      "display_name": "DDRW",
+      "full_name": "DPRO-DDRW",
+      "synt_params": [
+        "WAV1",
+        "MIX",
+        "WAV2",
+        "TIME",
+        "BR1",
+        "WID",
+        "BR2",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x0",
+        "0x40",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    },
+    {
+      "coldfire_offset": "0x58e20",
+      "short_name": "DPRO",
+      "display_name": "DENS",
+      "full_name": "DPRO-DENS",
+      "synt_params": [
+        "PCH2",
+        "PCH3",
+        "PCH4",
+        "WAVE",
+        "---",
+        "CHRL",
+        "CHRW",
+        "TUNE"
+      ],
+      "defaults": [
+        "0x3f",
+        "0x3f",
+        "0x3f",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x0",
+        "0x40"
+      ]
+    }
+  ]
+}

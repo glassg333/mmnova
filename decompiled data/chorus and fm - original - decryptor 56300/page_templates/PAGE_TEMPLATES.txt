@@ -1,0 +1,81 @@
+Monomachine OS 1.32B — page parameter templates (verified from ColdFire main)
+============================================================================
+
+EACH SYNTH MACHINE HAS 7 PARAMETER PAGES:
+  PTCH  - pitch (note/velocity, not parameterized)
+  SYNT  - synth-specific (8 params, per-machine — see below)
+  AMP   - amplifier envelope + distortion + volume/pan
+  FILT  - multi-mode filter (HPQ/LPQ/width/offsets)
+  EFFX  - EQ + delay + bitcrush (per-voice effects send)
+  LFO1  - LFO 1 (dest/trig/wave/mult/spd/intl/dpth)
+  LFO2  - LFO 2 (same template)
+  LFO3  - LFO 3 (same template)
+
+SHARED PAGE TEMPLATES (same 8 params for every machine):
+
+  AMP page:  ATK HOLD DEC REL DIST VOL PAN PORT
+             ATK=Attack  HOLD=Hold  DEC=Decay  REL=Release
+             DIST=Distortion  VOL=Volume  PAN=Pan  PORT=Portamento
+
+  FILT page: BASE WDTH HPQ LPQ ATK DEC BOFS WOFS
+             BASE=Base-freq  WDTH=Width  HPQ=HP-resonance  LPQ=LP-resonance
+             ATK=Filter-attack  DEC=Filter-decay
+             BOFS=Band-offset  WOFS=Width-offset
+
+  EFFX page: EQF EQG SRR DTIM DSND DFB DBAS DWID
+             EQF=EQ-frequency  EQG=EQ-gain
+             SRR=Sample-rate-reduction (=BITCRUSH on oscillator!)
+             DTIM=Delay-time  DSND=Delay-send  DFB=Delay-feedback
+             DBAS=Delay-base  DWID=Delay-width
+
+  LFO page:  PAGE DEST TRIG WAVE MULT SPD INTL DPTH
+             PAGE=Page-target  DEST=Destination  TRIG=Trigger
+             WAVE=Waveform  MULT=Multiplier  SPD=Speed
+             INTL=Intensity  DPTH=Depth
+
+KEY DISCOVERY (corrections to previous understanding):
+  1. EQ EXISTS — but not as FX-machine. It's the EQF+EQG parameters on the
+     EFFX page of every synth machine. Two-band EQ (freq + gain) per voice.
+  2. DELAY EXISTS per-voice — DTIM/DSND/DFB/DBAS/DWID on EFFX page.
+     "Delay send" = DSND parameter, NOT a separate send-bus.
+  3. BITCRUSH EXISTS on oscillator — SRR parameter on EFFX page.
+     This is independent of the m33/DPRO-DENS machine bitcrush.
+  4. DISTORTION EXISTS — DIST parameter on AMP page of every synth machine.
+  5. FILTER EXISTS per-voice — FILT page with HPQ/LPQ multi-mode.
+  6. LFO HAS 3 INSTANCES per voice — LFO1/LFO2/LFO3, each with its own
+     destination (DEST can target any page/param), waveform, speed, depth.
+
+PER-MACHINE SYNT-PAGE PARAMS (the 8 synth-specific params):
+  m00  GND-GND       --- --- --- --- --- --- --- ---
+  m01  GND-SIN       --- --- --- --- --- --- --- TUNE
+  m02  GND-NOIS      ST RED STON --- --- --- --- TUNE
+  m03  SID-6581      PW PWAD PWRS WAVE MOD MSRC MFRQ TUNE
+  m04  SWAVE-SAW     UNIL UNIW UNIX --- SUBX SUB1 SUB2 TUNE
+  m05  SWAVE-PULS    UNIL UNIW SUB1 SUB2 PW PWAD PWRS TUNE
+  m06  DPRO-WAVE     WAVE WP WPM WPRS SYNC SFRQ --- TUNE
+  m07  DPRO-BBOX     PTCH STRT --- --- RTRG RTIM --- ---
+  m08  FM+-STAT      1FRQ 1FIN 1ENV 1FB 2FRQ 2VOL TONE TUNE
+  m09  FM+-PAR       1FRQ 1ENV 2FRQ 2ENV 3FRQ 3ENV TONE TUNE
+  m10  FM+-DYN       1FRQ 1FEN 1VOL 1VEN 2FRQ 2ENV 2FB TUNE
+  m11  VO-6          VOC1 VOC2 V-SW VOIC CONS CLEN CVOL TUNE
+  m12  FX-THRU       --- --- --- --- --- --- --- INP
+  m13  FX-REVERB     DEC DAMP GATE MIX HP LP --- INP
+  m14  SWAVE-ENS     PCH2 PCH3 PCH4 WAVE PW CHRL CHRW TUNE
+  m15  FX-CHORUS     DEL DEP SPD MIX FB WID LP INP
+  m16  FX-DYNAMIX    ATK REL THRS MIX RAT GAIN RMS INP
+  m17  FX-RINGMOD    WAVE EXT --- MIX --- --- --- INP
+  m18  FX-PHASER     CNTR DEP SPD MIX FB WID --- INP
+  m19  FX-FLANGER    DEL DEP SPD MIX FB WID --- INP
+  m32  DPRO-DDRW     WAV1 MIX WAV2 TIME BR1 WID BR2 TUNE
+  m33  DPRO-DENS     PCH2 PCH3 PCH4 WAVE --- CHRL CHRW TUNE
+
+ROUTING (how it all connects):
+  Each voice = synth_machine_output → AMP_env × DIST → FILT (HPQ/LPQ) →
+               EFFX (EQF/EQG/SRR/delay) → LFO1/2/3 modulates any of the above.
+  The AMP/FILT/EFFX/LFO processing happens in the DSP kernel (P:$0066..$0B4D
+  + P:$100000..$100700), NOT inside the synth-machine code (P:$140000+).
+  Synth-machine code only generates the raw oscillator signal; everything
+  else is kernel post-processing shared across all machines.
+
+  This is why the kernel disasm (dsp1_vectors_core.txt + dsp1_dispatch.txt)
+  is critical for full reproduction — the AMP/FILT/EFFX/LFO logic lives there.
