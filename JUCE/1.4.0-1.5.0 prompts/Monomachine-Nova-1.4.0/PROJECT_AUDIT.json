@@ -1,0 +1,32 @@
+[
+  {
+    "project": "FX",
+    "file": "Monomachine Nova FX.jucer",
+    "name": "Monomachine Nova FX",
+    "compiled_sources": [
+      "Source/PluginEditor.cpp",
+      "Source/PluginProcessor.cpp",
+      "Source/dsp/ChorusCore.cpp",
+      "Source/dsp/AudioAdapter.cpp"
+    ],
+    "checked_configurations": 6,
+    "source_paths": "all local and present",
+    "positive_compile": "PASS",
+    "negative_compile_checks": 5
+  },
+  {
+    "project": "Synth",
+    "file": "Monomachine Nova Synth.jucer",
+    "name": "Monomachine Nova Synth",
+    "compiled_sources": [
+      "Source/PluginEditor.cpp",
+      "Source/PluginProcessor.cpp",
+      "Source/dsp/ChorusCore.cpp",
+      "Source/dsp/AudioAdapter.cpp"
+    ],
+    "checked_configurations": 6,
+    "source_paths": "all local and present",
+    "positive_compile": "PASS",
+    "negative_compile_checks": 5
+  }
+]
