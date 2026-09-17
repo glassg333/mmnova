@@ -1,0 +1,14 @@
+Internal ctest changing into directory: /home/user/monojuice_08/build/native
+Test project /home/user/monojuice_08/build/native
+    Start 1: OriginalChorusGolden
+1/4 Test #1: OriginalChorusGolden .............   Passed    0.67 sec
+    Start 2: FXChain
+2/4 Test #2: FXChain ..........................   Passed    1.35 sec
+    Start 3: FX5Rack
+3/4 Test #3: FX5Rack ..........................   Passed    2.70 sec
+    Start 4: MonoJuiceFactory
+4/4 Test #4: MonoJuiceFactory .................   Passed    2.99 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   7.70 sec

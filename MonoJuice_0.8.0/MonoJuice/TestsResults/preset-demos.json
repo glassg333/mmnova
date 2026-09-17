@@ -1,0 +1,237 @@
+{
+  "version": "0.8.0",
+  "sample_rate": 44100,
+  "pcm_bits": 24,
+  "synthetic_input": "testInput in tests/PatchSettings.h; 2 seconds excitation + 2 seconds tail per segment",
+  "notes": "Constant gain per segment, RMS matched. No compression/limiting in WAV export. Compares timbre, not original output level. Native Slot only: master loop/DC/clipper excluded. Slot ON amount starts fully wet for every segment.",
+  "files": {
+    "MonoJuice_COMB_07_vs_08.wav": {
+      "seconds": 80.0,
+      "raw_sha256": "68f02544b7c37ddd568fa1fb4ac1feaa0a708710d6239fc9594faa8070288d82",
+      "wav_sha256": "96338479c19e88d69c58966dbb69ab0d635e8d14700b966d30242f7b03c87d65",
+      "common_attenuation_db": -0.2356430082663832,
+      "peak_dbfs": -3.0,
+      "segments": [
+        {
+          "start_seconds": 0,
+          "preset": 1,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 4.2479206485389875,
+          "raw_peak": 0.21608415246009827
+        },
+        {
+          "start_seconds": 4,
+          "preset": 1,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 14.499866143669545,
+          "raw_peak": 0.10362975299358368
+        },
+        {
+          "start_seconds": 8,
+          "preset": 2,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 15.32819554014071,
+          "raw_peak": 0.11484880745410919
+        },
+        {
+          "start_seconds": 12,
+          "preset": 2,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 16.3005817893694,
+          "raw_peak": 0.10681379586458206
+        },
+        {
+          "start_seconds": 16,
+          "preset": 3,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 18.05389388197671,
+          "raw_peak": 0.0718153640627861
+        },
+        {
+          "start_seconds": 20,
+          "preset": 3,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 9.05691134021996,
+          "raw_peak": 0.19159454107284546
+        },
+        {
+          "start_seconds": 24,
+          "preset": 4,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 12.679676878975366,
+          "raw_peak": 0.12846580147743225
+        },
+        {
+          "start_seconds": 28,
+          "preset": 4,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 4.5705747285632015,
+          "raw_peak": 0.22943757474422455
+        },
+        {
+          "start_seconds": 32,
+          "preset": 5,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 13.249991802182198,
+          "raw_peak": 0.09164850413799286
+        },
+        {
+          "start_seconds": 36,
+          "preset": 5,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 20.238254566969424,
+          "raw_peak": 0.07077329605817795
+        },
+        {
+          "start_seconds": 40,
+          "preset": 6,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 8.103215962258654,
+          "raw_peak": 0.15261639654636383
+        },
+        {
+          "start_seconds": 44,
+          "preset": 6,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": -4.274181548989565,
+          "raw_peak": 0.5011872053146362
+        },
+        {
+          "start_seconds": 48,
+          "preset": 7,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 5.92493192462963,
+          "raw_peak": 0.16220563650131226
+        },
+        {
+          "start_seconds": 52,
+          "preset": 7,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": -1.1227435929399612,
+          "raw_peak": 0.3548133671283722
+        },
+        {
+          "start_seconds": 56,
+          "preset": 8,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 13.171409289926173,
+          "raw_peak": 0.1516522467136383
+        },
+        {
+          "start_seconds": 60,
+          "preset": 8,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": -0.6037501306665141,
+          "raw_peak": 0.41763097047805786
+        },
+        {
+          "start_seconds": 64,
+          "preset": 9,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 7.912840192055034,
+          "raw_peak": 0.12743902206420898
+        },
+        {
+          "start_seconds": 68,
+          "preset": 9,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 0.3590398328637511,
+          "raw_peak": 0.3548133671283722
+        },
+        {
+          "start_seconds": 72,
+          "preset": 10,
+          "version": "0.7",
+          "gain_db_before_common_attenuation": 17.203270683329393,
+          "raw_peak": 0.08051219582557678
+        },
+        {
+          "start_seconds": 76,
+          "preset": 10,
+          "version": "0.8",
+          "gain_db_before_common_attenuation": 0.9505962965031698,
+          "raw_peak": 0.3548133671283722
+        }
+      ]
+    },
+    "MonoJuice_SPECTRE_CLASSIC_1-10.wav": {
+      "seconds": 40.0,
+      "raw_sha256": "fb194b671aa1b7e764804c1b8197207cabd07490cb39689e583ab25de6ecaa27",
+      "wav_sha256": "88e960375ebe5d805646422c5f89a7e11e6d36d62102967e406bae2c31a6bade",
+      "common_attenuation_db": -1.5723131511671327,
+      "peak_dbfs": -3.0,
+      "segments": [
+        {
+          "start_seconds": 0,
+          "preset": 1,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 9.692894989220019,
+          "raw_peak": 0.18937000632286072
+        },
+        {
+          "start_seconds": 4,
+          "preset": 2,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 16.603041174008993,
+          "raw_peak": 0.12544795870780945
+        },
+        {
+          "start_seconds": 8,
+          "preset": 3,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 15.53855350002204,
+          "raw_peak": 0.1363241821527481
+        },
+        {
+          "start_seconds": 12,
+          "preset": 4,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 16.19159711234437,
+          "raw_peak": 0.08944541960954666
+        },
+        {
+          "start_seconds": 16,
+          "preset": 5,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 19.953998333483266,
+          "raw_peak": 0.048084452748298645
+        },
+        {
+          "start_seconds": 20,
+          "preset": 6,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 12.022694798194127,
+          "raw_peak": 0.20601513981819153
+        },
+        {
+          "start_seconds": 24,
+          "preset": 7,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 12.842227656839164,
+          "raw_peak": 0.16527502238750458
+        },
+        {
+          "start_seconds": 28,
+          "preset": 8,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 13.225273654761779,
+          "raw_peak": 0.12221573293209076
+        },
+        {
+          "start_seconds": 32,
+          "preset": 9,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 14.800335594354355,
+          "raw_peak": 0.1074637845158577
+        },
+        {
+          "start_seconds": 36,
+          "preset": 10,
+          "version": "CLASSIC 0.5",
+          "gain_db_before_common_attenuation": 20.794898396762314,
+          "raw_peak": 0.038335170596838
+        }
+      ]
+    }
+  }
+}

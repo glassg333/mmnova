@@ -1,0 +1,242 @@
+=== MonoJuice 0.8.0 + CHORUS v1/v2 + LFO + SYNC — native verification ===
+date: 2026-09-17T08:29:58Z
+compiler: g++ (Debian 14.2.0-19) 14.2.0
+flags: -std=c++17 -O1 -fno-fast-math -ffp-contract=off (oracle: -std=c++20 -DTEST_DSP)
+tree: release/ (Source/ + tests/ synced from dev tree; see BUILD_RU.md)
+BUILD ChorusTests OK
+BUILD FXTests OK
+BUILD RackTests OK
+BUILD FactoryTests OK
+--- run ChorusTests ---
+Native golden hash: 7007ca4d75708b0f; 393216 frames / 0.13857 seconds; real-time load 0.0155409
+CONTROL DEL difference RMS=0.0238943 PASS
+CONTROL DEP difference RMS=0.0268984 PASS
+CONTROL SPD difference RMS=0.0175836 PASS
+CONTROL MIX difference RMS=0.046368 PASS
+CONTROL FB difference RMS=0.0525568 PASS
+CONTROL WID difference RMS=0.0146157 PASS
+CONTROL LP difference RMS=8.25944e-05 PASS
+CONTROL INP difference RMS=0.0555666 PASS
+Adapter 22050 Hz: latency=58 relative RMS error=8.93596e-06 PASS
+Adapter 32000 Hz: latency=69 relative RMS error=0.000165225 PASS
+Adapter 44100 Hz: latency=16 relative RMS error=1.03165e-06 PASS
+Adapter 48000 Hz: latency=87 relative RMS error=0.000147262 PASS
+Adapter 88200 Hz: latency=130 relative RMS error=1.4879e-05 PASS
+Adapter 96000 Hz: latency=139 relative RMS error=0.00011661 PASS
+Adapter 192000 Hz: latency=243 relative RMS error=0.000109961 PASS
+ALL NATIVE TESTS PASSED
+--- run FXTests ---
+CHORUS-only bit-exact 44100 PASS
+COMBO 0 @ 44100 energy=54.0157 PASS
+COMBO 1 @ 44100 energy=40.876 PASS
+COMBO 2 @ 44100 energy=5.54626 PASS
+COMBO 3 @ 44100 energy=4.24407 PASS
+COMBO 4 @ 44100 energy=20.7557 PASS
+COMBO 5 @ 44100 energy=22.2523 PASS
+COMBO 6 @ 44100 energy=3.88192 PASS
+COMBO 7 @ 44100 energy=1.8901 PASS
+CHORUS-only bit-exact 48000 PASS
+COMBO 0 @ 48000 energy=58.5453 PASS
+COMBO 1 @ 48000 energy=44.3227 PASS
+COMBO 2 @ 48000 energy=6.01472 PASS
+COMBO 3 @ 48000 energy=4.59367 PASS
+COMBO 4 @ 48000 energy=22.6801 PASS
+COMBO 5 @ 48000 energy=24.0304 PASS
+COMBO 6 @ 48000 energy=4.26188 PASS
+COMBO 7 @ 48000 energy=2.07004 PASS
+CHORUS-only bit-exact 96000 PASS
+COMBO 0 @ 96000 energy=117.193 PASS
+COMBO 1 @ 96000 energy=88.6867 PASS
+COMBO 2 @ 96000 energy=12.0366 PASS
+COMBO 3 @ 96000 energy=9.20493 PASS
+COMBO 4 @ 96000 energy=46.5344 PASS
+COMBO 5 @ 96000 energy=47.9318 PASS
+COMBO 6 @ 96000 energy=8.4962 PASS
+COMBO 7 @ 96000 energy=4.11022 PASS
+PITCH -24 -> 55Hz PASS
+PITCH -12 -> 110Hz PASS
+PITCH 12 -> 440Hz PASS
+PITCH 24 -> 880Hz PASS
+TAIL energy 3-7s: FB15=0 FB99=1791.18 FB99/METAL100=148.251 PASS
+FREEZE holds captured audio PASS
+ALL FX TESTS PASS
+--- run RackTests ---
+UPSTREAM ParallelComb @ 44100 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 3 max=0 relativeRMS=0
+Concurrent different-rate / different-OS comb instances PASS
+Spectre neutral vs 0.5.0 window 512: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 1024: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 2048: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 4096: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 8192: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 16384: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 32768: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 65536: 0 sample differences PASS
+Spectre extension 0 difference energy 0.630589 PASS
+Spectre extension 1 difference energy 2.41709 PASS
+Spectre extension 2 difference energy 2.06693 PASS
+Spectre extension 3 difference energy 0.84381 PASS
+Spectre extension 4 difference energy 0.0214439 PASS
+Spectre extension 5 difference energy 2.35418 PASS
+Spectre extension 6 difference energy 1.59257 PASS
+Spectre extension 7 difference energy 4.12577 PASS
+Spectral Freeze holds after silence, empty capture silent PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 44100 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 48000 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 96000 PASS
+120 permutations PASS
+PDC and allocation watchdog PASS
+CHORUS v1==v2 bit-exact at MIX=127 PASS
+CHORUS v1 MIX=0 legacy INP gain PASS
+CHORUS v2 MIX=0 bit-clean dry PASS
+LFO matrix affects every effect and model PASS
+LFO tempo-sync determinism PASS
+LFO block-independence PASS
+LFO +/-span extremes all types PASS
+K_LIM=0 stays finite and audible PASS
+ALL 0.6.0 TESTS PASS
+--- run FactoryTests ---
+CLASSIC exact 0.5, ignores all extension controls / window 512 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 1024 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 2048 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 4096 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 8192 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 16384 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 32768 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 65536 PASS
+36 ODIN legacy route/polarity/rate comparisons exact PASS
+Parallel kernel neutral creative layer exact PASS
+Preset 4 / 1 @ 44100 peak=0.189645 energy=30.8684 difference=62.3592 PASS
+Preset 4 / 2 @ 44100 peak=0.106814 energy=16.3461 difference=40.7125 PASS
+Preset 4 / 3 @ 44100 peak=0.146164 energy=56.7202 difference=72.1334 PASS
+Preset 4 / 4 @ 44100 peak=0.229438 energy=327.257 difference=27.1422 PASS
+Preset 4 / 5 @ 44100 peak=0.0707733 energy=6.74693 difference=52.0461 PASS
+Preset 4 / 6 @ 44100 peak=0.501187 energy=1154.27 difference=599.106 PASS
+Preset 4 / 7 @ 44100 peak=0.354813 energy=939.84 difference=538.723 PASS
+Preset 4 / 8 @ 44100 peak=0.348483 energy=591.45 difference=504.132 PASS
+Preset 4 / 9 @ 44100 peak=0.354813 energy=677.592 difference=389.219 PASS
+Preset 4 / 10 @ 44100 peak=0.354813 energy=615.425 difference=381.32 PASS
+Preset 5 / 1 @ 44100 peak=0.18937 energy=80.2268 difference=136.635 PASS
+Preset 5 / 2 @ 44100 peak=0.125448 energy=14.083 difference=72.8011 PASS
+Preset 5 / 3 @ 44100 peak=0.136324 energy=25.9104 difference=83.3847 PASS
+Preset 5 / 4 @ 44100 peak=0.0894454 energy=13.5707 difference=65.2712 PASS
+Preset 5 / 5 @ 44100 peak=0.0480845 energy=8.75426 difference=65.7611 PASS
+Preset 5 / 6 @ 44100 peak=0.206015 energy=44.8826 difference=95.6022 PASS
+Preset 5 / 7 @ 44100 peak=0.139049 energy=37.1184 difference=91.8527 PASS
+Preset 5 / 8 @ 44100 peak=0.103468 energy=25.7854 difference=65.3517 PASS
+Preset 5 / 9 @ 44100 peak=0.107464 energy=25.703 difference=80.9748 PASS
+Preset 5 / 10 @ 44100 peak=0.00489409 energy=0.0514816 difference=63.1114 PASS
+RANDOM all types and both model variants @ 44100 PASS
+Preset 4 / 1 @ 48000 peak=0.188996 energy=25.8295 difference=62.4386 PASS
+Preset 4 / 2 @ 48000 peak=0.093858 energy=16.0856 difference=43.0191 PASS
+Preset 4 / 3 @ 48000 peak=0.173375 energy=67.1247 difference=81.5922 PASS
+Preset 4 / 4 @ 48000 peak=0.2535 energy=360.679 difference=31.445 PASS
+Preset 4 / 5 @ 48000 peak=0.0687389 energy=7.91715 difference=56.4202 PASS
+Preset 4 / 6 @ 48000 peak=0.501187 energy=1257.1 difference=647.895 PASS
+Preset 4 / 7 @ 48000 peak=0.354813 energy=1005.23 difference=576.441 PASS
+Preset 4 / 8 @ 48000 peak=0.330012 energy=633.283 difference=542.501 PASS
+Preset 4 / 9 @ 48000 peak=0.354813 energy=726.115 difference=425.147 PASS
+Preset 4 / 10 @ 48000 peak=0.354813 energy=649.119 difference=407.325 PASS
+Preset 5 / 1 @ 48000 peak=0.157098 energy=76.7074 difference=143.091 PASS
+Preset 5 / 2 @ 48000 peak=0.170855 energy=16.3413 difference=86.5846 PASS
+Preset 5 / 3 @ 48000 peak=0.112934 energy=26.5179 difference=69.4538 PASS
+Preset 5 / 4 @ 48000 peak=0.0612545 energy=7.6361 difference=71.8756 PASS
+Preset 5 / 5 @ 48000 peak=0.0343418 energy=4.58388 difference=68.3081 PASS
+Preset 5 / 6 @ 48000 peak=0.18902 energy=47.0408 difference=103.254 PASS
+Preset 5 / 7 @ 48000 peak=0.125719 energy=38.7987 difference=69.3507 PASS
+Preset 5 / 8 @ 48000 peak=0.0897651 energy=18.9718 difference=76.564 PASS
+Preset 5 / 9 @ 48000 peak=0.0860367 energy=15.1435 difference=70.2581 PASS
+Preset 5 / 10 @ 48000 peak=0.0472853 energy=12.3418 difference=60.3305 PASS
+RANDOM all types and both model variants @ 48000 PASS
+Preset 4 / 1 @ 96000 peak=0.187534 energy=44.7572 difference=120.213 PASS
+Preset 4 / 2 @ 96000 peak=0.0922865 energy=31.5339 difference=85.5718 PASS
+Preset 4 / 3 @ 96000 peak=0.163819 energy=129.221 difference=162.413 PASS
+Preset 4 / 4 @ 96000 peak=0.238418 energy=722.39 difference=61.9776 PASS
+Preset 4 / 5 @ 96000 peak=0.079755 energy=20.5048 difference=116.112 PASS
+Preset 4 / 6 @ 96000 peak=0.501187 energy=2218.55 difference=1160.61 PASS
+Preset 4 / 7 @ 96000 peak=0.354813 energy=1898.15 difference=1086.2 PASS
+Preset 4 / 8 @ 96000 peak=0.347809 energy=1191.36 difference=1017.55 PASS
+Preset 4 / 9 @ 96000 peak=0.354813 energy=1374.45 difference=812.192 PASS
+Preset 4 / 10 @ 96000 peak=0.354813 energy=1239.81 difference=808.865 PASS
+Preset 5 / 1 @ 96000 peak=0.22429 energy=165.858 difference=263.2 PASS
+Preset 5 / 2 @ 96000 peak=0.108038 energy=15.7274 difference=145.505 PASS
+Preset 5 / 3 @ 96000 peak=0.104982 energy=8.20586 difference=145.88 PASS
+Preset 5 / 4 @ 96000 peak=0.10547 energy=11.2615 difference=138.517 PASS
+Preset 5 / 5 @ 96000 peak=0.0877858 energy=22.9221 difference=144.525 PASS
+Preset 5 / 6 @ 96000 peak=0.174881 energy=35.1362 difference=152.525 PASS
+Preset 5 / 7 @ 96000 peak=0.166699 energy=18.7366 difference=159.018 PASS
+Preset 5 / 8 @ 96000 peak=0.110934 energy=15.1962 difference=139.407 PASS
+Preset 5 / 9 @ 96000 peak=0.0721733 energy=10.9472 difference=149.303 PASS
+Preset 5 / 10 @ 96000 peak=0.0327476 energy=12.8509 difference=137.846 PASS
+RANDOM all types and both model variants @ 96000 PASS
+Rubber preset 6 motion difference=1666.61 PASS
+Rubber preset 7 motion difference=1556.87 PASS
+Rubber preset 8 motion difference=196.658 PASS
+Rubber preset 9 motion difference=966.758 PASS
+Rubber preset 10 motion difference=1445.72 PASS
+MASTER bipolar one-sample loop / post-clip return / DC / clip OFF+ON / high feedback / bypass / reset / block boundaries PASS
+ALL MONOJUICE 0.8 NATIVE TESTS PASS
+--- run LFO/mode asserts (release DSP) ---
+setParametersF integral-exact + fractional-intermediate PASS
+pitch semi depth             diffEnergy=25.6 PASS
+chorus v1 DEP depth          diffEnergy=1.75 PASS
+chorus v2 DEP depth          diffEnergy=1.75 PASS
+chorus v1 MIX depth          diffEnergy=0.759 PASS
+chorus v2 MIX depth          diffEnergy=0.759 PASS
+grain pitch depth            diffEnergy=3.04 PASS
+parallel fb depth            diffEnergy=457 PASS
+odin resA depth              diffEnergy=77.1 PASS
+colour drive depth           diffEnergy=129 PASS
+spectre shift depth          diffEnergy=19.8 PASS
+classic prom depth           diffEnergy=0.258 PASS
+shape sine   diffEnergy=1.75 PASS
+shape tri    diffEnergy=1.55 PASS
+shape square diffEnergy=1.71 PASS
+shape saw    diffEnergy=1.77 PASS
+shape s&h    diffEnergy=1.46 PASS
+sync determinism (2 identical ppq runs) PASS
+stopped-transport freeze PASS
+free-2Hz vs sync-1beat RMS=6.36e-06 PASS
+LFO block-independence PASS
+S&H determinism PASS
+v1 MIX=0 legacy INP gain (ratio 3.94) PASS
+v2 MIX=0 bit-clean dry @ INP=0 PASS
+v2 MIX=0 bit-clean dry @ INP=64 PASS
+v2 MIX=0 bit-clean dry @ INP=127 PASS
+v1==v2 bit-exact at MIX=127 PASS
+extreme +/-span depths, all types/models/modes/shapes/sync @ 44.1/48k PASS
+tempo garbage-input safety PASS
+K_LIM=0 bugfix (finite, audible) PASS
+ALL LFO/MODE ASSERTS PASS
+--- battery bit-exactness ---
+battery bytes: 4800000 x4 (ORIG/BASE/NEW-v1/NEW-v2)
+V1 == pre-fix BIT-EXACT
+V2 == mixfix steady-state BIT-EXACT
+--- pager check (release Source) ---
+lastPage table OK
+type 1 var 0: pages=[0, 1] counts=[4, 8] OK
+type 2 var 0: pages=[0, 1] counts=[8, 12] OK
+type 3 var 0: pages=[0, 1, 2] counts=[12, 12, 4] OK
+type 4 var 0: pages=[0, 1, 2, 3] counts=[9, 4, 12, 5] OK
+type 4 var 1: pages=[0, 1, 2, 3, 4, 5] counts=[12, 6, 7, 12, 12, 5] OK
+type 5 var 0: pages=[0, 1] counts=[2, 6] OK
+type 5 var 1: pages=[0, 1, 2] counts=[10, 10, 4] OK
+coverage (1, 0): base+depths+LFO OK
+coverage (2, 0): base+depths+LFO OK
+coverage (3, 0): base+depths+LFO OK
+coverage (4, 1): base+depths+LFO OK
+coverage (4, 0): base+depths+LFO OK
+coverage (5, 1): base+depths+LFO OK
+coverage (5, 0): base+depths+LFO OK
+PAGER CHECK ALL PASS
+RESULT: ALL PASS

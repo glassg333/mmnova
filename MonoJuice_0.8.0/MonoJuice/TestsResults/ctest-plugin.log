@@ -1,0 +1,16 @@
+Internal ctest changing into directory: /home/user/monojuice_08/build/plugin
+Test project /home/user/monojuice_08/build/plugin
+    Start 1: OriginalChorusGolden
+1/5 Test #1: OriginalChorusGolden .............   Passed    0.54 sec
+    Start 2: FXChain
+2/5 Test #2: FXChain ..........................   Passed    1.24 sec
+    Start 3: FX5Rack
+3/5 Test #3: FX5Rack ..........................   Passed    2.63 sec
+    Start 4: MonoJuiceFactory
+4/5 Test #4: MonoJuiceFactory .................   Passed    2.78 sec
+    Start 5: JUCEWrapper
+5/5 Test #5: JUCEWrapper ......................   Passed    2.22 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   9.41 sec

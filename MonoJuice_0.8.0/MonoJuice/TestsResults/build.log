@@ -1,0 +1,60 @@
+[0/2] Re-checking globbed directories...
+[1/58] Building CXX object CMakeFiles/NovaDSP.dir/Source/dsp/ChorusCore.cpp.o
+[2/58] Building CXX object CMakeFiles/NovaDSP.dir/Source/dsp/AudioAdapter.cpp.o
+[3/58] Linking CXX static library libNovaDSP.a
+[4/58] Building CXX object CMakeFiles/juce_vst3_helper.dir/usr/share/juce/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o
+[5/58] Generating MonoJuice_artefacts/JuceLibraryCode/JuceHeader.h
+[6/58] Building CXX object CMakeFiles/ParallelCombOracle.dir/tests/CombOracle.cpp.o
+[7/58] Building CXX object CMakeFiles/ParallelCombOracle.dir/Reference/Uhhyou/ParallelComb/source/dsp/dspcore.cpp.o
+[8/58] Building CXX object CMakeFiles/ParallelCombOracle.dir/Reference/Uhhyou/ParallelComb/source/parameter.cpp.o
+[9/58] Building CXX object CMakeFiles/MonoJuice.dir/Source/PluginProcessor.cpp.o
+[10/58] Building CXX object CMakeFiles/MonoJuice.dir/Source/PluginEditor.cpp.o
+[11/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_processors/juce_audio_processors.cpp.o
+[12/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_processors/juce_audio_processors_ara.cpp.o
+[13/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_processors/juce_audio_processors_lv2_libs.cpp.o
+[14/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[15/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[16/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_graphics/juce_graphics.cpp.o
+[17/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[18/58] Building C object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[19/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_events/juce_events.cpp.o
+[20/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_core/juce_core.cpp.o
+[21/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_core/juce_core_CompilationTime.cpp.o
+[22/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_data_structures/juce_data_structures.cpp.o
+[23/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[24/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[25/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[26/58] Building CXX object CMakeFiles/MonoJuice.dir/usr/share/juce/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[27/58] Linking CXX executable juce_vst3_helper
+[28/58] Building CXX object CMakeFiles/ChorusTests.dir/tests/ChorusTests.cpp.o
+[29/58] Building CXX object CMakeFiles/FXTests.dir/tests/FXTests.cpp.o
+[30/58] Building CXX object CMakeFiles/RackTests.dir/tests/RackTests.cpp.o
+[31/58] Linking CXX static library libParallelCombOracle.a
+[32/58] Building CXX object CMakeFiles/FactoryTests.dir/tests/FactoryTests.cpp.o
+[33/58] Linking CXX static library MonoJuice_artefacts/Release/libMonoJuice_SharedCode.a
+[34/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[35/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[36/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[37/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[38/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[39/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[40/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[41/58] Building CXX object CMakeFiles/MonoJuice_Standalone.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[42/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[43/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[44/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[45/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[46/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[47/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[48/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[49/58] Building CXX object CMakeFiles/MonoJuice_VST3.dir/usr/share/juce/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[50/58] Building CXX object CMakeFiles/WrapperTests.dir/tests/WrapperTests.cpp.o
+[51/58] Linking CXX executable ChorusTests
+[52/58] Linking CXX executable FXTests
+[53/58] Linking CXX executable RackTests
+[54/58] Linking CXX executable FactoryTests
+[55/58] Linking CXX executable MonoJuice_artefacts/Release/Standalone/MonoJuice
+[56/58] Linking CXX shared module MonoJuice_artefacts/Release/VST3/MonoJuice.vst3/Contents/x86_64-linux/MonoJuice.so
+removing moduleinfo.json
+creating /home/user/monojuice_08/build/plugin/MonoJuice_artefacts/Release/VST3/MonoJuice.vst3/Contents/Resources/moduleinfo.json
+[57/58] Linking CXX executable WrapperTests

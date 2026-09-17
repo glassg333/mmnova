@@ -1,0 +1,23 @@
+{
+  "release_tag": "UhhyouPlugins0.70.0",
+  "release_commit": "cd1f6404d91d41c3270ed9862cbd77e987470883",
+  "comparisons": {
+    "common/parameterInterface.hpp": true,
+    "common/value.hpp": true,
+    "test/value.hpp": true,
+    "lib/juce_ScopedNoDenormal.hpp": true,
+    "common/dsp/basiclimiter.hpp": true,
+    "common/dsp/smoother.hpp": true,
+    "common/dsp/constants.hpp": true,
+    "common/dsp/multirate.hpp": true,
+    "common/dsp/multiratecoefficient.hpp": true,
+    "common/dsp/scale.hpp": true,
+    "ParallelComb/source/parameter.hpp": true,
+    "ParallelComb/source/version.hpp": true,
+    "ParallelComb/source/parameter.cpp": true,
+    "ParallelComb/source/dsp/dspcore.hpp": true,
+    "ParallelComb/source/dsp/dspcore.cpp": true,
+    "ParallelComb/source/dsp/easygate.hpp": true,
+    "ParallelComb/source/dsp/parallelcomb.hpp": true
+  }
+}

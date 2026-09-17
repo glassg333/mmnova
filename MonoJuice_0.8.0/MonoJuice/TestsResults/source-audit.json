@@ -1,0 +1,52 @@
+{
+  "ChorusCore.cpp": {
+    "unchanged_from_0.7": false,
+    "sha256": "8e18d0ce02ee4ff9c173b95da78c7f238aba46ca6f0b5a916b5e01ad516e814e",
+    "note": "v1/v2+LFO 2026-09-17: additive float overload setParametersF + passthrough; integer path and DSP procedure untouched (golden 7007ca4d75708b0f still passes); see CHANGELOG_RU.md."
+  },
+  "ChorusCore.h": {
+    "unchanged_from_0.7": false,
+    "sha256": "e7638e793660ba30fab88a64549351d1ec3e9f952b3616336f552dfc15931800",
+    "note": "v1/v2+LFO 2026-09-17: additive setParametersF declaration; integer API untouched; see CHANGELOG_RU.md."
+  },
+  "ChorusTables.h": {
+    "unchanged_from_0.7": true,
+    "sha256": "90b207d6506b0b2b65403af5ba2a73b54400091c29d55db3f3d8cae3e5b79e9a"
+  },
+  "AudioAdapter.cpp": {
+    "unchanged_from_0.7": false,
+    "sha256": "c8ad0c12e45531f335cb9bb8f5d7627d0481b678ab6b965381bbd8e628712d20",
+    "note": "v1/v2+LFO 2026-09-17: adds direct(float)/smooth mode flag + float parameter path for V2 glide and LFO; V1 path is the pre-fix code bit-exact; see CHANGELOG_RU.md."
+  },
+  "AudioAdapter.h": {
+    "unchanged_from_0.7": false,
+    "sha256": "4b8019416451f2a14fbb7682723cdd1ca48baaa483ded3e5d1dc202343fd132f",
+    "note": "v1/v2+LFO 2026-09-17: mode flag + float API (additive); see CHANGELOG_RU.md."
+  },
+  "NewEffects.h": {
+    "unchanged_from_0.7": true,
+    "sha256": "b0de63ece4e7d55cbab31ce5bced6f985de862b0cf09d9b28658b96fd6352b8c"
+  },
+  "FirmwarePrimitives.h": {
+    "unchanged_from_0.7": true,
+    "sha256": "13d579d1330510c92673cab90d197b4eb8e99862ccbb2d27a6d64cd0489fec55"
+  },
+  "ParallelCombModel.h": {
+    "unchanged_from_0.7": false,
+    "sha256": "15432f3eec36327fb5ed7d475c28c8133ba02925849c5e5084297114c0ae8616",
+    "note": "v1/v2+LFO 2026-09-17: defensive input clamps (no-op in spec) + K_LIM=0 divide-by-zero fix (was sticky NaN mute); see CHANGELOG_RU.md."
+  },
+  "Spectre.h": {
+    "unchanged_from_0.7": true,
+    "sha256": "80f954ed36dc62a6bcc058f8428d0bb80bdb582592c3f5cbbb6878778405aea9"
+  },
+  "OdinComb.h": {
+    "matches_0.5_after_type_rename": true,
+    "sha256": "69d76ee94040f592ded0edc0f60e4ff402c56bf3e90bced818d4703a0b3b19ec"
+  },
+  "SpectreClassic.h": {
+    "processor_class_text_identical_to_0.5": true,
+    "FFT_plans_shared_via_alias": "unchanged fx::MDCTPlans",
+    "sha256": "49f89eafad25c929cbedf0af03b2974a0716f01f6909cb3ae942afac4f56c23b"
+  }
+}

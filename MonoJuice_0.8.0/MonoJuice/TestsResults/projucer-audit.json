@@ -1,0 +1,24 @@
+{
+  "VisualStudio2022": {
+    "own_cpp": [
+      "..\\..\\Source\\PluginEditor.cpp",
+      "..\\..\\Source\\PluginProcessor.cpp",
+      "..\\..\\Source\\dsp\\AudioAdapter.cpp",
+      "..\\..\\Source\\dsp\\ChorusCore.cpp"
+    ],
+    "all_CPP_paths_exist": true,
+    "C++": 17,
+    "MSVC_compiled": false
+  },
+  "VisualStudio2019": {
+    "own_cpp": [
+      "..\\..\\Source\\PluginEditor.cpp",
+      "..\\..\\Source\\PluginProcessor.cpp",
+      "..\\..\\Source\\dsp\\AudioAdapter.cpp",
+      "..\\..\\Source\\dsp\\ChorusCore.cpp"
+    ],
+    "all_CPP_paths_exist": true,
+    "C++": 17,
+    "MSVC_compiled": false
+  }
+}

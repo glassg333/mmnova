@@ -1,0 +1,9 @@
+{
+  "ParallelComb/source/dsp/easygate.hpp": "4514247a31cfdda006bd81305e3edc3bb0ef81f298fe5aeafed31ed7318c956b",
+  "ParallelComb/source/dsp/parallelcomb.hpp": "e23ef6722d9f9ab5567096dbd60ee4e87c364d3e58021b46f567e16685643910",
+  "common/dsp/basiclimiter.hpp": "ac81a28ba846e4e4a9e4d03f14310ec33a5c7ad83684c6012b58a5fd212af379",
+  "common/dsp/smoother.hpp": "78eecb18ac8f37ff273403913494e1b32e5128bc9e95fb342725f617a3702f8b",
+  "common/dsp/constants.hpp": "1e17a3180b524dd14f8da999dd93dbcc51e91de132d9ba23ea70a9f32dc8c9b6",
+  "common/dsp/multirate.hpp": "22ea3e081e78c0598db1f35bc3fb0b0f63c6c6e59168cd60d6736f6d82ed299c",
+  "common/dsp/multiratecoefficient.hpp": "ee2106f1205c0205e7b9a9cbd1a34b84222e0a849471c0634407e74fada47fed"
+}

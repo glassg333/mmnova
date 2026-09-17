@@ -1,0 +1,10 @@
+[0/2] Re-checking globbed directories...
+[1/8] Building CXX object CMakeFiles/MonomachineNovaFX5.dir/Source/PluginProcessor.cpp.o
+[2/8] Building CXX object CMakeFiles/MonomachineNovaFX5.dir/Source/PluginEditor.cpp.o
+[3/8] Linking CXX static library "MonomachineNovaFX5_artefacts/Release/libMonomachineNova FX5_SharedCode.a"
+[4/8] Building CXX object CMakeFiles/WrapperTests.dir/tests/WrapperTests.cpp.o
+[5/8] Linking CXX executable "MonomachineNovaFX5_artefacts/Release/Standalone/MonomachineNova FX5"
+[6/8] Linking CXX shared module "MonomachineNovaFX5_artefacts/Release/VST3/MonomachineNova FX5.vst3/Contents/x86_64-linux/MonomachineNova FX5.so"
+removing moduleinfo.json
+creating /home/user/nova_fx5_06/build/plugin/MonomachineNovaFX5_artefacts/Release/VST3/MonomachineNova FX5.vst3/Contents/Resources/moduleinfo.json
+[7/8] Linking CXX executable WrapperTests

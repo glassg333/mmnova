@@ -1,0 +1,25 @@
+{
+  "repo": "https://github.com/ryukau/VSTPlugins",
+  "commit": "cd1f6404d91d41c3270ed9862cbd77e987470883",
+  "version": "0.2.14",
+  "drive_folder": "https://drive.google.com/drive/folders/1sX4XPcXGp1W4EGW37mldFIfKZ8yJ9Xpk",
+  "files": {
+    "common/parameterInterface.hpp": "98cdd1857459211e59183b1110b92848dab7ef21ab908bd64714725622c02af1",
+    "common/value.hpp": "24854aa0e48c1df41804a135406ec37ed0811f0f3e56ef90c709d948c82d36ab",
+    "test/value.hpp": "291d6885b1c0621216744c33817230a7641e4cad8b3218db60494ba7215a3dd3",
+    "lib/juce_ScopedNoDenormal.hpp": "8774e7f87dcd44a2a6706d2b8efe5b0d7a18ab89733b86a2b8d36d25206849e2",
+    "common/dsp/basiclimiter.hpp": "ac81a28ba846e4e4a9e4d03f14310ec33a5c7ad83684c6012b58a5fd212af379",
+    "common/dsp/smoother.hpp": "78eecb18ac8f37ff273403913494e1b32e5128bc9e95fb342725f617a3702f8b",
+    "common/dsp/constants.hpp": "1e17a3180b524dd14f8da999dd93dbcc51e91de132d9ba23ea70a9f32dc8c9b6",
+    "common/dsp/multirate.hpp": "22ea3e081e78c0598db1f35bc3fb0b0f63c6c6e59168cd60d6736f6d82ed299c",
+    "common/dsp/multiratecoefficient.hpp": "ee2106f1205c0205e7b9a9cbd1a34b84222e0a849471c0634407e74fada47fed",
+    "common/dsp/scale.hpp": "c3d954f0eb0be8ced0de6afa6a497ab3ab0711132f884a306cdc63a21991ce1e",
+    "ParallelComb/source/parameter.hpp": "e33ae607c00924722b8f66a2017517f9cf7244f86d00cd6087ce88b5d85ee486",
+    "ParallelComb/source/version.hpp": "26b58f7599c4674df3c910ec85a51a8ace16af87ce74eb07e0f75c9933c699de",
+    "ParallelComb/source/parameter.cpp": "befd357ecfda1da9d5ec2792f2fa429f267929b65b0ecb85207bd7fe6037ea95",
+    "ParallelComb/source/dsp/dspcore.hpp": "66383dabc469218ee80278b3b5f41dde6e0d3d320c56f4a96fe5798309bc26d9",
+    "ParallelComb/source/dsp/dspcore.cpp": "6048e6efd13bd1cfdb1f02d3fb39735f471271da25641d877936d0cd9648f3b7",
+    "ParallelComb/source/dsp/easygate.hpp": "4514247a31cfdda006bd81305e3edc3bb0ef81f298fe5aeafed31ed7318c956b",
+    "ParallelComb/source/dsp/parallelcomb.hpp": "e23ef6722d9f9ab5567096dbd60ee4e87c364d3e58021b46f567e16685643910"
+  }
+}

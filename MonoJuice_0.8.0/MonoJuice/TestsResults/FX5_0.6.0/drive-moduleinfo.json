@@ -1,0 +1,47 @@
+{
+  "Name": "ParallelComb",
+  "Version": "0.70.0",
+  "Factory Info": {
+    "Vendor": "Uhhyou",
+    "URL": "",
+    "E-Mail": "ryukau@gmail.com",
+    "Flags": {
+      "Unicode": true,
+      "Classes Discardable": false,
+      "Component Non Discardable": false
+    }
+  },
+  "Classes": [
+    {
+      "CID": "885129EAFB1F40189877B912E7F740AF",
+      "Category": "Audio Module Class",
+      "Name": "ParallelComb",
+      "Vendor": "Uhhyou",
+      "Version": "0.2.14.14",
+      "SDKVersion": "VST 3.7.14",
+      "Sub Categories": [
+        "Fx",
+        "Delay"
+      ],
+      "Class Flags": 1,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+        {
+          "Scale Factor": 1,
+          "Path": "Contents/Resources/Snapshots/885129EAFB1F40189877B912E7F740AF_snapshot.png"
+        }
+      ]
+    },
+    {
+      "CID": "DDE8C90E86914010AF3B238C3390945D",
+      "Category": "Component Controller Class",
+      "Name": "ParallelCombController",
+      "Vendor": "Uhhyou",
+      "Version": "0.2.14.14",
+      "SDKVersion": "VST 3.7.14",
+      "Class Flags": 0,
+      "Cardinality": 2147483647,
+      "Snapshots": []
+    }
+  ]
+}

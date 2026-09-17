@@ -1,0 +1,10 @@
+[0/2] Re-checking globbed directories...
+[1/8] Building CXX object CMakeFiles/MonoJuice.dir/Source/PluginProcessor.cpp.o
+[2/8] Building CXX object CMakeFiles/FactoryTests.dir/tests/FactoryTests.cpp.o
+[3/8] Linking CXX static library MonoJuice_artefacts/Release/libMonoJuice_SharedCode.a
+[4/8] Linking CXX executable FactoryTests
+[5/8] Linking CXX executable MonoJuice_artefacts/Release/Standalone/MonoJuice
+[6/8] Linking CXX shared module MonoJuice_artefacts/Release/VST3/MonoJuice.vst3/Contents/x86_64-linux/MonoJuice.so
+removing moduleinfo.json
+creating /home/user/monojuice_08/build/plugin/MonoJuice_artefacts/Release/VST3/MonoJuice.vst3/Contents/Resources/moduleinfo.json
+[7/8] Linking CXX executable WrapperTests

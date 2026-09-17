@@ -1,0 +1,80 @@
+CLASSIC exact 0.5, ignores all extension controls / window 512 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 1024 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 2048 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 4096 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 8192 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 16384 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 32768 PASS
+CLASSIC exact 0.5, ignores all extension controls / window 65536 PASS
+36 ODIN legacy route/polarity/rate comparisons exact PASS
+Parallel kernel neutral creative layer exact PASS
+Preset 4 / 1 @ 44100 peak=0.189645 energy=30.8684 difference=62.3592 PASS
+Preset 4 / 2 @ 44100 peak=0.106814 energy=16.3461 difference=40.7125 PASS
+Preset 4 / 3 @ 44100 peak=0.146164 energy=56.7202 difference=72.1334 PASS
+Preset 4 / 4 @ 44100 peak=0.229438 energy=327.257 difference=27.1422 PASS
+Preset 4 / 5 @ 44100 peak=0.0707733 energy=6.74693 difference=52.0461 PASS
+Preset 4 / 6 @ 44100 peak=0.501187 energy=1154.27 difference=599.106 PASS
+Preset 4 / 7 @ 44100 peak=0.354813 energy=939.84 difference=538.723 PASS
+Preset 4 / 8 @ 44100 peak=0.348483 energy=591.45 difference=504.132 PASS
+Preset 4 / 9 @ 44100 peak=0.354813 energy=677.592 difference=389.219 PASS
+Preset 4 / 10 @ 44100 peak=0.354813 energy=615.425 difference=381.32 PASS
+Preset 5 / 1 @ 44100 peak=0.18937 energy=80.2268 difference=136.635 PASS
+Preset 5 / 2 @ 44100 peak=0.125448 energy=14.083 difference=72.8011 PASS
+Preset 5 / 3 @ 44100 peak=0.136324 energy=25.9104 difference=83.3847 PASS
+Preset 5 / 4 @ 44100 peak=0.0894454 energy=13.5707 difference=65.2712 PASS
+Preset 5 / 5 @ 44100 peak=0.0480845 energy=8.75426 difference=65.7611 PASS
+Preset 5 / 6 @ 44100 peak=0.206015 energy=44.8826 difference=95.6022 PASS
+Preset 5 / 7 @ 44100 peak=0.139049 energy=37.1184 difference=91.8527 PASS
+Preset 5 / 8 @ 44100 peak=0.103468 energy=25.7854 difference=65.3517 PASS
+Preset 5 / 9 @ 44100 peak=0.107464 energy=25.703 difference=80.9748 PASS
+Preset 5 / 10 @ 44100 peak=0.00489409 energy=0.0514816 difference=63.1114 PASS
+RANDOM all types and both model variants @ 44100 PASS
+Preset 4 / 1 @ 48000 peak=0.188996 energy=25.8295 difference=62.4386 PASS
+Preset 4 / 2 @ 48000 peak=0.093858 energy=16.0856 difference=43.0191 PASS
+Preset 4 / 3 @ 48000 peak=0.173375 energy=67.1247 difference=81.5922 PASS
+Preset 4 / 4 @ 48000 peak=0.2535 energy=360.679 difference=31.445 PASS
+Preset 4 / 5 @ 48000 peak=0.0687389 energy=7.91715 difference=56.4202 PASS
+Preset 4 / 6 @ 48000 peak=0.501187 energy=1257.1 difference=647.895 PASS
+Preset 4 / 7 @ 48000 peak=0.354813 energy=1005.23 difference=576.441 PASS
+Preset 4 / 8 @ 48000 peak=0.330012 energy=633.283 difference=542.501 PASS
+Preset 4 / 9 @ 48000 peak=0.354813 energy=726.115 difference=425.147 PASS
+Preset 4 / 10 @ 48000 peak=0.354813 energy=649.119 difference=407.325 PASS
+Preset 5 / 1 @ 48000 peak=0.157098 energy=76.7074 difference=143.091 PASS
+Preset 5 / 2 @ 48000 peak=0.170855 energy=16.3413 difference=86.5846 PASS
+Preset 5 / 3 @ 48000 peak=0.112934 energy=26.5179 difference=69.4538 PASS
+Preset 5 / 4 @ 48000 peak=0.0612545 energy=7.6361 difference=71.8756 PASS
+Preset 5 / 5 @ 48000 peak=0.0343418 energy=4.58388 difference=68.3081 PASS
+Preset 5 / 6 @ 48000 peak=0.18902 energy=47.0408 difference=103.254 PASS
+Preset 5 / 7 @ 48000 peak=0.125719 energy=38.7987 difference=69.3507 PASS
+Preset 5 / 8 @ 48000 peak=0.0897651 energy=18.9718 difference=76.564 PASS
+Preset 5 / 9 @ 48000 peak=0.0860367 energy=15.1435 difference=70.2581 PASS
+Preset 5 / 10 @ 48000 peak=0.0472853 energy=12.3418 difference=60.3305 PASS
+RANDOM all types and both model variants @ 48000 PASS
+Preset 4 / 1 @ 96000 peak=0.187534 energy=44.7572 difference=120.213 PASS
+Preset 4 / 2 @ 96000 peak=0.0922865 energy=31.5339 difference=85.5718 PASS
+Preset 4 / 3 @ 96000 peak=0.163819 energy=129.221 difference=162.413 PASS
+Preset 4 / 4 @ 96000 peak=0.238418 energy=722.39 difference=61.9776 PASS
+Preset 4 / 5 @ 96000 peak=0.079755 energy=20.5048 difference=116.112 PASS
+Preset 4 / 6 @ 96000 peak=0.501187 energy=2218.55 difference=1160.61 PASS
+Preset 4 / 7 @ 96000 peak=0.354813 energy=1898.15 difference=1086.2 PASS
+Preset 4 / 8 @ 96000 peak=0.347809 energy=1191.36 difference=1017.55 PASS
+Preset 4 / 9 @ 96000 peak=0.354813 energy=1374.45 difference=812.192 PASS
+Preset 4 / 10 @ 96000 peak=0.354813 energy=1239.81 difference=808.865 PASS
+Preset 5 / 1 @ 96000 peak=0.22429 energy=165.858 difference=263.2 PASS
+Preset 5 / 2 @ 96000 peak=0.108038 energy=15.7274 difference=145.505 PASS
+Preset 5 / 3 @ 96000 peak=0.104982 energy=8.20586 difference=145.88 PASS
+Preset 5 / 4 @ 96000 peak=0.10547 energy=11.2615 difference=138.517 PASS
+Preset 5 / 5 @ 96000 peak=0.0877858 energy=22.9221 difference=144.525 PASS
+Preset 5 / 6 @ 96000 peak=0.174881 energy=35.1362 difference=152.525 PASS
+Preset 5 / 7 @ 96000 peak=0.166699 energy=18.7366 difference=159.018 PASS
+Preset 5 / 8 @ 96000 peak=0.110934 energy=15.1962 difference=139.407 PASS
+Preset 5 / 9 @ 96000 peak=0.0721733 energy=10.9472 difference=149.303 PASS
+Preset 5 / 10 @ 96000 peak=0.0327476 energy=12.8509 difference=137.846 PASS
+RANDOM all types and both model variants @ 96000 PASS
+Rubber preset 6 motion difference=1666.61 PASS
+Rubber preset 7 motion difference=1556.87 PASS
+Rubber preset 8 motion difference=196.658 PASS
+Rubber preset 9 motion difference=966.758 PASS
+Rubber preset 10 motion difference=1445.72 PASS
+MASTER bipolar one-sample loop / post-clip return / DC / clip OFF+ON / high feedback / bypass / reset / block boundaries PASS
+ALL MONOJUICE 0.8 NATIVE TESTS PASS

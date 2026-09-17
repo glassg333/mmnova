@@ -1,0 +1,14 @@
+Internal ctest changing into directory: /home/user/nova_fx5_06/build/plugin
+Test project /home/user/nova_fx5_06/build/plugin
+    Start 1: OriginalChorusGolden
+1/4 Test #1: OriginalChorusGolden .............   Passed    0.69 sec
+    Start 2: FXChain
+2/4 Test #2: FXChain ..........................   Passed    1.37 sec
+    Start 3: FX5Rack
+3/4 Test #3: FX5Rack ..........................   Passed    2.36 sec
+    Start 4: JUCEWrapper
+4/4 Test #4: JUCEWrapper ......................   Passed    1.47 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =   5.92 sec

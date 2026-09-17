@@ -1,0 +1,36 @@
+UPSTREAM ParallelComb @ 44100 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 3 max=0 relativeRMS=0
+Concurrent different-rate / different-OS comb instances PASS
+Spectre neutral vs 0.5.0 window 512: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 1024: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 2048: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 4096: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 8192: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 16384: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 32768: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 65536: 0 sample differences PASS
+Spectre extension 0 difference energy 0.630589 PASS
+Spectre extension 1 difference energy 2.41709 PASS
+Spectre extension 2 difference energy 2.06693 PASS
+Spectre extension 3 difference energy 0.84381 PASS
+Spectre extension 4 difference energy 0.0214439 PASS
+Spectre extension 5 difference energy 2.35418 PASS
+Spectre extension 6 difference energy 1.59257 PASS
+Spectre extension 7 difference energy 4.12577 PASS
+Spectral Freeze holds after silence, empty capture silent PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 44100 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 48000 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 96000 PASS
+120 permutations PASS
+PDC and allocation watchdog PASS
+ALL 0.6.0 TESTS PASS

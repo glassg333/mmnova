@@ -1,0 +1,19 @@
+JUCE 5 x type 0 @ 44100 variable blocks PASS
+JUCE 5 x type 1 @ 44100 variable blocks PASS
+JUCE 5 x type 2 @ 44100 variable blocks PASS
+JUCE 5 x type 3 @ 44100 variable blocks PASS
+JUCE 5 x type 4 @ 44100 variable blocks PASS
+JUCE 5 x type 5 @ 44100 variable blocks PASS
+JUCE 5 x type 0 @ 48000 variable blocks PASS
+JUCE 5 x type 1 @ 48000 variable blocks PASS
+JUCE 5 x type 2 @ 48000 variable blocks PASS
+JUCE 5 x type 3 @ 48000 variable blocks PASS
+JUCE 5 x type 4 @ 48000 variable blocks PASS
+JUCE 5 x type 5 @ 48000 variable blocks PASS
+JUCE 5 x type 0 @ 96000 variable blocks PASS
+JUCE 5 x type 1 @ 96000 variable blocks PASS
+JUCE 5 x type 2 @ 96000 variable blocks PASS
+JUCE 5 x type 3 @ 96000 variable blocks PASS
+JUCE 5 x type 4 @ 96000 variable blocks PASS
+JUCE 5 x type 5 @ 96000 variable blocks PASS
+296 PARAMS / FULL STATE / BOTH LEGACY FORMATS / SLOT SWAP / ISOLATED INIT / MONO / 260 KNOB BINDINGS / COMBOS / DARK GUI PASS

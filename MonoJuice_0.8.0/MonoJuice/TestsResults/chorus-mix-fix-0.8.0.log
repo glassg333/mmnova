@@ -1,0 +1,123 @@
+=== MonoJuice 0.8.0 + CHORUS MIX fix — native verification ===
+date: 2026-09-17T07:39:11Z  compiler: g++ (Debian 14.2.0-19) 14.2.0
+BUILD ChorusTests OK
+BUILD FXTests OK
+BUILD RackTests OK
+BUILD FactoryTests OK
+--- run ChorusTests ---
+Native golden hash: 7007ca4d75708b0f; 393216 frames / 0.104625 seconds; real-time load 0.0117339
+CONTROL DEL difference RMS=0.0238943 PASS
+CONTROL DEP difference RMS=0.0268984 PASS
+CONTROL SPD difference RMS=0.0175836 PASS
+CONTROL MIX difference RMS=0.046368 PASS
+CONTROL FB difference RMS=0.0525568 PASS
+CONTROL WID difference RMS=0.0146157 PASS
+CONTROL LP difference RMS=8.25944e-05 PASS
+CONTROL INP difference RMS=0.0555666 PASS
+Adapter 22050 Hz: latency=58 relative RMS error=8.93596e-06 PASS
+Adapter 32000 Hz: latency=69 relative RMS error=0.000165225 PASS
+Adapter 44100 Hz: latency=16 relative RMS error=1.03165e-06 PASS
+Adapter 48000 Hz: latency=87 relative RMS error=0.000147262 PASS
+Adapter 88200 Hz: latency=130 relative RMS error=1.4879e-05 PASS
+Adapter 96000 Hz: latency=139 relative RMS error=0.00011661 PASS
+Adapter 192000 Hz: latency=243 relative RMS error=0.000109961 PASS
+ALL NATIVE TESTS PASSED
+--- run FXTests ---
+CHORUS-only bit-exact 44100 PASS
+COMBO 0 @ 44100 energy=54.0157 PASS
+COMBO 1 @ 44100 energy=40.876 PASS
+COMBO 2 @ 44100 energy=5.54626 PASS
+COMBO 3 @ 44100 energy=4.24407 PASS
+COMBO 4 @ 44100 energy=20.7557 PASS
+COMBO 5 @ 44100 energy=22.2523 PASS
+COMBO 6 @ 44100 energy=3.88192 PASS
+COMBO 7 @ 44100 energy=1.8901 PASS
+CHORUS-only bit-exact 48000 PASS
+COMBO 0 @ 48000 energy=58.5453 PASS
+COMBO 1 @ 48000 energy=44.3227 PASS
+COMBO 2 @ 48000 energy=6.01472 PASS
+COMBO 3 @ 48000 energy=4.59367 PASS
+COMBO 4 @ 48000 energy=22.6801 PASS
+COMBO 5 @ 48000 energy=24.0304 PASS
+COMBO 6 @ 48000 energy=4.26188 PASS
+COMBO 7 @ 48000 energy=2.07004 PASS
+CHORUS-only bit-exact 96000 PASS
+COMBO 0 @ 96000 energy=117.193 PASS
+COMBO 1 @ 96000 energy=88.6867 PASS
+COMBO 2 @ 96000 energy=12.0366 PASS
+COMBO 3 @ 96000 energy=9.20493 PASS
+COMBO 4 @ 96000 energy=46.5344 PASS
+COMBO 5 @ 96000 energy=47.9318 PASS
+COMBO 6 @ 96000 energy=8.4962 PASS
+COMBO 7 @ 96000 energy=4.11022 PASS
+PITCH -24 -> 55Hz PASS
+PITCH -12 -> 110Hz PASS
+PITCH 12 -> 440Hz PASS
+PITCH 24 -> 880Hz PASS
+TAIL energy 3-7s: FB15=0 FB99=1791.18 FB99/METAL100=148.251 PASS
+FREEZE holds captured audio PASS
+ALL FX TESTS PASS
+--- run RackTests ---
+UPSTREAM ParallelComb @ 44100 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 44100 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 48000 mode 3 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 0 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 1 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 2 max=0 relativeRMS=0
+UPSTREAM ParallelComb @ 96000 mode 3 max=0 relativeRMS=0
+Concurrent different-rate / different-OS comb instances PASS
+Spectre neutral vs 0.5.0 window 512: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 1024: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 2048: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 4096: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 8192: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 16384: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 32768: 0 sample differences PASS
+Spectre neutral vs 0.5.0 window 65536: 0 sample differences PASS
+Spectre extension 0 difference energy 0.630589 PASS
+Spectre extension 1 difference energy 2.41709 PASS
+Spectre extension 2 difference energy 2.06693 PASS
+Spectre extension 3 difference energy 0.84381 PASS
+Spectre extension 4 difference energy 0.0214439 PASS
+Spectre extension 5 difference energy 2.35418 PASS
+Spectre extension 6 difference energy 1.59257 PASS
+Spectre extension 7 difference energy 4.12577 PASS
+Spectral Freeze holds after silence, empty capture silent PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 44100 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 48000 PASS
+CHORUS bit-exact / all five-repeat types / 32 masks @ 96000 PASS
+120 permutations PASS
+PDC and allocation watchdog PASS
+ALL 0.6.0 TESTS PASS
+--- run FactoryTests ---
+Rubber preset 8 motion difference=196.658 PASS
+Rubber preset 9 motion difference=966.758 PASS
+Rubber preset 10 motion difference=1445.72 PASS
+MASTER bipolar one-sample loop / post-clip return / DC / clip OFF+ON / high feedback / bypass / reset / block boundaries PASS
+ALL MONOJUICE 0.8 NATIVE TESTS PASS
+--- run MIX-fix checks ---
+PASS rack==adapter bit-exact @44100
+PASS rack==adapter bit-exact @48000
+PASS rack==adapter bit-exact @96000
+PASS fxchain==adapter bit-exact @44100
+PASS fxchain==adapter bit-exact @48000
+PASS MIX=0 bit-exact dry INP=0
+PASS MIX=0 bit-exact dry INP=16
+PASS MIX=0 bit-exact dry INP=32
+PASS MIX=0 bit-exact dry INP=64
+PASS MIX=0 bit-exact dry INP=100
+PASS MIX=0 bit-exact dry INP=127
+INFO MIX step: first-sample diff=0.02244 settle=876 samples (19.9 ms)
+PASS MIX step smoothed ~20ms
+INFO INP step applied gradually (no assert, see settle above)
+HASH defaults(MIX127) = 514097887a42d76d
+HASH mix0/inp64        = 82347f62f9ee98c0
+HASH mix64/inp64       = 7e0f3f676de7c511
+HASH mix0/inp32        = 82347f62f9ee98c0
+HASH mix127/inp100/fb40= 075f64b9d4d49a00
+RESULT: ALL PASS

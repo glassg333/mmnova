@@ -1,0 +1,18 @@
+[  7%] Building CXX object CMakeFiles/NovaDSP.dir/Source/dsp/ChorusCore.cpp.o
+[ 15%] Building CXX object CMakeFiles/NovaDSP.dir/Source/dsp/AudioAdapter.cpp.o
+[ 23%] Linking CXX static library libNovaDSP.a
+[ 23%] Built target NovaDSP
+[ 30%] Building CXX object CMakeFiles/ChorusTests.dir/tests/ChorusTests.cpp.o
+[ 38%] Linking CXX executable ChorusTests
+[ 38%] Built target ChorusTests
+[ 46%] Building CXX object CMakeFiles/FXTests.dir/tests/FXTests.cpp.o
+[ 53%] Linking CXX executable FXTests
+[ 53%] Built target FXTests
+[ 61%] Building CXX object CMakeFiles/ParallelCombOracle.dir/tests/CombOracle.cpp.o
+[ 69%] Building CXX object CMakeFiles/ParallelCombOracle.dir/Reference/Uhhyou/ParallelComb/source/dsp/dspcore.cpp.o
+[ 76%] Building CXX object CMakeFiles/ParallelCombOracle.dir/Reference/Uhhyou/ParallelComb/source/parameter.cpp.o
+[ 84%] Linking CXX static library libParallelCombOracle.a
+[ 84%] Built target ParallelCombOracle
+[ 92%] Building CXX object CMakeFiles/RackTests.dir/tests/RackTests.cpp.o
+[100%] Linking CXX executable RackTests
+[100%] Built target RackTests

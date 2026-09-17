@@ -1,0 +1,98 @@
+{
+  "version": "0.6.0",
+  "sample_rate": 44100,
+  "channels": 2,
+  "seconds": 10,
+  "pcm_bits": 24,
+  "frames": 441000,
+  "source": "tests/RackTests.cpp optional output; deterministic stereo multi-sine with exponentially decaying 0.5-second envelopes for first 4 seconds, then 6 seconds of zero input",
+  "source_raw_sha256": "2be2869c3383af885c549d599b3356a27e62ae8a9d55f6603ad82ca5714d8751",
+  "wav_sha256": "4f1deaad10d1a0f32e48b9550da19592067137fe0971a5fe6a0ffb9cf8ec76cf",
+  "raw_peak": 0.005495367106050253,
+  "constant_gain": 162.18223840814966,
+  "constant_gain_db": 44.2000658034576,
+  "output_peak_dbfs": -0.9999999999999997,
+  "output_rms_dbfs": -18.700670558432183,
+  "tail_last_second_rms_dbfs": -99.29560563785557,
+  "peak_normalization_only": true,
+  "limiting_or_compression_in_export": false,
+  "all_slots_on": true,
+  "rack_order": [
+    "COMB",
+    "PITCH",
+    "CHORUS",
+    "SPECTRE",
+    "GRANULAR"
+  ],
+  "settings": {
+    "COMB": {
+      "delay_ms": [
+        7.5,
+        11,
+        17,
+        23
+      ],
+      "multiplier": 1,
+      "feedback_percent": 23,
+      "highpass_hz": 5,
+      "limiter_release_ms": 200,
+      "slew_rate": 0.5,
+      "time_smoothing_ms": 0,
+      "lean_percent": 0,
+      "cross_percent": 0,
+      "feedback_to_time": 0,
+      "gate_db": -140,
+      "gate_release_ms": 10,
+      "dry_db": 0,
+      "wet_db": -12,
+      "tune_st": 0,
+      "mid_side": false,
+      "oversampling": false
+    },
+    "PITCH": {
+      "shift_st": 7,
+      "fine_ct": 0,
+      "window_ms": 80,
+      "mix_percent": 100
+    },
+    "CHORUS": {
+      "DEL": 64,
+      "DEP": 64,
+      "SPD": 64,
+      "MIX": 127,
+      "FB": 0,
+      "WID": 0,
+      "LP": 127,
+      "INP": 64
+    },
+    "SPECTRE": {
+      "prominence_db": 15,
+      "mix_percent": 70,
+      "window_samples": 2048,
+      "low_hz": 100,
+      "high_hz": 8000,
+      "max_peaks": 24,
+      "width_bins": 2,
+      "reject_db": -36,
+      "attack_ms": 30,
+      "release_ms": 160,
+      "shift_st": 0,
+      "freeze": false
+    },
+    "GRANULAR": {
+      "size_ms": 180,
+      "density": 36,
+      "position_ms": 250,
+      "spray_ms": 8,
+      "pitch_st": 0,
+      "jitter_ct": 0,
+      "width_percent": 80,
+      "mix_percent": 60,
+      "feedback_percent": 95,
+      "metal_percent": 85,
+      "tone_hz": 7000,
+      "reverse_percent": 0,
+      "freeze": false
+    }
+  }
+}
