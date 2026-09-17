@@ -1,0 +1,2 @@
+ обновлено: dsp/MnmAmp.h, dsp/MnmFilter.h, dsp/MnmKernelTables.h (таблицы VERBATIM), rig/ (стенд + патчи эмулятора),docs/KERNEL_CHAIN_RU.md (все адреса и статусы).
+Что дальше: остался один пробел — точный скейлинг ColdFire→DSP (какие байты патча в какие V-offset). Он закрывается дизасмом coldfire_main.bin — могу сделать следующей итерацией, тогда DIST/FILT соберутся в цепочку до бита. Скажи, если пойти туда.
