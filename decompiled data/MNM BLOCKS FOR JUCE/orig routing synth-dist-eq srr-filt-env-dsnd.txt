@@ -1,0 +1,33 @@
+  
+  orig routing synth-dist-eq srr-filt-env-dsnd проверил на слух через эмуляцию
+  а это надо проверить
+  │
+        ▼
+  Filter Env (AD, не ADSR)          ← ручки ATK / DEC   [модулятор]
+        │
+        ├─ × BOFS  ──►  BASE'  = BASE  + env·BOFS     →  HP cutoff
+        └─ × WOFS  ──►  WDTH'  = WDTH  + env·WOFS     →  LP cutoff = BASE'+WDTH'
+                              │
+                              ▼
+                   24-bit DIV   P:$586  do #&lt;$18 ; div
+                   делимое = TBL[$143F95 + x0×$4AF] + TBL[$144446 + y0×$80]
+                   делитель = (a &gt;&gt; 1)
+                              │
+                              ▼
+                   Y:$91+   готовые f и q на 16 сэмплов
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+     HP SVF  P:$05D3–$05E8          LP SVF  P:$05EB–$05FA
+     do #&lt;$8, 8×2 аккумулятора      вторая такая же петля
+     Q читается из Y:$91+            Q читается из Y:$91+ (другой слот)
+     зашито в петлю:                 зашито в петлю:
+       x0 = $F528BD = −0.084694564     те же две константы
+       x1 = $4A4DF0 = +0.580503464     (это НЕ ручки Q!)< если эмулятор собирать не хочется
+В core/monomachine_engine.cpp (44 КБ) есть функция с готовым ответом:
+
+static std::size_t parameterPageOffset(Parameter parameter) noexcept;
+Она отображает каждый параметр в смещение внутри страницы. Достаточно её найти:
+
+grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp
+Файл 44 КБ — мой загрузчик его обрежет, а у тебя прочитается целиком. Кидай вывод, разберу.
