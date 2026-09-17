@@ -1,0 +1,9 @@
+coldfire_main.bin size=425858
+BASE: 0x508AE, 0x52145, 0x521E6
+WDTH: 0x508B4, 0x528B8
+HPQ: 0x508BA, 0x528BD
+LPQ: 0x508C0, 0x528C1
+BOFS: 0x508D2, 0x528C5
+WOFS: 0x508D8, 0x528CA
+
+These are string labels only; no scaling curve is inferred from them.

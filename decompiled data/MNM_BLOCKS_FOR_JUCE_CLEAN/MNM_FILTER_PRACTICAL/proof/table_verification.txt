@@ -1,0 +1,11 @@
+# Extraction and retained-fragment verification
+
+dsp1_pmem.bin SHA-256: e99c6a6714feebb893c4f8f3eccf1b31dc900cc856814b44cd2f397d60889112
+
+0x143546: 1700 words, clean fragment match=True, SHA256=98164571b1a9979bd68ace50da039245f8897d706189cda8c3dc1ddeb85ef085
+0x1435c6: 128 words, clean fragment match=True, SHA256=bdd88ebc48a7d680e22eaa25cc221a61684fa96ecf25d70a80ed772314ade217
+0x141a98: 48 words, clean fragment match=True, SHA256=8c442fd358190db3028b1d9b7d47532e7f81236a1ce92b5ed1c3fa98e099b73d
+0x142158: 48 words, clean fragment match=True, SHA256=2cd5a74ab6d492b0b9b103887f4fded27d1eb5a6a03d45afd3b8db4df83bd7bd
+0x142f06: 48 words, clean fragment match=True, SHA256=6696fe8c9a3d582f20499b68d665f39749e369a6114708732d507d4f76e9cde2
+
+The new 107-word and 128-word divider tables and 128-word envelope tables are extracted from the same verified P-memory image. Their role/operand mapping remains described in FILTER_CLUES_CONSOLIDATED_RU.md.

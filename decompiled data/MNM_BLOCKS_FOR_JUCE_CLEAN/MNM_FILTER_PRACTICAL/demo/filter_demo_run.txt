@@ -1,0 +1,1 @@
+wrote /home/user/MNM_FILTER_PRACTICAL/demo/filter_demo.wav final hpIndex=905 lpIndex=1699 hpQ=1.64885 lpQ=0.257353
