@@ -1,0 +1,10 @@
+# Table: pitch_table_1
+# Source: X-memory image dsp1_xmem.bin
+# Base address: X:$000394
+# Length: 32 words (96 bytes)
+# Notes: Pitch conversion table 1 (X:$0394..$03B3).
+#
+  +$0000: e60a20 e7d42b e98f02 eb386d ecd111 ee56fc efcb26 f12bcc
+  +$0008: f27a4c f3b4ee f4dd9d f5f262 f6f61a f7e5be f8c6eb f9902c
+  +$0010: c5b0db c79ddf c997e9 cb9b0d cdaa98 cfbe9c d1d90b d3f424
+  +$0018: d610a8 d829ec da4030 dc4f7f de57e7 e05601 e249da e43080

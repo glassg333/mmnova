@@ -1,0 +1,335 @@
+[
+  {
+    "region": "P",
+    "base": "$144ac7",
+    "length": 258,
+    "name": "LP_filter_coeffs",
+    "notes": "Shared lowpass coefficient table; FM/CHORUS/EQ TONE param indexes into this. 258 words = 1 + 128 entries * 2 (or similar).",
+    "bin": "P_144ac7_LP_filter_coeffs.bin",
+    "txt": "P_144ac7_LP_filter_coeffs.txt"
+  },
+  {
+    "region": "P",
+    "base": "$141900",
+    "length": 128,
+    "name": "PHASER_stage0_table",
+    "notes": "FX-PHASER stage-0 all-pass coefficient table (referenced by m18).",
+    "bin": "P_141900_PHASER_stage0_table.bin",
+    "txt": "P_141900_PHASER_stage0_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$141980",
+    "length": 128,
+    "name": "PHASER_stage1_table",
+    "notes": "FX-PHASER stage-1 all-pass coefficient table.",
+    "bin": "P_141980_PHASER_stage1_table.bin",
+    "txt": "P_141980_PHASER_stage1_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$141a00",
+    "length": 128,
+    "name": "PHASER_stage2_table",
+    "notes": "FX-PHASER stage-2 all-pass coefficient table.",
+    "bin": "P_141a00_PHASER_stage2_table.bin",
+    "txt": "P_141a00_PHASER_stage2_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$141b18",
+    "length": 64,
+    "name": "PHASER_stage3_table",
+    "notes": "FX-PHASER stage-3 all-pass coefficient table.",
+    "bin": "P_141b18_PHASER_stage3_table.bin",
+    "txt": "P_141b18_PHASER_stage3_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$142f06",
+    "length": 64,
+    "name": "PHASER_helper_table",
+    "notes": "FX-PHASER helper/modulation table.",
+    "bin": "P_142f06_PHASER_helper_table.bin",
+    "txt": "P_142f06_PHASER_helper_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$143546",
+    "length": 64,
+    "name": "PHASER_cntr_table",
+    "notes": "FX-PHASER CNTR parameter mapping table.",
+    "bin": "P_143546_PHASER_cntr_table.bin",
+    "txt": "P_143546_PHASER_cntr_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$1444c6",
+    "length": 128,
+    "name": "FXDYN_attack_table",
+    "notes": "FX-DYNAMIX ATK parameter curve / attack coefficient table.",
+    "bin": "P_1444c6_FXDYN_attack_table.bin",
+    "txt": "P_1444c6_FXDYN_attack_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$1446c6",
+    "length": 128,
+    "name": "FXDYN_release_table",
+    "notes": "FX-DYNAMIX REL parameter curve / release coefficient table.",
+    "bin": "P_1446c6_FXDYN_release_table.bin",
+    "txt": "P_1446c6_FXDYN_release_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$144746",
+    "length": 64,
+    "name": "FXDYN_rms_table",
+    "notes": "FX-DYNAMIX RMS window / RMS averaging coefficient table.",
+    "bin": "P_144746_FXDYN_rms_table.bin",
+    "txt": "P_144746_FXDYN_rms_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$123ef5",
+    "length": 256,
+    "name": "FXREV_decay_table",
+    "notes": "FX-REVERB DEC (decay) parameter coefficient table.",
+    "bin": "P_123ef5_FXREV_decay_table.bin",
+    "txt": "P_123ef5_FXREV_decay_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$133191",
+    "length": 256,
+    "name": "FXREV_damp_table",
+    "notes": "FX-REVERB DAMP parameter coefficient table.",
+    "bin": "P_133191_FXREV_damp_table.bin",
+    "txt": "P_133191_FXREV_damp_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101a7b",
+    "length": 128,
+    "name": "SWAVE_wavetable_main",
+    "notes": "SWAVE-SAW/PULS main wavetable (referenced by m4, m5, m14).",
+    "bin": "P_101a7b_SWAVE_wavetable_main.bin",
+    "txt": "P_101a7b_SWAVE_wavetable_main.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101afb",
+    "length": 128,
+    "name": "SWAVE_PCH2_table",
+    "notes": "SWAVE PCH2 pitch table (referenced by m4, m14, m33).",
+    "bin": "P_101afb_SWAVE_PCH2_table.bin",
+    "txt": "P_101afb_SWAVE_PCH2_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101b7b",
+    "length": 128,
+    "name": "SWAVE_PCH3_table",
+    "notes": "SWAVE PCH3 pitch table (referenced by m4).",
+    "bin": "P_101b7b_SWAVE_PCH3_table.bin",
+    "txt": "P_101b7b_SWAVE_PCH3_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101bfb",
+    "length": 128,
+    "name": "SWAVE_PCH4_table",
+    "notes": "SWAVE PCH4 pitch table (referenced by m4, m5, m32, m33).",
+    "bin": "P_101bfb_SWAVE_PCH4_table.bin",
+    "txt": "P_101bfb_SWAVE_PCH4_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101cfb",
+    "length": 128,
+    "name": "SWAVE_PCH5_table",
+    "notes": "SWAVE PCH5 pitch table (referenced by m5, m14, m32, m33).",
+    "bin": "P_101cfb_SWAVE_PCH5_table.bin",
+    "txt": "P_101cfb_SWAVE_PCH5_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$101d7b",
+    "length": 128,
+    "name": "DPRO_wavetable_ref",
+    "notes": "DPRO-WAVE wavetable reference (referenced by m6).",
+    "bin": "P_101d7b_DPRO_wavetable_ref.bin",
+    "txt": "P_101d7b_DPRO_wavetable_ref.txt"
+  },
+  {
+    "region": "P",
+    "base": "$10750c",
+    "length": 256,
+    "name": "DPRO_BBOX_table1",
+    "notes": "DPRO-BBOX table 1 (referenced by m7).",
+    "bin": "P_10750c_DPRO_BBOX_table1.bin",
+    "txt": "P_10750c_DPRO_BBOX_table1.txt"
+  },
+  {
+    "region": "P",
+    "base": "$10b1bc",
+    "length": 256,
+    "name": "DPRO_BBOX_table2",
+    "notes": "DPRO-BBOX table 2.",
+    "bin": "P_10b1bc_DPRO_BBOX_table2.bin",
+    "txt": "P_10b1bc_DPRO_BBOX_table2.txt"
+  },
+  {
+    "region": "P",
+    "base": "$10b5c7",
+    "length": 256,
+    "name": "GND_NOIS_table",
+    "notes": "GND-NOIS noise color table (referenced by m2).",
+    "bin": "P_10b5c7_GND_NOIS_table.bin",
+    "txt": "P_10b5c7_GND_NOIS_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$10f7a1",
+    "length": 256,
+    "name": "DPRO_BBOX_table3",
+    "notes": "DPRO-BBOX table 3.",
+    "bin": "P_10f7a1_DPRO_BBOX_table3.bin",
+    "txt": "P_10f7a1_DPRO_BBOX_table3.txt"
+  },
+  {
+    "region": "P",
+    "base": "$11320f",
+    "length": 256,
+    "name": "DPRO_BBOX_table4",
+    "notes": "DPRO-BBOX table 4.",
+    "bin": "P_11320f_DPRO_BBOX_table4.bin",
+    "txt": "P_11320f_DPRO_BBOX_table4.txt"
+  },
+  {
+    "region": "P",
+    "base": "$11b451",
+    "length": 256,
+    "name": "DPRO_wavetable_main",
+    "notes": "DPRO-WAVE main wavetable (referenced by m6, m7).",
+    "bin": "P_11b451_DPRO_wavetable_main.bin",
+    "txt": "P_11b451_DPRO_wavetable_main.txt"
+  },
+  {
+    "region": "P",
+    "base": "$1001d1",
+    "length": 256,
+    "name": "VO6_dispatch_table",
+    "notes": "VO-6 internal dispatch/wavetable region (referenced by m11).",
+    "bin": "P_1001d1_VO6_dispatch_table.bin",
+    "txt": "P_1001d1_VO6_dispatch_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$1007f1",
+    "length": 256,
+    "name": "VO6_table2",
+    "notes": "VO-6 helper table.",
+    "bin": "P_1007f1_VO6_table2.bin",
+    "txt": "P_1007f1_VO6_table2.txt"
+  },
+  {
+    "region": "P",
+    "base": "$140000",
+    "length": 256,
+    "name": "SID_wavetable_0",
+    "notes": "SID-6581 wavetable 0 (referenced by m3, m4, m14).",
+    "bin": "P_140000_SID_wavetable_0.bin",
+    "txt": "P_140000_SID_wavetable_0.txt"
+  },
+  {
+    "region": "P",
+    "base": "$140800",
+    "length": 256,
+    "name": "SID_wavetable_1",
+    "notes": "SID-6581 wavetable 1.",
+    "bin": "P_140800_SID_wavetable_1.bin",
+    "txt": "P_140800_SID_wavetable_1.txt"
+  },
+  {
+    "region": "P",
+    "base": "$1435c6",
+    "length": 128,
+    "name": "SID_helper_table",
+    "notes": "SID-6581 helper table (referenced by m3, m4, m5, m14, m17).",
+    "bin": "P_1435c6_SID_helper_table.bin",
+    "txt": "P_1435c6_SID_helper_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$143d06",
+    "length": 128,
+    "name": "SID_filter_table",
+    "notes": "SID-6581 filter coefficient table (referenced by m3, m4, m5, m14, m17).",
+    "bin": "P_143d06_SID_filter_table.bin",
+    "txt": "P_143d06_SID_filter_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$144c49",
+    "length": 128,
+    "name": "m32_helper_table",
+    "notes": "m32 (slot 32) helper coefficient table.",
+    "bin": "P_144c49_m32_helper_table.bin",
+    "txt": "P_144c49_m32_helper_table.txt"
+  },
+  {
+    "region": "P",
+    "base": "$145c48",
+    "length": 128,
+    "name": "m33_helper_table",
+    "notes": "m33 (slot 33) helper coefficient table.",
+    "bin": "P_145c48_m33_helper_table.bin",
+    "txt": "P_145c48_m33_helper_table.txt"
+  },
+  {
+    "region": "Y",
+    "base": "$000132",
+    "length": 512,
+    "name": "sine_table_FM",
+    "notes": "FM sine lookup table with linear interpolation (mask $1FFF). Already in original pack.",
+    "bin": "Y_000132_sine_table_FM.bin",
+    "txt": "Y_000132_sine_table_FM.txt"
+  },
+  {
+    "region": "Y",
+    "base": "$000334",
+    "length": 256,
+    "name": "LFO_wave_triangle",
+    "notes": "LFO secondary waveform table (triangle/saw) at Y:$0334, used by FM modulators and FX LFOs.",
+    "bin": "Y_000334_LFO_wave_triangle.bin",
+    "txt": "Y_000334_LFO_wave_triangle.txt"
+  },
+  {
+    "region": "X",
+    "base": "$0002c0",
+    "length": 4,
+    "name": "audio_buffer_bases",
+    "notes": "Base pointers for audio I/O buffers (X:$02C0..$02C3). DSP1 and DSP2 differ.",
+    "bin": "X_0002c0_audio_buffer_bases.bin",
+    "txt": "X_0002c0_audio_buffer_bases.txt"
+  },
+  {
+    "region": "X",
+    "base": "$000394",
+    "length": 32,
+    "name": "pitch_table_1",
+    "notes": "Pitch conversion table 1 (X:$0394..$03B3).",
+    "bin": "X_000394_pitch_table_1.bin",
+    "txt": "X_000394_pitch_table_1.txt"
+  },
+  {
+    "region": "X",
+    "base": "$0003f4",
+    "length": 32,
+    "name": "pitch_table_2",
+    "notes": "Pitch conversion table 2 (X:$03F4..$0413).",
+    "bin": "X_0003f4_pitch_table_2.bin",
+    "txt": "X_0003f4_pitch_table_2.txt"
+  }
+]
