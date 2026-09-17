@@ -1,7 +1,0 @@
-Compared 103809024 words; mismatches=0 seconds=1.36349
-Reference golden FNV-1a-64=7007ca4d75708b0f
-Note: this comparison ran against the bit-exact port. One deliberate deviation
-was added afterwards (user decision): MIX=127 clamp after P:$1477CF forces
-x0=0x7fffff -> 100% wet / 0% dry (ROM leaves ~0.78% dry residue). All other
-parameter values and all other stages are unchanged.
-Post-clamp native golden hash: 5fa13bb709f68782

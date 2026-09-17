@@ -1,0 +1,37 @@
+# Table: P_10f7a1_DPRO_BBOX_table3
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$10f7a1
+# Length: 256 words (24-bit BE)
+
+  +$0000: ff9fff fe2fdc fe2fe5 fdcfbe f94f68 f54f5d f78f95 fa0f8c
+  +$0008: f71f6e f93fcf 00001d 029025 00ffec fbdf80 f36ee3 e85e20
+  +$0010: db7d4c ce6c87 c2cbd7 b8cb4f b1eafc ae5ad9 adcaf2 b14b41
+  +$0018: b7bbbe c0cc5e cbbd1b d80de5 e50ebb f29f92 ff8062 0c912e
+  +$0020: 1901ea 240296 2ed345 39e3f7 4504a6 4f954d 5a45f9 648691
+  +$0028: 6d5715 74f77f 7a67cc 7e77f6 7fe7ff 7f57e6 7cd7a7 77673f
+  +$0030: 7096d6 69d65a 60d5bd 573526 4d1470 40b3aa 34f2fc 2b126e
+  +$0038: 2341ff 1cc195 15810f 0b9059 febf71 ef1e71 df7d83 d1ccc7
+  +$0040: c8ac65 c59c60 c7aca1 cd4d10 d4dd8a dc3df5 e1ee3c e4fe55
+  +$0048: e4ee3b e1cdf3 dc5d92 d5ad1f cdec9b c58c17 bd6b95 b54b18
+  +$0050: ae2aaf a7ba4b a209f9 9d39a8 97b94d 9228fc 8d78b8 8a1894
+  +$0058: 890890 89389a 8a78bb 8d68f6 91b945 9759ad 9efa34 a7bac2
+  +$0060: b09b50 b98be0 c29c70 cb1ced d25d58 d88db4 ddbe00 e22e42
+  +$0068: e62e85 eabed4 efdf25 f4cf73 f9afc3 fee018 040065 0870a7
+  +$0070: 0c50e5 104124 14215c 17117f 18718b 190199 1aa1c3 1e520b
+  +$0078: 233258 27628b 29729c 29f2a3 2ae2c1 2e0309 33a36f 3a03c8
+  +$0080: 3e63f5 3f43e6 3cd3ab 387364 347334 32b32e 33c354 374399
+  +$0088: 3be3e2 3ff414 41e41c 40f3f7 3d43a8 372336 2f62b3 27022e
+  +$0090: 1ee1b3 17e150 12a10b 0f50e7 0e10e3 0ec0fc 115134 15a188
+  +$0098: 1bb1f3 230270 2b32f5 338378 3b43ec 42044e 47849c 4b94ce
+  +$00a0: 4db4e2 4e24db 4cc4b7 499475 44b41c 3e83ae 370330 2ee2ab
+  +$00a8: 268226 1e41a5 16812d 0f50bf 08c05c 02f005 fdefb7 f92f6d
+  +$00b0: f4af26 f04ee2 ec1ea1 e81e63 e45e29 e0edf5 ddcdc5 daed99
+  +$00b8: d85d73 d63d55 d48d3d d33d29 d22d1c d18d16 d17d19 d1cd20
+  +$00c0: d23d26 d28d2a d2dd30 d35d3c d44d4d d57d60 d6ad73 d7dd87
+  +$00c8: d93da0 db0dc1 dd4de8 dfce0e e1ee2b e33e38 e39e3a e39e39
+  +$00d0: e3ae3c e41e48 e4fe57 e5ee64 e67e66 e63e5c e53e4a e43e3d
+  +$00d8: e3be3d e45e52 e64e79 e91eaa ec3edc ef0eff f0af0e f0cf05
+  +$00e0: ef8ee6 ed2ebd ea9e98 e8be86 e87e90 ea1eba edaf00 f2cf5c
+  +$00e8: f8ffc5 ffb030 063093 0c00e9 10d12c 14615d 171181 18e196
+  +$00f0: 199197 18f180 16b151 133112 0ed0c7 09f076 04e028 004fe3
+  +$00f8: fc6fae f9cf90 f8bf8e f97fa9 fc0fdc ffb01a 039056 070087

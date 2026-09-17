@@ -1,0 +1,9 @@
+# Table: X_0003f4_pitch_table_2
+# Source: X-memory image dsp1_xmem.bin (SHA-256 verified)
+# Base address: X:$0003f4
+# Length: 32 words (24-bit BE)
+
+  +$0000: fff398 fff11e ffee7f ffeb60 ffe81e ffe447 ffe052 ffdbb1
+  +$0008: ffd700 ffd185 ffcc14 ffc5b4 ffbf80 ffb844 ffb06a ffa9bb
+  +$0010: 0003c1 fffd6b 00008b ffffe4 ffffe9 ffff95 ffff47 fffecf
+  +$0018: fffe45 fffd8f fffcbf fffbb7 fffa8f fff921 fff790 fff5a6

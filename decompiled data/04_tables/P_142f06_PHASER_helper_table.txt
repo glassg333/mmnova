@@ -1,0 +1,13 @@
+# Table: P_142f06_PHASER_helper_table
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$142f06
+# Length: 64 words (24-bit BE)
+
+  +$0000: 7ff846 7ff83b 7ff830 7ff825 7ff81a 7ff80f 7ff804 7ff7f9
+  +$0008: 7ff7ee 7ff7e3 7ff7d8 7ff7cc 7ff7c1 7ff7b5 7ff7aa 7ff79e
+  +$0010: 7ff793 7ff787 7ff77b 7ff76f 7ff763 7ff758 7ff74b 7ff73f
+  +$0018: 7ff733 7ff727 7ff71b 7ff70e 7ff702 7ff6f5 7ff6e9 7ff6dc
+  +$0020: 7ff6cf 7ff6c3 7ff6b6 7ff6a9 7ff69c 7ff68f 7ff682 7ff675
+  +$0028: 7ff667 7ff65a 7ff64d 7ff63f 7ff632 7ff624 7ff616 7ff608
+  +$0030: 7ff5fb 7ff5ed 7ff5df 7ff5d1 7ff5c2 7ff5b4 7ff5a6 7ff597
+  +$0038: 7ff589 7ff57a 7ff56c 7ff55d 7ff54e 7ff540 7ff531 7ff522

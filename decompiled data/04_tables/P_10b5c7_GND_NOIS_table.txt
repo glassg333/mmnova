@@ -1,0 +1,37 @@
+# Table: P_10b5c7_GND_NOIS_table
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$10b5c7
+# Length: 256 words (24-bit BE)
+
+  +$0000: ef8dd6 ea617e 154fac f2cfd6 25d3f3 1ebf52 dd0cf4 dd0e5c
+  +$0008: e98fd0 154123 06312c 150032 fde064 fa8e7b f7c122 1b9199
+  +$0010: 18f211 1b2fbf ddad75 de5f15 11319a 1431de 130082 06bfe0
+  +$0018: ff9f7f fdf1e0 1f30c6 f99e68 d83d57 e73f96 0ff442 5681b3
+  +$0020: dcdcb0 db5eef eeee4c f83185 20a20d 185053 f52e5a d4fdbb
+  +$0028: 104337 199f16 dd5f55 0ecece c26c8a ee50a0 1c4214 076f8f
+  +$0030: 15a1c7 0c7034 e75eab 1d836a 121d9e d06e57 e96f89 1d229c
+  +$0038: 1af1d2 221f47 cbedc5 0440ac 0540fb 14516d 21c240 ff6cf9
+  +$0040: e140a8 fd2fc3 1d71f9 06ffe9 f90fdb 0ad038 efedf2 ed20c3
+  +$0048: 12f000 ed7092 3f737b 059f77 072141 fe5ddb d84de2 cf3ce8
+  +$0050: f7108a 24d456 18cdc0 e6200f 15c273 ffdd61 e3af33 de7de0
+  +$0058: 05f20d 2f8372 0b3dda da1c53 abec39 f30239 47b3a5 118f67
+  +$0060: dc4db8 008f94 df003e 35c363 32a2e8 e1aafe c7fdbd e85fc0
+  +$0068: f75f01 1fb341 f66c22 cc9f18 17f2d8 4e55ee 216dbd d96eb7
+  +$0070: e8c006 130ee5 d2df4b 1bf1e7 136f7f e2de7f 021273 37237f
+  +$0078: 2ea0a0 d3bbfd 09c46a 1a5e35 ee60fb 16005e ee4ee5 fe0fc2
+  +$0080: fae215 49236c 01fc4a a1cc9c 1e554d 5fb349 e80e87 06ce16
+  +$0088: cbdf60 0c0eef dc8fa7 31037f f4cc1b cd5e3b ea6f4d ff403d
+  +$0090: 0980b2 0b0fad e30f42 12df85 b96aba ed6284 2600ff 08cfd2
+  +$0098: e44dd3 df6e65 0a634f 358156 fbee18 db8dcf e82133 30e274
+  +$00a0: 1d31bf fe5ef2 ff003c fdf0d4 0e8f59 eccf2a 021309 4c529a
+  +$00a8: 06ffe0 ed9d93 e04163 47c3e6 164f5b ea6e7b dd1e85 fac04c
+  +$00b0: 262318 031e0d f37ff0 fe806e 088067 0be036 e43d60 eec166
+  +$00b8: 2f21d3 f0be91 ed3e07 f2c145 10b0a1 07dec4 e25fb7 10d046
+  +$00c0: ef9de8 e2e148 28818f 178fb5 e35ed8 e95db2 ee40f9 132174
+  +$00c8: 175f49 f1e1b4 0f2e6c e08fc4 15e094 ec8ef7 0fb156 fd806a
+  +$00d0: 229133 fdae6e c82e0a 09d0c9 2504cd 498299 eb59f3 94bd3e
+  +$00d8: 1a041f 4e437d 14ffb1 d97c63 e16001 04e1b7 29b14f feef6b
+  +$00e0: eb2ded d91e4b 034105 083169 2d6196 04205f fe8f5b eb6d79
+  +$00e8: e4816f 35b278 11e0db 0bff44 e10edb f1ad8c f70368 29eea2
+  +$00f0: c9ee95 06c027 ffd126 1dcfc3 dc2022 36021f f1ce85 dbcc02
+  +$00f8: c2be06 0a42d8 290fe2 f28f8d f9208d 0e9f1e cf7d0c 07440d

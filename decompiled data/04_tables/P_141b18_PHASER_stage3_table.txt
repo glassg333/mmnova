@@ -1,0 +1,13 @@
+# Table: P_141b18_PHASER_stage3_table
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$141b18
+# Length: 64 words (24-bit BE)
+
+  +$0000: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0008: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0010: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0018: 7fffff 7fffff 7fffff 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe
+  +$0020: 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe
+  +$0028: 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe
+  +$0030: 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe
+  +$0038: 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe 7ffffe

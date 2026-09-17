@@ -1,7 +1,0 @@
-# Table: audio_buffer_bases
-# Source: X-memory image dsp1_xmem.bin
-# Base address: X:$0002c0
-# Length: 4 words (12 bytes)
-# Notes: Base pointers for audio I/O buffers (X:$02C0..$02C3). DSP1 and DSP2 differ.
-#
-  +$0000: 000160 0001c0 000220 000280

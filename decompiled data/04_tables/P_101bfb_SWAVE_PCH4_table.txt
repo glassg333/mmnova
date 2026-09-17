@@ -1,0 +1,21 @@
+# Table: P_101bfb_SWAVE_PCH4_table
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$101bfb
+# Length: 128 words (24-bit BE)
+
+  +$0000: 400000 3ffc00 3ff801 3ff402 3ff004 3fec06 3fe809 3fe40c
+  +$0008: 3fe010 3fdc14 3fd819 3fd41e 3fd024 3fcc2a 3fc831 3fc438
+  +$0010: 3fc040 3fbc48 3fb851 3fb45a 3fb064 3fac6e 3fa878 3fa484
+  +$0018: 3fa08f 3f9c9b 3f98a8 3f94b5 3f90c3 3f8cd1 3f88df 3f84ee
+  +$0020: 3f80fe 3f7d0e 3f791f 3f7530 3f7141 3f6d53 3f6966 3f6579
+  +$0028: 3f618c 3f5da0 3f59b5 3f55c9 3f51df 3f4df5 3f4a0b 3f4622
+  +$0030: 3f4239 3f3e51 3f3a69 3f3682 3f329c 3f2eb5 3f2ad0 3f26ea
+  +$0038: 3f2305 3f1f21 3f1b3d 3f175a 3f1377 3f0f95 3f0bb3 3f07d1
+  +$0040: 3f03f0 3f0010 3efc30 3ef850 3ef471 3ef093 3eecb4 3ee8d7
+  +$0048: 3ee4fa 3ee11d 3edd41 3ed965 3ed58a 3ed1af 3ecdd5 3ec9fb
+  +$0050: 3ec621 3ec248 3ebe70 3eba98 3eb6c1 3eb2ea 3eaf13 3eab3d
+  +$0058: 3ea767 3ea392 3e9fbd 3e9be9 3e9816 3e9442 3e906f 3e8c9d
+  +$0060: 3e88cb 3e84fa 3e8129 3e7d58 3e7988 3e75b9 3e71ea 3e6e1b
+  +$0068: 3e6a4d 3e667f 3e62b2 3e5ee5 3e5b19 3e574d 3e5382 3e4fb7
+  +$0070: 3e4bed 3e4823 3e4459 3e4090 3e3cc7 3e38ff 3e3538 3e3170
+  +$0078: 3e2daa 3e29e3 3e261d 3e2258 3e1e93 3e1acf 3e170b 3e1347

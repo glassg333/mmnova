@@ -1,0 +1,21 @@
+# Table: P_101d7b_DPRO_wavetable_ref
+# Source: P-memory image dsp1_pmem.bin (SHA-256 verified)
+# Base address: P:$101d7b
+# Length: 128 words (24-bit BE)
+
+  +$0000: 00d008 fe2fcb ff4030 02eff2 fcfff2 02e043 025ff6 fe4009
+  +$0008: 04805b 028ff4 006039 04403c 05305b 00efcd 0350fa 10a03d
+  +$0010: fcc08e 191177 073fcf ff805f 0f121c 331299 059ee9 050365
+  +$0018: 527413 0ecd02 96a800 8e1c29 e63da6 b59a38 b17ca3 dabe30
+  +$0020: e5ddf1 d1accd d86e6b e68db4 d6de01 eb6ecf e78e42 e5ae85
+  +$0028: ea8ed5 efbeec eb8eb0 ef9f4d f51f06 ec7edd f3af91 fa3f76
+  +$0030: f3ff32 f5af9b fcffdf fbdf67 ef9ea5 e9aed5 f24f50 f4ff33
+  +$0038: f14f01 f0cf42 f8dfb0 f87f42 f34f6e fadfb2 f91f83 f97fab
+  +$0040: fb3fbf fcdfbf f98f8e fbfff9 ff5fba f95fb6 ff600f ff2fcc
+  +$0048: fc9fe6 00000a 006ffb fe4fd3 fe901f 03d011 fc1fa5 fd8016
+  +$0050: 017fe9 fd2fe9 00c017 00f006 ffdff3 ff400c 02501b febfc6
+  +$0058: fda016 030001 fbdfb6 ff4029 014fd5 fb7fd2 ff7ffc feafd6
+  +$0060: fbcf9a f97fd8 023002 f68ef8 f45fed ff9f38 e9aef5 fe105b
+  +$0068: 017f6c e76d46 ccbe15 0540e3 e6bb0c a2fccc 1034cd 7597ff
+  +$0070: 662351 1972be 5155d5 4812da 2201fa 1fe278 343359 25b172
+  +$0078: 1b7290 29b1bc 11914d 1bc1bf 18416e 16412e 10312c 16e155
