@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNM OS 1.32B — роутинг подтверждён, кривые Q найдены в дескрипторах</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+ body{background:#0b0d10;color:#e2e8f0;font-family:Inter,system-ui,sans-serif}
+ .m{font-family:'JetBrains Mono',monospace}
+ ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0d1117}
+ ::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px}
+ .A{background:rgba(16,185,129,.18);color:#6ee7b7}
+ .B{background:rgba(245,158,11,.18);color:#fcd34d}
+ .C{background:rgba(239,68,68,.18);color:#fca5a5}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-slate-800 bg-[#0e1217] sticky top-0 z-40">
+ <div class="max-w-[1500px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+  <div>
+   <h1 class="text-base md:text-lg font-bold text-white">Разбор папки <span class="m text-amber-400">3 mnmdsp_reference</span> + где лежат кривые Q</h1>
+   <p class="text-xs text-slate-400 m">Твой роутинг сошёлся с кодом. Кривые ручек найдены — они в дескрипторах, не в коде ColdFire.</p>
+  </div>
+  <div class="flex gap-2">
+   <button id="copy" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs m text-slate-200 cursor-pointer">Копировать файл</button>
+   <button id="tar" class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 text-white font-semibold text-xs md:text-sm border border-red-400/30 cursor-pointer">⬇ TAR</button>
+  </div>
+ </div>
+</header>
+
+<div class="border-b border-slate-800 bg-[#10141b]">
+ <div class="max-w-[1500px] mx-auto px-4 flex gap-1 py-1.5 overflow-x-auto">
+  <button data-t="t1" class="tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer">Роутинг: 3 источника сошлись</button>
+  <button data-t="t2" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">⚠ Кривые Q — найдены, но дамп битый</button>
+  <button data-t="t3" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Что даёт папка 3</button>
+  <button data-t="t4" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Три пути к цифрам</button>
+  <button data-t="t5" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Код</button>
+ </div>
+</div>
+
+<main class="flex-1 max-w-[1500px] w-full mx-auto px-4 py-4">
+
+<!-- T1 ROUTING -->
+<section id="t1" class="tp space-y-4">
+
+ <div class="bg-[#101a14] border border-emerald-500/35 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-3">Твой слуховой тест сошёлся с кодом. Три независимых источника</h2>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Источник</th><th class="py-2 px-3">Порядок</th><th class="py-2 px-3">Тир</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-emerald-300 font-bold">ТЫ (слух, эмуляция)</td><td class="py-2 px-3 text-emerald-200">synth → dist → eq → srr → filt → env → dsnd</td><td class="py-2 px-3"><span class="A px-1.5 rounded">A</span></td></tr>
+     <tr><td class="py-2 px-3 text-slate-300">CHANGELOG monomachine-lab</td><td class="py-2 px-3 text-slate-300">machine → distortion/SRR → filter → EQ → AMP → delay</td><td class="py-2 px-3"><span class="A px-1.5 rounded">A</span></td></tr>
+     <tr><td class="py-2 px-3 text-slate-300">PAGE_TEMPLATES (ColdFire)</td><td class="py-2 px-3 text-slate-300">osc → AMP_env × DIST → FILT → EFFX → LFO</td><td class="py-2 px-3"><span class="B px-1.5 rounded">B</span></td></tr>
+    </tbody>
+   </table>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+   <div class="bg-[#0d1117] rounded p-3.5 border border-emerald-500/25">
+    <div class="m text-emerald-400 font-bold text-xs mb-2">Совпало у всех трёх</div>
+    <ul class="text-xs text-slate-300 space-y-1">
+     <li>• DIST идёт <strong>сразу после машины</strong>, раньше всего</li>
+     <li>• SRR — <strong>до фильтра</strong></li>
+     <li>• DELAY / DSND — <strong>последний</strong></li>
+    </ul>
+   </div>
+   <div class="bg-[#0d1117] rounded p-3.5 border border-amber-500/25">
+    <div class="m text-amber-400 font-bold text-xs mb-2">Остался один спорный пункт</div>
+    <p class="text-xs text-slate-300">EQ — <strong>до</strong> фильтра (у тебя) или <strong>после</strong> (в CHANGELOG). Всё остальное сошлось. Твой слух здесь весомее: в CHANGELOG это перечисление подпрограмм, необязательно порядок вызова.</p>
+   </div>
+  </div>
+
+  <p class="text-xs text-slate-400 mt-3">Про AMP/env: ты и CHANGELOG ставите его <strong>после</strong> фильтра, PAGE_TEMPLATES — до. Противоречия нет: в <code class="m">func_0004A8</code> сначала <em>вычисляется значение</em> огибающей (потому оно и «первое» в описании блоков), а <em>умножение звука</em> на него происходит в конце. Обе картины верны, просто описывают разное.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">Роутинг буферов — теперь с адресами инструкций <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-400 mb-3">Из <code class="m">3 mnmdsp_reference/dsp/MnmRouting.h</code> и <code class="m">docs/ROUTING_RU.md</code>. Это закрывает вопрос «как звук попадает в FX-машину».</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">Буферы   X:$2C0..$2C3 = { $160, $1C0, $220, $280 }     (DSP1)
+         buf0/1/2 = выходы 3 треков текущего прохода
+         buf3     = внешний вход (codec ADC)
+
+Выбор входа машины   P:$0113-$0131, флаги X:$2C4 (пишет ColdFire)
+   bit4  → r0 = буфер 3 (EXT)
+   bit12 → r0 = буфер 0
+   bit13 → r0 = буфер 1
+   иначе → r0 = буфер 2
+
+Заливка EXT          P:$02ED-$031D   (bit6/7, пинг-понг X:$100/$120)
+Запись выхода        P:$0143-$0218
+   бит установлен → ПЕРЕЗАПИСЬ  func_0001ec   ← INSERT
+   бит сброшен    → ДОБАВЛЕНИЕ  func_0001e2   ← параллельно
+Сумма в микс         func_0001A3, P:$01AD-$01C1 : buf0+buf1+buf2 → buf0</pre>
+  <p class="text-xs text-slate-300 mt-3"><strong>Почему «6 треков, а сосед только один»:</strong> голоса идут по 3 за проход, и выбрать можно только буфер своего прохода. Железо физически не даёт больше трёх источников плюс внешний вход.</p>
+  <p class="text-xs text-slate-300 mt-2"><strong>«100% wet» — это роутинг, а не MIX:</strong> FX читает буфер соседа и <em>перезаписывает тот же буфер</em> → стоит инлайном в его пути, сухой заменяется. В коде машин никакого «особого режима соседа» нет — машина не знает, откуда пришёл вход.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">INP и MIX — точные формулы <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">INP   P:$14768B-$147698   gain = INP² , ×4 на произведении в 56-бит ДО сатурации
+      ручка 32  → −12 дБ
+      ручка 64  →   0 дБ   (слово 0.25, эф. гейн 1.0)
+      ручка 127 → +12 дБ   (слово 1.0,  эф. гейн 4.0)     закон квадратичный
+
+MIX   P:$1477CB-$1477DD   x0 = MIX (слово V+$07)
+      a = $7FFFFF − x0                     ; вес сухого
+      out = a·dry + x0·wet                 ; на каждый из 16 кадров
+      одинаково у CHORUS / REVERB / DYNAMIX / PHASER / FLANGER / RINGMOD
+      MIX везде = p3</pre>
+  <p class="text-xs text-slate-300 mt-2">Дефолты прошивки: MIX = 127 у CHORUS, DYNAMIX, PHASER, FLANGER; у REVERB = 32. Из коробки эти машины почти полностью wet.</p>
+ </div>
+</section>
+
+<!-- T2 CURVES -->
+<section id="t2" class="tp hidden space-y-4">
+
+ <div class="bg-[#101a14] border border-emerald-500/35 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">Главное: кривые ручек — это ДАННЫЕ, а не код</h2>
+  <p class="text-xs text-slate-300 mb-3">Я раньше говорил, что кривую Q придётся выковыривать дизассемблером ColdFire через capstone M68K. <strong>Это было неверно.</strong> <code class="m">ROUTING_RU.md</code> §6 пишет прямо:</p>
+  <blockquote class="border-l-2 border-emerald-500/50 pl-3 text-xs text-slate-300 italic mb-3">«Точный скейлинг каждой ручки (<strong>кривые в raw_tail дескрипторов</strong>, формат не расшифрован)»</blockquote>
+  <p class="text-xs text-slate-300">То есть они лежат <strong>таблицей внутри блока дескриптора</strong>, который уже извлечён. Дизассемблер не нужен — нужно просто правильно разобрать 176 байт.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">Формат блока дескриптора (шаг 0xB0 = 176 байт)</h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">+0x00   short name      ("GND" / "FX" / "SWAVE" ...)
++0x09   display name    ("SIN" / "CHORUS" ...)
++0x12   параметры       8 × 6 байт = 48 байт   ← 4 байта имя + <span class="text-amber-300">2 байта ???</span>
++0x42   defaults        8 байт
++0x4A   ...             <span class="text-amber-300">102 байта — RAW_TAIL, не расшифрован</span>
++0xB0   конец блока</pre>
+  <p class="text-xs text-slate-300 mt-3">Два кандидата, где сидят кривые: хвостовые 2 байта каждого параметра (<code class="m">8 × 2 = 16</code>) и/или <code class="m">raw_tail</code> на 102 байта.</p>
+  <div class="bg-[#0d1117] rounded p-3.5 border border-emerald-500/25 mt-3">
+   <div class="m text-emerald-400 font-bold text-xs mb-1.5">Косвенное подтверждение, что типы кривых существуют</div>
+   <p class="text-xs text-slate-300">В <code class="m">1 try/Source/mmnova/machines/MnMSid.h</code> автор писал:</p>
+   <p class="text-xs text-emerald-200 m mt-1">«Кривые дескриптора: PWRS/WAVE/MOD/MSRC — ступенчатые (тип 02/05/04/02)»</p>
+   <p class="text-xs text-slate-300 mt-1.5">Значит он уже видел <strong>байт типа кривой</strong> у каждого параметра. Коды: 02 = ступенчатая, плюс 04 и 05.</p>
+  </div>
+ </div>
+
+ <div class="bg-[#1a1014] border border-red-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-red-300 mb-2">⚠ Осторожно: fx_descriptors.json разобран НЕВЕРНО</h2>
+  <p class="text-xs text-slate-300 mb-3">Проверил <code class="m">05_descriptors/fx_descriptors.json</code> — парсер съехал по смещениям. Пользоваться им нельзя:</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Поле</th><th class="py-2 px-3">В json</th><th class="py-2 px-3">Должно быть</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr><td class="py-1.5 px-3">display m12</td><td class="py-1.5 px-3 text-red-300">"HRU"</td><td class="py-1.5 px-3 text-emerald-300">"THRU" (T ушла в name_tag=84)</td></tr>
+     <tr><td class="py-1.5 px-3">params m15</td><td class="py-1.5 px-3 text-red-300">DEL, P, "", FB, D, "", "@@@\x7f"</td><td class="py-1.5 px-3 text-emerald-300">DEL DEP SPD MIX FB WID LP INP</td></tr>
+     <tr><td class="py-1.5 px-3">defaults</td><td class="py-1.5 px-3 text-red-300">[128,0,0,0,128,0,0,0] у всех</td><td class="py-1.5 px-3 text-emerald-300">у CHORUS 40 40 40 7F 00 00 7F 40</td></tr>
+     <tr><td class="py-1.5 px-3">mins / maxs</td><td class="py-1.5 px-3 text-red-300">копия defaults</td><td class="py-1.5 px-3 text-emerald-300">разные значения</td></tr>
+    </tbody>
+   </table>
+  </div>
+  <p class="text-xs text-slate-300 mt-3">Видно, что парсер читает с шагом 4 вместо 6 и не учитывает, что имя занимает 4 байта. При этом <code class="m">all_machine_descriptors.json</code> (и собранный из него <code class="m">MnmParams.h</code>) — <strong>корректен</strong>: там дефолты сходятся с мануалом.</p>
+  <p class="text-xs text-amber-200 mt-2">Полезный побочный эффект: в кривых m14 мелькают ненулевые байты <code class="m">0x80 0x00 0x25 0xf2</code> и <code class="m">0x60 0x00 0x25 0xf2</code>. Даже при кривом парсе видно, что <strong>там реально лежат данные</strong>, а не нули.</p>
+ </div>
+
+ <div class="bg-[#1a1510] border border-amber-500/30 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-amber-300 mb-2">Но есть нюанс: HPQ/LPQ — не в машинном дескрипторе</h2>
+  <p class="text-xs text-slate-300">Машинные дескрипторы описывают только <strong>SYNT-страницу</strong> (8 ручек конкретной машины). А HPQ/LPQ/BOFS/WOFS живут на <strong>общей FILT-странице</strong>, одинаковой для всех машин.</p>
+  <p class="text-xs text-slate-300 mt-2">Значит должен существовать <strong>отдельный блок дескрипторов страниц</strong> — AMP / FILT / EFFX / LFO. Косвенное доказательство: файл <code class="m">PAGE_TEMPLATES.txt</code> помечен «verified from ColdFire main», то есть автор его откуда-то прочитал. Скорее всего рядом с <code class="m">0x57FC5</code>, до или после блока машин.</p>
+ </div>
+</section>
+
+<!-- T3 FOLDER 3 -->
+<section id="t3" class="tp hidden space-y-4">
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-2">Папка «3 mnmdsp_reference» — что в ней ценного</h2>
+  <p class="text-xs text-slate-400 mb-3">Самая содержательная из твоих попыток по части фактов. Вот что стоит забрать.</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Файл</th><th class="py-2 px-3">Что даёт</th><th class="py-2 px-3">Оценка</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr class="bg-emerald-950/15"><td class="py-2 px-3 text-emerald-300">dsp/MnmRouting.h</td><td class="py-2 px-3 text-slate-300">роутинг с адресами инструкций, INSERT-семантика, fxMixStage, inpGain</td><td class="py-2 px-3"><span class="A px-1.5 rounded">брать</span></td></tr>
+     <tr class="bg-emerald-950/15"><td class="py-2 px-3 text-emerald-300">docs/ROUTING_RU.md</td><td class="py-2 px-3 text-slate-300">разбор соседнего трека + указание, что кривые в raw_tail</td><td class="py-2 px-3"><span class="A px-1.5 rounded">брать</span></td></tr>
+     <tr class="bg-emerald-950/15"><td class="py-2 px-3 text-emerald-300">dsp/MnmParams.h</td><td class="py-2 px-3 text-slate-300">22 машины × 8 ручек + дефолты, корректно</td><td class="py-2 px-3"><span class="A px-1.5 rounded">брать</span></td></tr>
+     <tr class="bg-emerald-950/15"><td class="py-2 px-3 text-emerald-300">data/pitch_wavetable_2048.bin</td><td class="py-2 px-3 text-slate-300">X:$140000, 6144 байт = ровно 2048 слов × 3</td><td class="py-2 px-3"><span class="A px-1.5 rounded">брать</span></td></tr>
+     <tr class="bg-emerald-950/15"><td class="py-2 px-3 text-emerald-300">data/bbox_drum_bank.bin</td><td class="py-2 px-3 text-slate-300">187 068 байт = 62 356 слов ROM-барабанов BBOX</td><td class="py-2 px-3"><span class="A px-1.5 rounded">брать</span></td></tr>
+     <tr><td class="py-2 px-3 text-slate-300">dsp/machines/MnmBBox.h</td><td class="py-2 px-3 text-slate-400">12 ROM-моделей, но автор пишет «FIR-расписание и RTIM приближены»</td><td class="py-2 px-3"><span class="B px-1.5 rounded">сверить</span></td></tr>
+     <tr><td class="py-2 px-3 text-slate-300">ChorusCore.*</td><td class="py-2 px-3 text-slate-400">дубль хоруса, он же есть в других папках</td><td class="py-2 px-3"><span class="B px-1.5 rounded">дубль</span></td></tr>
+    </tbody>
+   </table>
+  </div>
+  <p class="text-xs text-slate-300 mt-3"><strong>Важно:</strong> в README папки 3 честно написано, что портирован только CHORUS (побитово) и каркас BBOX, а «FM+, VO-6, SID, SWAVE, DPRO, FX-REV/DYN/RING/PHA/FLA — листинги и ручки есть, порт следующей итерацией». То есть там <strong>нет</strong> выдуманного кода для тех машин. Это честная папка.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">Сверка номеров слотов — есть расхождение</h2>
+  <p class="text-xs text-slate-400 mb-2">В <code class="m">MnmParams.h</code> из папки 3 DDRW и DENS стоят как слоты <strong>20 и 21</strong>. В аудите репо и в дизассемблере они проходят как <strong>m22 и m23</strong>, а слайсы лежат в файлах с именами <code class="m">32_FX-DLY</code> и <code class="m">33_FX-EXT</code>.</p>
+  <p class="text-xs text-slate-300">Это не критично для звука (порядок ручек одинаковый), но при сборке диспетчера надо решить, какая нумерация используется. Я бы держался номеров из таблицы диспетчеризации <code class="m">X:$10016B</code>, а не из порядкового индекса в дескрипторах.</p>
+ </div>
+</section>
+
+<!-- T4 THREE PATHS -->
+<section id="t4" class="tp hidden space-y-4">
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-3">Три способа получить кривые HPQ / LPQ / DIST. От лёгкого к тяжёлому</h2>
+
+  <div class="space-y-4">
+   <div class="bg-[#0d1117] rounded-lg p-4 border border-emerald-500/30">
+    <div class="flex items-center gap-2 mb-2">
+     <span class="A px-2 py-0.5 rounded text-xs m font-bold">ПУТЬ 1 — проще всего</span>
+     <span class="text-xs text-slate-400">парсинг данных, без реверса</span>
+    </div>
+    <p class="text-xs text-slate-300 mb-2">Перечитать блоки дескрипторов правильно. Формат известен: шаг 176 байт, параметры 8×6 с +0x12, дефолты с +0x42, дальше 102 байта хвоста.</p>
+    <pre class="m text-[11px] bg-black/40 rounded p-2.5 text-emerald-200 overflow-x-auto">python - &lt;&lt;'EOF'
+d = open("decompiled data/05_descriptors/coldfire_main.bin","rb").read()
+base, stride = 0x57FC5, 0xB0
+for i in range(26):
+    b = d[base+i*stride : base+(i+1)*stride]
+    if len(b) &lt; stride: break
+    print(f"--- блок {i}  @0x{base+i*stride:05x}")
+    print("  short   :", b[0:9])
+    print("  display :", b[9:0x12])
+    for p in range(8):
+        q = b[0x12+p*6 : 0x12+(p+1)*6]
+        print(f"  p{p}: имя={q[0:4]}  хвост={q[4]:02x} {q[5]:02x}")
+    print("  defaults:", " ".join(f"{x:02x}" for x in b[0x42:0x4A]))
+    print("  raw_tail:", " ".join(f"{x:02x}" for x in b[0x4A:0xB0]))
+EOF</pre>
+    <p class="text-xs text-slate-300 mt-2">Смотрим на два хвостовых байта каждого параметра. Если у ступенчатых (WAVE, MOD, MSRC) там 02/04/05, а у плавных что-то другое — <strong>формат разгадан</strong>. Дальше ищем такой же блок для страниц AMP/FILT.</p>
+   </div>
+
+   <div class="bg-[#0d1117] rounded-lg p-4 border border-emerald-500/30">
+    <div class="flex items-center gap-2 mb-2">
+     <span class="A px-2 py-0.5 rounded text-xs m font-bold">ПУТЬ 2 — точнее всего</span>
+     <span class="text-xs text-slate-400">измерение на живой прошивке</span>
+    </div>
+    <p class="text-xs text-slate-300 mb-2">У <code class="m">monomachine-lab</code> в API есть <code class="m">debugYWord()</code>. Крутим ручку и смотрим, что прошивка сама кладёт в память. Результат — не гипотеза, а факт.</p>
+    <pre class="m text-[11px] bg-black/40 rounded p-2.5 text-emerald-200 overflow-x-auto">// шаг 1: найти адрес ручки в странице Y:$500..$527
+uint32_t before[0x28];
+for (int a=0; a&lt;0x28; ++a) before[a] = eng.debugYWord(0x500+a);
+eng.setParameter(Parameter::FilterHighPassQ, 127);
+eng.renderBlock(blk);
+for (int a=0; a&lt;0x28; ++a)
+    if (eng.debugYWord(0x500+a) != before[a])
+        printf("HPQ -> Y:$%03x\n", 0x500+a);
+
+// шаг 2: снять всю кривую
+for (int v=0; v&lt;=127; ++v) {
+    eng.setParameter(Parameter::FilterHighPassQ, v);
+    eng.renderBlock(blk);
+    printf("%3d %06x\n", v, eng.debugYWord(НАЙДЕННЫЙ_АДРЕС));
+}</pre>
+    <p class="text-xs text-slate-300 mt-2">Так же снимаются LPQ, BOFS, WOFS, DIST и готовые <code class="m">f</code>/<code class="m">q</code> из <code class="m">Y:$91+</code>.</p>
+   </div>
+
+   <div class="bg-[#0d1117] rounded-lg p-4 border border-amber-500/30">
+    <div class="flex items-center gap-2 mb-2">
+     <span class="B px-2 py-0.5 rounded text-xs m font-bold">ПУТЬ 3 — если нужны опкоды</span>
+     <span class="text-xs text-slate-400">нарезка листинга</span>
+    </div>
+    <pre class="m text-[11px] bg-black/40 rounded p-2.5 text-emerald-200 overflow-x-auto">python tools/mmnova_slice.py show --listing "...dsp1_kernel_P0000-0B4D.txt" --from 0537 --to 05d2
+python tools/mmnova_slice.py show --listing "...dsp1_kernel_P0000-0B4D.txt" --from 05d3 --to 05fb
+grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp</pre>
+    <p class="text-xs text-slate-300 mt-2">Первые две дают блок расчёта Q и сами петли SVF. Третья — готовую таблицу смещений параметров из эмулятора.</p>
+   </div>
+  </div>
+
+  <p class="text-xs text-slate-400 mt-4">Я бы начал с <strong>Пути 1</strong> — он самый дешёвый, а если формат хвоста разгадается, то кривые появятся сразу для всех ручек, а не по одной.</p>
+ </div>
+
+ <div class="bg-[#1a1014] border border-red-500/30 rounded-xl p-4">
+  <h3 class="text-xs m font-bold text-red-300 mb-2">Почему я не сделал это сам</h3>
+  <p class="text-xs text-slate-300"><code class="m">coldfire_main.bin</code> — бинарник, я его не читаю в принципе. Ядро <code class="m">dsp1_kernel</code> = 102 КБ, обрывается на <code class="m">$00EB</code> — проверил пять путей загрузки (raw text, raw markdown, jsDelivr, GitHub API base64, r.jina.ai), все рвутся в одном месте, значит лимит мой. Нужный регион <code class="m">$0537–$05FA</code> лежит на ~48 КБ вглубь.</p>
+ </div>
+</section>
+
+<!-- T5 CODE -->
+<section id="t5" class="tp hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div class="lg:col-span-4 bg-[#12161c] border border-slate-800 rounded-xl p-3.5">
+  <div class="flex items-center justify-between mb-2">
+   <h2 class="text-xs m uppercase text-slate-400 font-semibold">Файлы</h2>
+   <span id="sz" class="text-[11px] m px-2 py-0.5 rounded bg-slate-800 text-emerald-400">—</span>
+  </div>
+  <div id="tree" class="space-y-1 max-h-[560px] overflow-y-auto pr-1"></div>
+ </div>
+ <div class="lg:col-span-8 bg-[#12161c] border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[700px]">
+  <div class="px-4 py-3 bg-[#161b22] border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+   <h3 id="fp" class="m text-sm font-bold text-white">—</h3>
+   <span id="fb" class="text-xs m px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">—</span>
+  </div>
+  <div id="fd" class="px-4 py-2 bg-[#0f1318] border-b border-slate-800/80 text-xs text-slate-300"></div>
+  <div class="flex-1 overflow-auto bg-[#0b0e14] p-4"><pre id="cd" class="m text-xs leading-relaxed text-slate-200 whitespace-pre"></pre></div>
+ </div>
+</section>
+
+</main>
+
+<script>
+const F=[
+{p:"ROUTING_CONFIRMED.md",b:"ГЛАВНОЕ",d:"Сводка: роутинг подтверждён тремя источниками, где лежат кривые Q, что брать из папки 3.",
+c:`# Роутинг подтверждён. Кривые Q локализованы.
+
+A = подтверждено  B = обоснованная гипотеза  C = неизвестно
+
+## 1. РОУТИНГ — три независимых источника                     [A]
+
+ТЫ (слух через эмуляцию):
+  synth -> dist -> eq -> srr -> filt -> env -> dsnd
+
+CHANGELOG monomachine-lab 0.1.4:
+  "machine, distortion/SRR, filter, EQ, AMP and delay routines"
+
+PAGE_TEMPLATES.txt (verified from ColdFire main):
+  osc -> AMP_env x DIST -> FILT (HPQ/LPQ) -> EFFX -> LFO1/2/3
+
+СОВПАЛО У ВСЕХ ТРЁХ:
+  - DIST сразу после машины, раньше всего
+  - SRR до фильтра
+  - delay / DSND последний
+
+СПОРНО (один пункт):
+  EQ до фильтра (ты) или после (CHANGELOG).
+  Твой слух весомее: в CHANGELOG это перечисление подпрограмм.
+
+ПРО AMP/ENV — противоречия нет:
+  в func_0004A8 сначала ВЫЧИСЛЯЕТСЯ значение огибающей (поэтому оно
+  "первое" в описании блоков кода), а УМНОЖЕНИЕ звука на него в конце.
+
+## 2. РОУТИНГ БУФЕРОВ с адресами                              [A]
+источник: 3 mnmdsp_reference/dsp/MnmRouting.h + docs/ROUTING_RU.md
+
+  Буферы X:$2C0..$2C3 = { $160, $1C0, $220, $280 }   (DSP1)
+    buf0/1/2 = выходы 3 треков текущего прохода
+    buf3     = внешний вход (codec ADC)
+
+  Выбор входа   P:$0113-$0131, флаги X:$2C4
+    bit4  -> буфер 3 (EXT)
+    bit12 -> буфер 0
+    bit13 -> буфер 1
+    иначе -> буфер 2
+
+  Заливка EXT   P:$02ED-$031D  (bit6/7, пинг-понг X:$100/$120)
+  Запись выхода P:$0143-$0218
+    бит установлен -> ПЕРЕЗАПИСЬ func_0001ec  (INSERT)
+    бит сброшен    -> ДОБАВЛЕНИЕ func_0001e2  (параллельно)
+  Сумма в микс  func_0001A3, P:$01AD-$01C1 : buf0+buf1+buf2 -> buf0
+
+  "6 треков, а сосед один": голоса идут по 3 за проход, выбрать можно
+  только буфер своего прохода. Больше трёх источников железо не даёт.
+
+  "100% wet" = роутинг, а не MIX: FX читает буфер соседа и перезаписывает
+  тот же буфер -> стоит инлайном, сухой заменяется. Особого режима
+  соседа в коде машин НЕТ.
+
+## 3. INP и MIX                                               [A]
+  INP  P:$14768B-$147698   gain = INP^2, x4 на произведении в 56-бит
+       32 -> -12 дБ ; 64 -> 0 дБ ; 127 -> +12 дБ    квадратичный закон
+
+  MIX  P:$1477CB-$1477DD   a = $7FFFFF - MIX ; out = a*dry + MIX*wet
+       одинаково у CHORUS/REVERB/DYNAMIX/PHASER/FLANGER/RINGMOD, MIX = p3
+       дефолты: 127 у CHORUS/DYNAMIX/PHASER/FLANGER, 32 у REVERB
+
+## 4. КРИВЫЕ РУЧЕК — ЭТО ДАННЫЕ, НЕ КОД                       [A]
+
+Я раньше говорил, что кривую Q надо доставать дизассемблером ColdFire.
+ЭТО БЫЛО НЕВЕРНО. ROUTING_RU.md §6:
+
+  "Точный скейлинг каждой ручки (кривые в raw_tail дескрипторов,
+   формат не расшифрован)"
+
+Формат блока дескриптора, шаг 0xB0 = 176 байт:
+  +0x00  short name
+  +0x09  display name
+  +0x12  параметры 8 x 6 байт   <- 4 байта имя + 2 байта ???
+  +0x42  defaults 8 байт
+  +0x4A  raw_tail 102 байта     <- не расшифрован
+  +0xB0  конец
+
+Косвенное подтверждение (1 try/.../MnMSid.h):
+  "Кривые дескриптора: PWRS/WAVE/MOD/MSRC — ступенчатые (тип 02/05/04/02)"
+=> байт типа кривой у каждого параметра существует, коды 02/04/05.
+
+## 5. ВНИМАНИЕ: fx_descriptors.json РАЗОБРАН НЕВЕРНО          [A]
+
+Парсер съехал по смещениям, пользоваться нельзя:
+  display m12 = "HRU"  вместо "THRU" (T ушла в name_tag=84)
+  params m15  = DEL,P,"",FB,D,"","@@@\\x7f"  вместо DEL DEP SPD MIX FB WID LP INP
+  defaults    = [128,0,0,0,128,0,0,0] у ВСЕХ машин
+  mins/maxs   = копия defaults
+
+all_machine_descriptors.json и собранный из него MnmParams.h — КОРРЕКТНЫ.
+
+Полезное: в кривых m14 видны ненулевые 0x80 0x00 0x25 0xf2 и
+0x60 0x00 0x25 0xf2. Даже при кривом парсе видно — там есть данные.
+
+## 6. НО: HPQ/LPQ не в машинном дескрипторе                   [B]
+
+Машинные дескрипторы = только SYNT-страница (8 ручек машины).
+HPQ/LPQ/BOFS/WOFS = общая FILT-страница, одна на все машины.
+
+Значит есть ОТДЕЛЬНЫЙ блок дескрипторов страниц (AMP/FILT/EFFX/LFO).
+Косвенно: PAGE_TEMPLATES.txt помечен "verified from ColdFire main" —
+автор его откуда-то прочитал. Искать рядом с 0x57FC5.
+
+## 7. ЧТО БРАТЬ ИЗ ПАПКИ 3
+  dsp/MnmRouting.h              роутинг с адресами          БРАТЬ
+  docs/ROUTING_RU.md            разбор + указание на raw_tail БРАТЬ
+  dsp/MnmParams.h               22 машины x 8 ручек, верно   БРАТЬ
+  data/pitch_wavetable_2048.bin X:$140000, 6144 = 2048x3     БРАТЬ
+  data/bbox_drum_bank.bin       187068 байт ROM барабанов    БРАТЬ
+  dsp/machines/MnmBBox.h        автор: "FIR и RTIM приближены" СВЕРИТЬ
+  ChorusCore.*                  дубль                        ДУБЛЬ
+
+README папки 3 честный: портирован только CHORUS побитово + каркас
+BBOX, остальные машины явно помечены как "следующая итерация".
+Выдуманного кода там нет.
+
+## 8. РАСХОЖДЕНИЕ В НУМЕРАЦИИ
+MnmParams.h:  DDRW = слот 20, DENS = слот 21
+аудит репо:   m22 и m23, слайсы в файлах 32_FX-DLY / 33_FX-EXT
+На звук не влияет, но для диспетчера держаться номеров из
+таблицы X:$10016B, а не порядкового индекса дескрипторов.
+`},
+
+{p:"NEXT_3_PATHS.md",b:"ПЛАН",d:"Три способа добыть кривые Q и DIST, от самого дешёвого к самому трудоёмкому.",
+c:`# Три пути к точным кривым HPQ / LPQ / DIST
+
+## ПУТЬ 1 — перечитать дескрипторы  (дешевле всего, начинать с него)
+
+Формат известен. Нужно просто разобрать 176 байт правильно
+и посмотреть на 2 хвостовых байта каждого параметра.
+
+python - <<'EOF'
+d = open("decompiled data/05_descriptors/coldfire_main.bin","rb").read()
+base, stride = 0x57FC5, 0xB0
+for i in range(26):
+    b = d[base+i*stride : base+(i+1)*stride]
+    if len(b) < stride: break
+    print(f"--- блок {i}  @0x{base+i*stride:05x}")
+    print("  short   :", b[0:9])
+    print("  display :", b[9:0x12])
+    for p in range(8):
+        q = b[0x12+p*6 : 0x12+(p+1)*6]
+        print(f"  p{p}: имя={q[0:4]}  хвост={q[4]:02x} {q[5]:02x}")
+    print("  defaults:", " ".join(f"{x:02x}" for x in b[0x42:0x4A]))
+    print("  raw_tail:", " ".join(f"{x:02x}" for x in b[0x4A:0xB0]))
+EOF
+
+Что проверять:
+  у SID параметры PWRS/WAVE/MOD/MSRC должны иметь тип 02/05/04/02
+  (это уже видел автор первого порта). Если сойдётся — формат разгадан.
+
+Потом искать такой же блок для страниц AMP/FILT/EFFX/LFO.
+Он должен быть рядом с 0x57FC5. Признак: строки
+"BASE" "WDTH" "HPQ" "LPQ" "ATK" "DEC" "BOFS" "WOFS" подряд.
+
+  grep -abo "HPQ" coldfire_main.bin
+  grep -abo "WOFS" coldfire_main.bin
+
+Найдёшь смещение — от него отсчитываешь блок той же структуры,
+и кривые HPQ/LPQ окажутся там же, где у машинных ручек.
+
+## ПУТЬ 2 — измерить на живой прошивке  (точнее всего)
+
+Jick238/monomachine-lab это dsp56kEmu на настоящем бинаре.
+В API есть debugYWord() — можно смотреть, что прошивка сама
+положила в память после пересчёта ручки.
+
+  // шаг 1: найти адрес ручки
+  uint32_t before[0x28];
+  for (int a=0; a<0x28; ++a) before[a] = eng.debugYWord(0x500+a);
+  eng.setParameter(Parameter::FilterHighPassQ, 127);
+  eng.renderBlock(blk);
+  for (int a=0; a<0x28; ++a)
+      if (eng.debugYWord(0x500+a) != before[a])
+          printf("HPQ -> Y:$%03x\\n", 0x500+a);
+
+  // шаг 2: снять кривую целиком
+  for (int v=0; v<=127; ++v) {
+      eng.setParameter(Parameter::FilterHighPassQ, v);
+      eng.renderBlock(blk);
+      printf("%3d %06x\\n", v, eng.debugYWord(ADDR));
+  }
+
+База страницы подтверждена: kVoicePageYAddress = 0x000500,
+и V = Y:$528 при параметрах в V-$28..V-$01  ($528-$28 = $500).
+
+Так же снимаются: LPQ, BOFS, WOFS, FilterAttack/Decay, AmpDistortion,
+и готовые f/q из рабочей области Y:$91+.
+
+## ПУТЬ 3 — опкоды  (если нужна именно структура)
+
+  python tools/mmnova_slice.py show --listing "...dsp1_kernel_P0000-0B4D.txt" --from 0537 --to 05d2
+  python tools/mmnova_slice.py show --listing "...dsp1_kernel_P0000-0B4D.txt" --from 05d3 --to 05fb
+  grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp
+
+Первая — блок расчёта Q и записи в Y:$91+.
+Вторая — сами две петли SVF.
+Третья — готовая таблица смещений из эмулятора.
+
+## ЧТО ПРИСЛАТЬ МНЕ
+Любое из:
+  - вывод скрипта из Пути 1 (хотя бы для SID и CHORUS)
+  - результат grep "HPQ" / "WOFS" по coldfire_main.bin
+  - таблицу "ручка -> адрес" из Пути 2
+  - вывод любой команды Пути 3
+Соберу точный C++ без заглушек.
+`},
+
+{p:"Source/mmnova/MnmRouting_verified.h",b:"РОУТИНГ [A]",d:"Роутинг буферов и ступени INP/MIX. Все константы с адресами инструкций.",
+c:`#pragma once
+#include <cstdint>
+#include <algorithm>
+
+// ============================================================================
+//  Роутинг Monomachine OS 1.32B. Все адреса проверены по dsp1_kernel.
+//  Источник: 3 mnmdsp_reference/dsp/MnmRouting.h + docs/ROUTING_RU.md
+//
+//  Порядок тракта (сошлись три источника: слуховой тест, CHANGELOG
+//  monomachine-lab, PAGE_TEMPLATES):
+//     machine -> DIST -> [EQ] -> SRR -> FILTER -> AMP env -> DELAY
+//  Спорно только положение EQ относительно фильтра.
+// ============================================================================
+
+namespace mmnova {
+
+using s24 = int32_t;
+using s56 = int64_t;
+static constexpr s24 kOne24 = 0x7FFFFF;
+
+inline s24 sat24 (s56 a) noexcept {
+    if (a >  kOne24)   return kOne24;
+    if (a < -0x800000) return -0x800000;
+    return (s24) a;
+}
+inline s56 mpy (s24 x, s24 y) noexcept { return ((s56) x * (s56) y) << 1; }
+
+static constexpr int kBlock      = 16;   // 16 кадров стерео на блок @44.1к
+static constexpr int kBlockWords = 32;   // L,R интерлив
+static constexpr int kBuffers    = 3;    // buf0..buf2, 4-й = EXT
+
+// Базы буферов X:$2C0..$2C3 для DSP1 (из kernel P:$00AC-$00C0)
+static constexpr uint32_t kBufBase[4] = { 0x160, 0x1C0, 0x220, 0x280 };
+
+// ----------------------------------------------------------------------------
+//  Флаги X:$2C4 — их пишет ColdFire, kernel только читает (P:$0113-$0131)
+// ----------------------------------------------------------------------------
+struct RouteFlags
+{
+    bool inputExt = false;   // bit4  : вход = буфер 3 (внешний вход)
+    bool inBuf0   = false;   // bit12 : вход = буфер 0
+    bool inBuf1   = false;   // bit13 : вход = буфер 1 (иначе буфер 2)
+
+    bool outBuf0  = false;   // bit0  : выход в буфер 0
+    bool outBuf1  = false;   // bit1  : выход в буфер 1
+    bool outBuf2  = false;   // bit2  : выход в буфер 2
+
+    // Запись выхода, P:$0143-$0218:
+    //   бит установлен -> ПЕРЕЗАПИСЬ (func_0001ec) = INSERT в путь соседа
+    //   бит сброшен    -> ДОБАВЛЕНИЕ (func_0001e2) = параллельно
+    bool overBuf0 = false;   // bit12
+    bool overBuf1 = false;   // bit13
+    bool overBuf2 = false;   // bit14
+
+    bool fillExt  = false;   // bit6/7 : залить ADC в буфер 3 (P:$02ED-$031D)
+};
+
+// ----------------------------------------------------------------------------
+//  INP — гейн входа FX-машины.  P:$14768B-$147698
+//
+//  Паттерн в опкодах:
+//     mpy x0,x0,a      ; слово = INP^2
+//     mpy x1,x0,a      ; умножение на вход
+//     asl #$2,a,a      ; x4 в 56-бит аккумуляторе ДО сатурации
+//
+//  ручка  32 -> -12 дБ
+//  ручка  64 ->   0 дБ   (слово 0.25, эф. гейн 1.0)  <- дефолт всех FX
+//  ручка 127 -> +12 дБ   (слово 1.00, эф. гейн 4.0)
+//  Закон КВАДРАТИЧНЫЙ. Линейный INP ломает насыщение — не упрощать.
+// ----------------------------------------------------------------------------
+inline s24 inpGainWord (s24 inpWord) noexcept
+{
+    return sat24 (mpy (inpWord, inpWord) >> 24);      // слово = INP^2
+}
+
+inline s24 applyInpGain (s24 in, s24 inpWord) noexcept
+{
+    const s24 g = inpGainWord (inpWord);
+    return sat24 ((s56) (mpy (in, g) >> 24) << 2);    // x4 до сатурации
+}
+
+// ----------------------------------------------------------------------------
+//  MIX — выходная ступень ВСЕХ FX-машин.  P:$1477CB-$1477DD
+//
+//     x0 = MIX (слово V+$07)
+//     a  = $7FFFFF - x0          ; вес сухого
+//     out = a*dry + x0*wet
+//
+//  Одинаково у CHORUS / REVERB / DYNAMIX / PHASER / FLANGER / RINGMOD.
+//  MIX везде = p3. Формула НЕ зависит от источника входа.
+//
+//  Про "0.78% сухого при MIX=127": вес сухого = $7FFFFF - MIX.
+//  Сколько даёт ручка 127 — решает скейлинг ColdFire, который ещё не
+//  расшифрован (кривые лежат в raw_tail дескрипторов):
+//    если ручка -> 127*$10000 = $7F0000, остаток $FFFF/$800000 = 0.78% (-42 дБ)
+//    если ручка -> полный $7FFFFF, остаток ровно 0
+//  В любом случае -42 дБ неслышно. Реальный "сухой" рядом с эффектом — это
+//  выход самого трека-источника при ПАРАЛЛЕЛЬНОМ включении (добавление
+//  в буфер). Убирается роутингом/уровнем трека, а не правкой MIX.
+// ----------------------------------------------------------------------------
+inline s24 fxMixStage (s24 dry, s24 wet, s24 mixWord) noexcept
+{
+    const s24 dryGain = sat24 ((s56) kOne24 - mixWord);
+    return sat24 ((mpy (dry, dryGain) + mpy (wet, mixWord)) >> 24);
+}
+
+// ----------------------------------------------------------------------------
+//  Шина треков. Повторяет проход kernel: 3 голоса за проход.
+//  Сумма в микс: func_0001A3, P:$01AD-$01C1  ->  buf0+buf1+buf2 -> buf0
+// ----------------------------------------------------------------------------
+class TrackBus
+{
+public:
+    void clearAll() noexcept
+    {
+        for (auto& b : buf)  for (auto& v : b)  v = 0;
+        for (auto& v : ext)  v = 0;
+    }
+
+    // Выбор входного буфера машины (P:$0113-$0131)
+    const s24* inputFor (const RouteFlags& f) const noexcept
+    {
+        if (f.inputExt) return ext;
+        if (f.inBuf0)   return buf[0];
+        if (f.inBuf1)   return buf[1];
+        return buf[2];
+    }
+
+    // Запись выхода голоса (P:$0143-$0218)
+    void writeOut (const RouteFlags& f, const s24* src) noexcept
+    {
+        if (f.outBuf0) store (buf[0], src, f.overBuf0);
+        if (f.outBuf1) store (buf[1], src, f.overBuf1);
+        if (f.outBuf2) store (buf[2], src, f.overBuf2);
+    }
+
+    // Сумма в основной микс
+    void sumToMain (s24* out) const noexcept
+    {
+        for (int i = 0; i < kBlockWords; ++i)
+            out[i] = sat24 ((s56) buf[0][i] + buf[1][i] + buf[2][i]);
+    }
+
+    s24 buf[kBuffers][kBlockWords] {};
+    s24 ext[kBlockWords] {};
+
+private:
+    static void store (s24* dst, const s24* src, bool overwrite) noexcept
+    {
+        if (overwrite)
+            for (int i = 0; i < kBlockWords; ++i) dst[i] = src[i];            // INSERT
+        else
+            for (int i = 0; i < kBlockWords; ++i)
+                dst[i] = sat24 ((s56) dst[i] + src[i]);                       // параллельно
+    }
+};
+
+} // namespace mmnova
+`},
+
+{p:"tools/parse_descriptors.py",b:"ПУТЬ 1",d:"Скрипт для Пути 1: правильно разбирает блоки дескрипторов и печатает хвостовые байты, где должны быть кривые.",
+c:`#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+parse_descriptors.py — разобрать блоки дескрипторов ColdFire правильно.
+
+Цель: найти байты кривых. ROUTING_RU.md §6 говорит, что скейлинг ручек
+лежит "в raw_tail дескрипторов, формат не расшифрован". То есть это
+ДАННЫЕ, а не код — дизассемблер ColdFire не нужен.
+
+Формат блока (шаг 0xB0 = 176 байт):
+  +0x00  short name
+  +0x09  display name
+  +0x12  параметры 8 x 6 байт   <- 4 байта имя + 2 байта ???
+  +0x42  defaults 8 байт
+  +0x4A  raw_tail 102 байта     <- не расшифрован
+  +0xB0  конец
+
+Проверка формата: у SID параметры PWRS/WAVE/MOD/MSRC должны дать
+тип 02/05/04/02 — это уже видел автор первого порта.
+
+Использование:
+  python parse_descriptors.py --bin "decompiled data/05_descriptors/coldfire_main.bin"
+  python parse_descriptors.py --bin coldfire_main.bin --find HPQ
+"""
+import argparse, sys, re
+
+
+def clean(b):
+    return "".join(chr(c) if 32 <= c < 127 else "." for c in b)
+
+
+def dump_block(d, off, idx):
+    b = d[off:off + 0xB0]
+    if len(b) < 0xB0:
+        return False
+    print("--- блок %d  @0x%05x" % (idx, off))
+    print("  short   : %s" % clean(b[0x00:0x09]))
+    print("  display : %s" % clean(b[0x09:0x12]))
+    for p in range(8):
+        q = b[0x12 + p * 6: 0x12 + (p + 1) * 6]
+        print("  p%d: имя=%-4s  хвост=%02x %02x" % (p, clean(q[0:4]).strip("."), q[4], q[5]))
+    print("  defaults: %s" % " ".join("%02x" % x for x in b[0x42:0x4A]))
+    tail = b[0x4A:0xB0]
+    for i in range(0, len(tail), 16):
+        print("  tail+%02x : %s" % (i, " ".join("%02x" % x for x in tail[i:i + 16])))
+    print()
+    return True
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--bin", required=True, help="coldfire_main.bin")
+    ap.add_argument("--base", default="0x57FC5")
+    ap.add_argument("--count", type=int, default=26)
+    ap.add_argument("--find", help="искать строку и показать блок вокруг неё")
+    a = ap.parse_args()
+
+    d = open(a.bin, "rb").read()
+    print("образ: %d байт" % len(d))
+
+    if a.find:
+        # Ищем строку параметра (например HPQ или WOFS) — так находится
+        # блок дескрипторов ОБЩИХ СТРАНИЦ (AMP/FILT/EFFX/LFO), в котором
+        # и лежат кривые HPQ/LPQ/BOFS/WOFS.
+        pat = a.find.encode()
+        hits = [m.start() for m in re.finditer(re.escape(pat), d)]
+        print("найдено вхождений '%s': %d" % (a.find, len(hits)))
+        for h in hits[:20]:
+            print("\\n  @0x%05x  контекст:" % h)
+            lo = max(0, h - 64)
+            chunk = d[lo:h + 96]
+            for i in range(0, len(chunk), 16):
+                print("    %05x  %-47s  %s" % (
+                    lo + i,
+                    " ".join("%02x" % x for x in chunk[i:i + 16]),
+                    clean(chunk[i:i + 16])))
+        return 0
+
+    base = int(a.base, 16)
+    for i in range(a.count):
+        if not dump_block(d, base + i * 0xB0, i):
+            break
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+`},
+];
+
+function tar(fs){
+ const e=new TextEncoder(),bl=[];
+ const S=(b,s,o,m)=>{const y=e.encode(s),l=Math.min(y.length,m);for(let i=0;i<l;i++)b[o+i]=y[i]};
+ const O=(b,v,o,l)=>{S(b,v.toString(8).padStart(l-1,'0'),o,l-1);b[o+l-1]=0};
+ const mt=Math.floor(Date.now()/1000);
+ for(const f of fs){
+  const c=e.encode(f.c),h=new Uint8Array(512);
+  S(h,"mnm-routing-verified/"+f.p,0,100);O(h,0o644,100,8);O(h,1000,108,8);O(h,1000,116,8);
+  O(h,c.length,124,12);O(h,mt,136,12);
+  for(let i=148;i<156;i++)h[i]=32;h[156]=48;S(h,"ustar",257,6);S(h,"00",263,2);
+  let k=0;for(let i=0;i<512;i++)k+=h[i];O(h,k,148,7);h[155]=32;
+  bl.push(h);const pl=Math.ceil(c.length/512)*512,d=new Uint8Array(pl);d.set(c);bl.push(d);
+ }
+ bl.push(new Uint8Array(1024));
+ const t=bl.reduce((a,b)=>a+b.length,0),bf=new Uint8Array(t);
+ let o=0;for(const b of bl){bf.set(b,o);o+=b.length}return bf;
+}
+
+let ai=0;
+function tree(){
+ const el=document.getElementById('tree');el.innerHTML='';
+ F.forEach((f,i)=>{
+  const s=i===ai,b=document.createElement('button');
+  b.className=`w-full text-left px-3 py-2 rounded-lg m text-xs border cursor-pointer ${s?'bg-red-500/15 border-red-500/40 text-white':'bg-[#0e1217] border-slate-800/80 text-slate-300 hover:bg-slate-800/60'}`;
+  b.innerHTML=`<div class="flex justify-between gap-2"><span class="font-semibold truncate">${f.p.split('/').pop()}</span><span class="text-[10px] px-1.5 rounded ${s?'bg-red-500/30 text-red-200':'bg-slate-800 text-slate-400'}">${f.b}</span></div><div class="text-[10px] text-slate-500 truncate">${f.p}</div>`;
+  b.onclick=()=>{ai=i;tree();show()};el.appendChild(b);
+ });
+ document.getElementById('sz').textContent=F.length+" файла • "+(tar(F).length/1024).toFixed(1)+" KB";
+}
+function show(){const f=F[ai];
+ document.getElementById('fp').textContent=f.p;
+ document.getElementById('fb').textContent=f.b;
+ document.getElementById('fd').textContent=f.d;
+ document.getElementById('cd').textContent=f.c;}
+document.getElementById('tar').onclick=()=>{
+ const b=new Blob([tar(F)],{type:'application/x-tar'}),u=URL.createObjectURL(b);
+ const a=document.createElement('a');a.href=u;a.download='mnm-routing-verified.tar';
+ document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);};
+document.getElementById('copy').onclick=async()=>{
+ await navigator.clipboard.writeText(F[ai].c);
+ const b=document.getElementById('copy'),o=b.textContent;b.textContent='✓ Скопировано';
+ setTimeout(()=>b.textContent=o,1500);};
+document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tb').forEach(x=>x.className='tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer');
+ b.className='tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer';
+ document.querySelectorAll('.tp').forEach(p=>p.classList.add('hidden'));
+ document.getElementById(b.dataset.t).classList.remove('hidden');});
+tree();show();
+</script>
+</body>
+</html>

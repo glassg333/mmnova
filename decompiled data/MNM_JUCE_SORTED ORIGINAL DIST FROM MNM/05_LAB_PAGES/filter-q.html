@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNM OS 1.32B — HPQ / LPQ / модулятор фильтра</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+ body{background:#0b0d10;color:#e2e8f0;font-family:Inter,system-ui,sans-serif}
+ .m{font-family:'JetBrains Mono',monospace}
+ ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0d1117}
+ ::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px}
+ .A{background:rgba(16,185,129,.18);color:#6ee7b7}
+ .B{background:rgba(245,158,11,.18);color:#fcd34d}
+ .C{background:rgba(239,68,68,.18);color:#fca5a5}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-slate-800 bg-[#0e1217] sticky top-0 z-40">
+ <div class="max-w-[1500px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+  <div>
+   <h1 class="text-base md:text-lg font-bold text-white">Резонансы <span class="text-amber-400 m">HPQ / LPQ</span> и модулятор фильтра</h1>
+   <p class="text-xs text-slate-400 m">Новый источник: Jick238/monomachine-lab — рабочий эмулятор на настоящей прошивке</p>
+  </div>
+  <div class="flex gap-2">
+   <button id="copy" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs m text-slate-200 cursor-pointer">Копировать файл</button>
+   <button id="tar" class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 text-white font-semibold text-xs md:text-sm border border-red-400/30 cursor-pointer">⬇ TAR</button>
+  </div>
+ </div>
+</header>
+
+<div class="border-b border-slate-800 bg-[#10141b]">
+ <div class="max-w-[1500px] mx-auto px-4 flex gap-1 py-1.5 overflow-x-auto">
+  <button data-t="t1" class="tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer">Что нашлось нового</button>
+  <button data-t="t2" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Карта Y:$500 + гипотеза</button>
+  <button data-t="t3" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Как измерить Q без дизасма</button>
+  <button data-t="t4" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Код</button>
+ </div>
+</div>
+
+<main class="flex-1 max-w-[1500px] w-full mx-auto px-4 py-4">
+
+<!-- T1 -->
+<section id="t1" class="tp space-y-4">
+
+ <div class="bg-[#101a14] border border-emerald-500/35 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">1. Твой роутинг подтверждён независимо <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-300 mb-2">Ты проверил на слух: <code class="m text-emerald-300">synth → dist → eq → srr → filt → env → dsnd</code></p>
+  <p class="text-xs text-slate-300 mb-2">CHANGELOG эмулятора <code class="m">monomachine-lab</code> (он гоняет настоящую прошивку в dsp56kEmu) пишет дословно:</p>
+  <blockquote class="border-l-2 border-emerald-500/50 pl-3 text-xs text-slate-300 italic mb-3">«Kept the original machine, <strong>distortion/SRR, filter, EQ, AMP and delay</strong> routines»</blockquote>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+   <div class="bg-[#0d1117] rounded p-3 border border-emerald-500/25">
+    <div class="m text-emerald-400 font-bold mb-1">Совпадает</div>
+    <ul class="text-slate-300 space-y-1">
+     <li>• DIST идёт рано, сразу после машины</li>
+     <li>• AMP/ENV идёт <strong>после</strong> фильтра</li>
+     <li>• delay / DSND — последний</li>
+     <li>• SRR — до фильтра, не после</li>
+    </ul>
+   </div>
+   <div class="bg-[#0d1117] rounded p-3 border border-amber-500/25">
+    <div class="m text-amber-400 font-bold mb-1">Расходится в мелочи</div>
+    <p class="text-slate-300">У тебя <code class="m">eq → srr → filt</code>, в CHANGELOG <code class="m">srr → filt → eq</code>. Твой слуховой тест сильнее — там прямое сравнение. В CHANGELOG это перечисление подпрограмм, не обязательно порядок.</p>
+   </div>
+  </div>
+  <p class="text-xs text-slate-400 mt-3">Важно: это снимает противоречие с <code class="m">KERNEL_VOICE_CHAIN.md</code>, где было «AMP env → LFO → SVF». Там описан порядок <strong>блоков кода</strong> внутри <code class="m">func_0004A8</code>: сначала считается <em>значение</em> огибающей, потом LFO, потом фильтр. А <em>умножение</em> звука на огибающую происходит в конце. Обе картины верны.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-emerald-500/30 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">2. Канонические имена всех параметров <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-400 mb-3">Из <code class="m">core/monomachine_engine.h</code> — enum эмулятора, который реально гоняет прошивку. Это снимает все вопросы по именам и порядку.</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">enum class Parameter : uint8_t {
+  AmpAttack, AmpHold, AmpDecay, AmpRelease,
+  AmpDistortion, AmpVolume, AmpPan, AmpPortamento,
+
+  FilterBase, FilterWidth, <span class="text-amber-300">FilterHighPassQ</span>, <span class="text-amber-300">FilterLowPassQ</span>,
+  <span class="text-red-300">FilterAttack</span>, <span class="text-red-300">FilterDecay</span>, <span class="text-red-300">FilterBaseOffset</span>, <span class="text-red-300">FilterWidthOffset</span>,
+
+  EffectEqFrequency, EffectEqGain, EffectSampleRateReduction,
+  EffectDelayTime, EffectDelaySend, EffectDelayFeedback,
+  EffectDelayBase, EffectDelayWidth,
+
+  SynthA .. SynthH,  TrackLevel
+};</pre>
+  <p class="text-xs text-slate-300 mt-2">Значения хранятся в исходном разрешении <strong>0..127</strong> («Values retain the original 0..127 resolution»). Два резонанса — <code class="m text-amber-300">FilterHighPassQ</code> и <code class="m text-amber-300">FilterLowPassQ</code>. Модулятор — <code class="m text-red-300">FilterAttack / FilterDecay / FilterBaseOffset / FilterWidthOffset</code>.</p>
+ </div>
+
+ <div class="bg-[#141018] border border-purple-500/30 rounded-xl p-5">
+  <h2 class="text-base font-bold text-purple-300 mb-2">3. Найдена база страницы параметров <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">static constexpr uint32_t <span class="text-purple-300">kVoicePageYAddress = 0x000500</span>;</pre>
+  <p class="text-xs text-slate-300 mt-2">Складываем с известным из ядра: голос <code class="m">V = Y:$528</code>, а страничные параметры лежат в <code class="m">V-$28 .. V-$01</code>.</p>
+  <p class="text-xs text-emerald-300 m mt-2">$528 − $28 = <strong>$500</strong> — сходится точно.</p>
+  <p class="text-xs text-slate-300 mt-2">То есть <strong>все 40 слов страничных параметров занимают Y:$500..Y:$527</strong>. Это та самая область, куда ColdFire пишет уже пересчитанные в fixed-point значения ручек. Теперь у неё есть подтверждённый адрес.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">4. Побочные находки</h2>
+  <ul class="text-xs text-slate-300 space-y-2">
+   <li>• <strong>Домен питча подтверждён:</strong> «the scheduler's actual note domain uses <code class="m">0x800</code> per octave with a <code class="m">0x5800</code> pre-offset». Это ровно 2048 шагов на октаву и 11 октав — сходится с <code class="m">X:$140000</code>. Калибровка: GND-SIN даёт <strong>261.6 Гц на MIDI 60</strong>.</li>
+   <li>• <strong>Баг экстрактора подтверждён в оригинале.</strong> В <code class="m">07_scripts/repo/extract_tables.py</code> буквально стоит <code class="m">if base_addr &gt;= 0x100000: off = base_addr - 0x100000</code>. Мой фикс верен.</li>
+   <li>• <strong>Новые адреса таблиц</strong> из докстринга того же скрипта: FX-DYN RMS <code class="m">P:$144746</code> (~64), reverb delay buffer <code class="m">X:$120000</code> (~8192), DPRO wavetable <code class="m">X:$11B451</code>.</li>
+   <li>• <strong>«EQ band table X:$140000»</strong> в том скрипте — ошибочное имя. Аудит доказал, что это таблица питча <code class="m">wt[i]=0.5·2^(i/2048)</code> с точностью 1e-9. А <code class="m">$1407FF</code> = её конец, читается с отрицательным индексом (видно в FX-DYN и SWAVE-ENS).</li>
+  </ul>
+ </div>
+</section>
+
+<!-- T2 -->
+<section id="t2" class="tp hidden space-y-4">
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-2">Карта Y:$500 — что известно точно</h2>
+  <p class="text-xs text-slate-400 mb-3">Смещения из <code class="m">KERNEL_VOICE_CHAIN.md</code> §6 пересчитаны в абсолютные адреса через <code class="m">V = $528</code>.</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Y-адрес</th><th class="py-2 px-3">V-смещ.</th><th class="py-2 px-3">Роль по доке ядра</th><th class="py-2 px-3">Где читается</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr><td class="py-1.5 px-3 text-purple-300">$500</td><td class="py-1.5 px-3">V−$28</td><td class="py-1.5 px-3 text-slate-400">начало страничного блока</td><td class="py-1.5 px-3 text-slate-500">r6 = V−$28 в func_0004A8</td></tr>
+     <tr><td class="py-1.5 px-3 text-purple-300">$501</td><td class="py-1.5 px-3">V−$27</td><td class="py-1.5 px-3 text-slate-400">питч-аккумулятор acc (0..$5800)</td><td class="py-1.5 px-3 text-slate-500">пишется P:$2D7</td></tr>
+     <tr class="bg-emerald-950/15"><td class="py-1.5 px-3 text-emerald-300">$508</td><td class="py-1.5 px-3">V−$20</td><td class="py-1.5 px-3 text-emerald-200">«TONE» = множитель среза</td><td class="py-1.5 px-3 text-slate-400">P:$537–$53D</td></tr>
+     <tr><td class="py-1.5 px-3 text-slate-300">$50A</td><td class="py-1.5 px-3">V−$1E</td><td class="py-1.5 px-3 text-slate-400">питч-множитель</td><td class="py-1.5 px-3 text-slate-400">P:$537</td></tr>
+     <tr class="bg-amber-950/20"><td class="py-1.5 px-3 text-amber-300">$50C</td><td class="py-1.5 px-3">V−$1C</td><td class="py-1.5 px-3 text-amber-200">док: «LFO SPD» → индекс в Y:$141800</td><td class="py-1.5 px-3 text-slate-400">P:$509</td></tr>
+     <tr class="bg-amber-950/20"><td class="py-1.5 px-3 text-amber-300">$50D</td><td class="py-1.5 px-3">V−$1B</td><td class="py-1.5 px-3 text-amber-200">док: «LFO MULT» → Y:$141A00</td><td class="py-1.5 px-3 text-slate-400">P:$52B</td></tr>
+     <tr class="bg-amber-950/20"><td class="py-1.5 px-3 text-amber-300">$50E</td><td class="py-1.5 px-3">V−$1A</td><td class="py-1.5 px-3 text-amber-200">док: «INTL/DPTH» → |x+$C00000|·$700</td><td class="py-1.5 px-3 text-slate-400">P:$53E–$56C</td></tr>
+     <tr class="bg-amber-950/20"><td class="py-1.5 px-3 text-amber-300">$50F</td><td class="py-1.5 px-3">V−$19</td><td class="py-1.5 px-3 text-amber-200">док: «INTL/DPTH» вторая ветка</td><td class="py-1.5 px-3 text-slate-400">P:$53E–$56C</td></tr>
+     <tr><td class="py-1.5 px-3 text-slate-300">$518–$51B</td><td class="py-1.5 px-3">V−$10..−$0D</td><td class="py-1.5 px-3 text-slate-400">AMP env: ATK / ? / DEC / REL</td><td class="py-1.5 px-3 text-slate-400">P:$4B4–$4EE</td></tr>
+     <tr><td class="py-1.5 px-3 text-slate-300">$520</td><td class="py-1.5 px-3">V−$08</td><td class="py-1.5 px-3 text-slate-400">note-on триггер</td><td class="py-1.5 px-3 text-slate-400">P:$4FF</td></tr>
+    </tbody>
+   </table>
+  </div>
+ </div>
+
+ <div class="bg-[#1a1510] border border-amber-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-amber-300 mb-2">Гипотеза: «LFO INTL/DPTH» в доке — это на самом деле модулятор фильтра <span class="B px-1.5 rounded text-xs ml-1">B</span></h2>
+  <p class="text-xs text-slate-300 mb-3">Автор доки сам пометил это как <strong>открытый вопрос</strong> (§9 п.2: «точное назначение INTL/DPTH веток (P:$53E-56C) — требует трассировки»). Вот почему я думаю, что там фильтр:</p>
+
+  <div class="space-y-2.5 text-xs text-slate-300">
+   <div class="bg-[#0d1117] rounded p-3 border border-slate-800">
+    <div class="m text-amber-400 font-bold mb-1">Довод 1 — расположение</div>
+    Блок <code class="m">$50C..$50F</code> стоит вплотную <strong>перед</strong> <code class="m">$508</code>(BASE-множитель) и <strong>внутри</strong> того же куска <code class="m">P:$537–$5D2</code>, который считает срез. Если разложить FILT-страницу подряд начиная с <code class="m">$508</code>, получается ровно: BASE, WDTH, HPQ, LPQ, <strong>ATK, DEC, BOFS, WOFS</strong> → <code class="m">$508..$50F</code>. И <code class="m">$508</code> действительно используется как база среза — это уже подтверждено.
+   </div>
+   <div class="bg-[#0d1117] rounded p-3 border border-slate-800">
+    <div class="m text-amber-400 font-bold mb-1">Довод 2 — формула выдаёт биполярность</div>
+    Док §4.5: <code class="m text-emerald-300">|Y:(V-$1A) + $C00000| × $700</code>. В 24 битах <code class="m">$C00000 = −$400000</code>, то есть это <code class="m">|x − 0.5|</code> — <strong>классическое взятие модуля от биполярного параметра</strong>, где центр = $400000. BOFS и WOFS как раз биполярные (−64…+63). У однополярного SPD такой центровки быть не должно.
+   </div>
+   <div class="bg-[#0d1117] rounded p-3 border border-slate-800">
+    <div class="m text-amber-400 font-bold mb-1">Довод 3 — LFO живёт в другом месте</div>
+    LFO1/2/3 — это отдельные страницы, и в enum эмулятора их вообще нет среди 33 автоматизируемых параметров (только AMP / FILT / EFFX / Synth / Level). Состояние LFO док помещает в <strong>отдельное окно</strong> <code class="m">r7 = V+$B4</code>, а не в страничный блок.
+   </div>
+   <div class="bg-[#0d1117] rounded p-3 border border-slate-800">
+    <div class="m text-amber-400 font-bold mb-1">Довод 4 — общая таблица скоростей</div>
+    Док сам отмечает, что <code class="m">Y:$141800</code> — общая таблица для «LFO SPD и AMP env rates». Огибающая фильтра логично берёт скорость оттуда же. Блок, который автор назвал «LFO-фаза», по структуре неотличим от генератора огибающей.
+   </div>
+  </div>
+
+  <p class="text-xs text-amber-200 mt-3">Если гипотеза верна, картина такая:</p>
+  <pre class="m text-[11px] bg-black/40 rounded p-3 mt-2 text-emerald-200 overflow-x-auto">Y:$508 = BASE     Y:$50C = FILT ATK  → rate Y:$141800
+Y:$509 = WDTH     Y:$50D = FILT DEC  → rate Y:$141A00
+Y:$50A = HPQ      Y:$50E = BOFS      → |x−$400000|·$700  (биполярный)
+Y:$50B = LPQ      Y:$50F = WOFS      → вторая такая же ветка
+
+env = envelope(ATK, DEC)
+BASE' = BASE + env·BOFS      WDTH' = WDTH + env·WOFS
+                    ↓
+          DIV P:$586  →  Y:$91+  (f и q на 16 сэмплов)
+                    ↓
+     HP SVF $05D3 (q ← HPQ)      LP SVF $05EB (q ← LPQ)</pre>
+  <p class="text-[11px] text-slate-400 mt-2">Это <strong>гипотеза</strong>, не факт. Проверяется одной командой — см. следующую вкладку.</p>
+ </div>
+</section>
+
+<!-- T3 -->
+<section id="t3" class="tp hidden space-y-4">
+
+ <div class="bg-[#101a14] border border-emerald-500/35 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">Способ, который сильнее дизассемблера: измерить на живой прошивке</h2>
+  <p class="text-xs text-slate-300 mb-3"><code class="m">monomachine-lab</code> — не порт, а <strong>эмулятор dsp56kEmu, который исполняет настоящий бинарь прошивки</strong>. Значит его выход = выход железа. И у него есть ровно то, что нужно:</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">bool setParameter(Parameter parameter, uint8_t value);   // 0..127
+bool renderBlock(Block&amp; destination);                    // 16 кадров стерео
+uint32_t debugXWord(uint32_t address);                   // ← читать X-память!
+uint32_t debugYWord(uint32_t address);                   // ← читать Y-память!</pre>
+  <p class="text-xs text-slate-300 mt-3">Последние два метода решают задачу напрямую. Не нужно разбирать опкоды — можно <strong>подсмотреть, что прошивка сама положила в память</strong>.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-3">План A — проверить гипотезу за 5 минут</h2>
+  <p class="text-xs text-slate-400 mb-2">Ставим HPQ в 0, читаем весь блок <code class="m">Y:$500..$527</code>. Потом ставим HPQ в 127 и читаем снова. <strong>Какое слово изменилось — там и живёт HPQ.</strong> Повторить для LPQ, BOFS, WOFS, DIST.</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">// псевдокод на базе их же API
+for (int addr = 0x500; addr &lt;= 0x527; ++addr) before[addr] = eng.debugYWord(addr);
+
+eng.setParameter(Parameter::FilterHighPassQ, 127);
+eng.renderBlock(blk);                     // дать прошивке применить
+
+for (int addr = 0x500; addr &lt;= 0x527; ++addr) {
+    uint32_t now = eng.debugYWord(addr);
+    if (now != before[addr])
+        printf("HPQ живёт в Y:$%03x : %06x -> %06x\n", addr, before[addr], now);
+}</pre>
+  <p class="text-xs text-slate-300 mt-2">Это даёт <strong>точный адрес</strong> каждой ручки в странице — то, что в доке репо числится открытым вопросом №1.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-3">План B — снять кривую Q целиком</h2>
+  <p class="text-xs text-slate-400 mb-2">Как только адрес известен, гоняем ручку 0…127 и пишем, что прошивка кладёт в память. На выходе — готовая таблица на 128 значений, вообще без реверса.</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">for (int v = 0; v &lt;= 127; ++v) {
+    eng.setParameter(Parameter::FilterHighPassQ, v);
+    eng.renderBlock(blk);
+    printf("%3d  Y:$50a=%06x   q=%+.9f\n",
+           v, eng.debugYWord(0x50a), toFloat(eng.debugYWord(0x50a)));
+}</pre>
+  <p class="text-xs text-slate-300 mt-2">То же самое для <code class="m">Y:$91+</code> — там лежат уже готовые <code class="m">f</code> и <code class="m">q</code>, которые читает петля SVF. Снимешь их — и заглушка <code class="m">cutoffCoeff()</code> в моём коде заменяется реальной таблицей.</p>
+  <p class="text-xs text-slate-300 mt-2">И так же снимается <strong>кривая DIST</strong>, которую иначе пришлось бы выковыривать из ColdFire через capstone M68K.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-3">План C — если эмулятор собирать не хочется</h2>
+  <p class="text-xs text-slate-400 mb-2">В <code class="m">core/monomachine_engine.cpp</code> (44 КБ) есть функция с готовым ответом:</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">static std::size_t parameterPageOffset(Parameter parameter) noexcept;</pre>
+  <p class="text-xs text-slate-300 mt-2">Она отображает каждый параметр в смещение внутри страницы. Достаточно её найти:</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp</pre>
+  <p class="text-[11px] text-slate-500 mt-2">Файл 44 КБ — мой загрузчик его обрежет, а у тебя прочитается целиком. Кидай вывод, разберу.</p>
+ </div>
+
+ <div class="bg-[#1a1014] border border-red-500/30 rounded-xl p-4">
+  <h3 class="text-xs m font-bold text-red-300 mb-2">Почему я не могу сделать это сам</h3>
+  <p class="text-xs text-slate-300">Ядро <code class="m">dsp1_kernel_P0000-0B4D.txt</code> = 102 КБ, мой загрузчик отдаёт первые ~10 КБ и рвёт на <code class="m">$00EB</code>. Проверил четыре пути: raw.githubusercontent (<code class="m">text</code> и <code class="m">markdown</code>), jsDelivr CDN, GitHub API в base64, прокси r.jina.ai — <strong>все обрываются в одном месте</strong>, значит лимит мой, не серверный. Регион <code class="m">$0537–$05FA</code> лежит примерно на 48 КБ вглубь. Бинарные <code class="m">.bin</code> я не читаю вообще.</p>
+ </div>
+</section>
+
+<!-- T4 -->
+<section id="t4" class="tp hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div class="lg:col-span-4 bg-[#12161c] border border-slate-800 rounded-xl p-3.5">
+  <div class="flex items-center justify-between mb-2">
+   <h2 class="text-xs m uppercase text-slate-400 font-semibold">Файлы</h2>
+   <span id="sz" class="text-[11px] m px-2 py-0.5 rounded bg-slate-800 text-emerald-400">—</span>
+  </div>
+  <div id="tree" class="space-y-1 max-h-[560px] overflow-y-auto pr-1"></div>
+ </div>
+ <div class="lg:col-span-8 bg-[#12161c] border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[700px]">
+  <div class="px-4 py-3 bg-[#161b22] border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+   <h3 id="fp" class="m text-sm font-bold text-white">—</h3>
+   <span id="fb" class="text-xs m px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">—</span>
+  </div>
+  <div id="fd" class="px-4 py-2 bg-[#0f1318] border-b border-slate-800/80 text-xs text-slate-300"></div>
+  <div class="flex-1 overflow-auto bg-[#0b0e14] p-4"><pre id="cd" class="m text-xs leading-relaxed text-slate-200 whitespace-pre"></pre></div>
+ </div>
+</section>
+
+</main>
+
+<script>
+const F=[
+{p:"FILTER_Q_FINDINGS.md",b:"ГЛАВНОЕ",d:"Все находки по HPQ/LPQ и модулятору с источниками и тирами.",
+c:`# HPQ / LPQ / модулятор фильтра — статус
+
+A = подтверждено источником  B = обоснованная гипотеза  C = неизвестно
+
+## РОУТИНГ                                                    [A]
+Твой слуховой тест через эмуляцию:
+  synth -> dist -> eq -> srr -> filt -> env -> dsnd
+
+Независимое подтверждение, CHANGELOG monomachine-lab 0.1.4:
+  "Kept the original machine, distortion/SRR, filter, EQ, AMP
+   and delay routines"
+
+Совпадает: dist рано, env после фильтра, delay последний, SRR до фильтра.
+Расходится: порядок eq/srr относительно filt. Слуховой тест сильнее.
+
+Снято противоречие с KERNEL_VOICE_CHAIN ("AMP env -> LFO -> SVF"):
+там порядок БЛОКОВ КОДА внутри func_0004A8 (сначала считается
+значение огибающей), а умножение звука на неё — в конце.
+
+## ИМЕНА ПАРАМЕТРОВ                                           [A]
+core/monomachine_engine.h, enum Parameter, значения 0..127:
+
+  AmpAttack AmpHold AmpDecay AmpRelease
+  AmpDistortion AmpVolume AmpPan AmpPortamento
+
+  FilterBase FilterWidth FilterHighPassQ FilterLowPassQ
+  FilterAttack FilterDecay FilterBaseOffset FilterWidthOffset
+
+  EffectEqFrequency EffectEqGain EffectSampleRateReduction
+  EffectDelayTime EffectDelaySend EffectDelayFeedback
+  EffectDelayBase EffectDelayWidth
+
+  SynthA..SynthH  TrackLevel
+
+Два резонанса = FilterHighPassQ + FilterLowPassQ.
+Модулятор = FilterAttack/Decay + FilterBaseOffset/WidthOffset.
+
+## БАЗА СТРАНИЦЫ ПАРАМЕТРОВ                                   [A]
+  static constexpr uint32_t kVoicePageYAddress = 0x000500;
+
+Сходится с ядром: V = Y:$528, страничные параметры в V-$28..V-$01.
+  $528 - $28 = $500
+
+=> весь блок ручек лежит в Y:$500..Y:$527 (40 слов).
+ColdFire пишет туда уже пересчитанные fixed-point значения.
+
+## ГИПОТЕЗА: "LFO INTL/DPTH" в доке = модулятор фильтра       [B]
+Док сам помечает это открытым вопросом (§9 п.2).
+
+Доводы:
+ 1. Раскладка FILT-страницы подряд от $508 даёт ровно
+    BASE WDTH HPQ LPQ ATK DEC BOFS WOFS -> $508..$50F,
+    и $508 уже подтверждён как база среза (P:$537).
+ 2. Формула |Y:(V-$1A) + $C00000| * $700.
+    В 24 битах $C00000 = -$400000, то есть |x - 0.5| — взятие
+    модуля от БИПОЛЯРНОГО параметра с центром $400000.
+    BOFS/WOFS биполярные (-64..+63). У однополярного SPD
+    такой центровки быть не должно.
+ 3. LFO1/2/3 — отдельные страницы, в enum эмулятора их нет
+    среди 33 автоматизируемых. Состояние LFO док кладёт в
+    отдельное окно r7 = V+$B4, не в страничный блок.
+ 4. Y:$141800 док сам называет общей таблицей для "LFO SPD и
+    AMP env rates" — огибающая фильтра берёт скорость оттуда же.
+
+Если верно:
+  Y:$508 BASE   Y:$50C FILT ATK  -> Y:$141800
+  Y:$509 WDTH   Y:$50D FILT DEC  -> Y:$141A00
+  Y:$50A HPQ    Y:$50E BOFS      -> |x-$400000|*$700
+  Y:$50B LPQ    Y:$50F WOFS
+
+  BASE' = BASE + env*BOFS ; WDTH' = WDTH + env*WOFS
+  -> DIV P:$586 -> Y:$91+ (f и q) -> HP SVF $05D3 / LP SVF $05EB
+
+## ЧТО ОСТАЁТСЯ НЕИЗВЕСТНЫМ                                   [C]
+ - точный адрес каждой ручки внутри $500..$527
+ - кривая 0..127 -> q для HPQ и LPQ
+ - кривая 0..127 -> множитель для DIST
+ - форма огибающей фильтра (AD? AHD?)
+
+ВСЁ ЭТО СНИМАЕТСЯ ИЗМЕРЕНИЕМ, БЕЗ ДИЗАССЕМБЛЕРА — см. PLAN_MEASURE.md
+
+## ПОБОЧНОЕ
+ - домен питча: 0x800 на октаву, преднастройка 0x5800,
+   GND-SIN = 261.6 Гц на MIDI 60                              [A]
+ - баг extract_tables.py подтверждён в оригинале:
+   if base_addr >= 0x100000: off = base_addr - 0x100000       [A]
+ - новые адреса: FX-DYN RMS P:$144746 (~64),
+   reverb delay buffer X:$120000 (~8192),
+   DPRO wavetable X:$11B451                                   [A]
+ - "EQ band table X:$140000" в том скрипте — ошибочное имя.
+   Это таблица питча wt[i]=0.5*2^(i/2048), проверено 1e-9.
+   $1407FF = её конец, читается с отрицательным индексом.
+`},
+
+{p:"PLAN_MEASURE.md",b:"ПЛАН ИЗМЕРЕНИЯ",d:"Как снять точные кривые Q и DIST с живой прошивки через эмулятор, минуя дизассемблер.",
+c:`# Снять кривые Q и DIST измерением, без реверса
+
+## Почему это работает
+Jick238/monomachine-lab — НЕ порт. Это dsp56kEmu, который исполняет
+настоящий бинарь прошивки OS 1.32B. Его выход = выход железа.
+
+В API уже есть всё нужное (core/monomachine_engine.h):
+
+  bool     setParameter(Parameter p, uint8_t value);  // 0..127
+  bool     renderBlock(Block& dst);                   // 16 кадров
+  uint32_t debugXWord(uint32_t address);
+  uint32_t debugYWord(uint32_t address);              // <-- ключ
+
+debugYWord позволяет подсмотреть, что прошивка САМА положила
+в память после пересчёта ручки. Дизассемблер не нужен.
+
+## ШАГ 1 — найти адрес каждой ручки в Y:$500..$527
+
+  uint32_t before[0x28];
+  for (int a = 0; a < 0x28; ++a) before[a] = eng.debugYWord(0x500 + a);
+
+  eng.setParameter(Parameter::FilterHighPassQ, 127);
+  eng.renderBlock(blk);        // дать прошивке применить
+
+  for (int a = 0; a < 0x28; ++a) {
+      uint32_t now = eng.debugYWord(0x500 + a);
+      if (now != before[a])
+          printf("HPQ -> Y:$%03x  %06x => %06x\\n", 0x500+a, before[a], now);
+  }
+
+Повторить для: FilterLowPassQ, FilterBaseOffset, FilterWidthOffset,
+FilterAttack, FilterDecay, AmpDistortion.
+
+Результат закрывает открытый вопрос №1 доки репо.
+
+## ШАГ 2 — снять кривую целиком
+
+  for (int v = 0; v <= 127; ++v) {
+      eng.setParameter(Parameter::FilterHighPassQ, v);
+      eng.renderBlock(blk);
+      printf("%3d %06x\\n", v, eng.debugYWord(ADDR_НАЙДЕННЫЙ_НА_ШАГЕ_1));
+  }
+
+На выходе готовая таблица 128 значений. Вставляется в порт как есть.
+
+## ШАГ 3 — снять готовые f и q, которые читает петля SVF
+
+Док §4.6: "коэффициенты читаются из Y:$91+ (рабочая область)".
+
+  for (int a = 0x91; a < 0xB0; ++a)
+      printf("Y:$%02x = %06x\\n", a, eng.debugYWord(a));
+
+Снять при разных BASE/WIDTH/HPQ/LPQ — станет видно, какой слот чей.
+Это заменяет мою заглушку cutoffCoeff() реальными числами.
+
+## ШАГ 4 — кривая DIST
+
+Та же процедура для AmpDistortion. Иначе её пришлось бы доставать
+из ColdFire (coldfire_main.bin, 425858 байт, MCF5206e, capstone M68K) —
+это отдельная тяжёлая сессия. Измерением получается за минуты.
+
+## АЛЬТЕРНАТИВА без сборки эмулятора
+
+В core/monomachine_engine.cpp (44 КБ) есть готовая функция:
+
+  static std::size_t parameterPageOffset(Parameter parameter) noexcept;
+
+  grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp
+
+Она сразу даёт смещение каждого параметра в странице.
+Файл 44 КБ — мой загрузчик режет, локально прочитается целиком.
+
+## ЧТО ПРИСЛАТЬ МНЕ
+Любое из:
+  1. вывод grep parameterPageOffset
+  2. таблицу "ручка -> адрес" из шага 1
+  3. дамп 128 значений из шага 2
+Соберу точный C++ без заглушек.
+`},
+
+{p:"Source/mmnova/MnMFilter24.h",b:"КОД",d:"Две SVF-секции с раздельными HPQ/LPQ и модулятором. Заглушки честно помечены и вынесены в отдельные функции.",
+c:`#pragma once
+#include "MnMFixed.h"
+
+// ============================================================================
+//  FILT page: BASE WDTH HPQ LPQ ATK DEC BOFS WOFS       (0..127 каждый)
+//  Имена канонические — enum Parameter из monomachine_engine.h:
+//    FilterBase, FilterWidth, FilterHighPassQ, FilterLowPassQ,
+//    FilterAttack, FilterDecay, FilterBaseOffset, FilterWidthOffset
+//
+//  Страничный блок голоса: Y:$500..$527   (kVoicePageYAddress = 0x000500,
+//  V = Y:$528, параметры в V-$28..V-$01 — сходится точно)
+//
+//  Ядро (KERNEL_VOICE_CHAIN.md §4.6):
+//    две петли do #<$8 (8 итераций x 2 аккумулятора = 16 сэмплов)
+//      HP: P:$05D3-$05E8      LP: P:$05EB-$05FA
+//    x0 = $F528BD = -0.084694564    x1 = $4A4DF0 = +0.580503464
+//    состояния X:$71+n*3 / X:$73+n*3,  коэффициенты из Y:$91+
+//
+//  Почему две петли = HP и LP, а не L/R: на панели РАЗДЕЛЬНЫЕ HPQ и LPQ,
+//  мануал — "individual Q-control". Раздельный резонанс требует двух
+//  независимых секций. Это закрывает открытый вопрос §9 п.3 доки репо.
+// ============================================================================
+
+namespace mmnova {
+
+class Filter24
+{
+public:
+    // ---- [A] точные константы петли, пересчитаны от hex -------------------
+    //  $F528BD = 16066749 - 2^24 = -710467 ; -710467 / 2^23 = -0.084694564
+    //  $4A4DF0 = 4869616                   ;  4869616 / 2^23 = +0.580503464
+    //  ВНИМАНИЕ: это НЕ ручки Q. Это зашитые в опкоды структурные
+    //  константы SVF. Сами Q приходят из Y:$91+, куда их кладёт
+    //  блок P:$537-$5D2 ДО петли.
+    static constexpr double kA = -0.084694564;   // $F528BD
+    static constexpr double kB =  0.580503464;   // $4A4DF0
+
+    void reset() noexcept { hpLo = hpBp = lpLo = lpBp = 0; envPhase = 0; envVal = 0; }
+
+    // ------------------------------------------------------------------
+    //  [C] ЗАГЛУШКА. Реальная кривая 0..127 -> q НЕ извлечена.
+    //  Снимается измерением: см. PLAN_MEASURE.md шаг 2.
+    //  Когда снимешь 128 значений —替 заменить тело на табличный lookup.
+    // ------------------------------------------------------------------
+    static double qFromKnob (int knob7) noexcept
+    {
+        const double n = std::clamp (knob7, 0, 127) / 127.0;
+        // нижняя граница взята как 2.0 + kA, чтобы при knob=0 демпфирование
+        // совпадало со структурной константой петли
+        return std::clamp (2.0 + kA - n * 1.85, 0.05, 2.0);
+    }
+
+    // ------------------------------------------------------------------
+    //  [C] ЗАГЛУШКА. В железе срез НЕ через tan(), а 24-битным делением:
+    //    P:$586-$588  do #<$18 ; div
+    //    делимое  = TBL[X:$143F95 + x0*$4AF] + TBL[X:$144446 + y0*$80]
+    //    делитель = (a >> 1)
+    //  Обе таблицы в репо не выгружены (107 и 128 слов).
+    //  Альтернатива дампу: снять готовые f прямо из Y:$91+ (шаг 3).
+    // ------------------------------------------------------------------
+    static double cutoffCoeff (int knob7, double sr) noexcept
+    {
+        const double n = std::clamp (knob7, 0, 127) / 127.0;
+        const double hz = 20.0 * std::pow (1000.0, n);
+        return std::clamp (2.0 * std::sin (3.14159265358979
+                          * std::min (hz, sr * 0.45) / sr), 0.002, 0.98);
+    }
+
+    // ------------------------------------------------------------------
+    //  [B] Модулятор. Гипотеза: блок P:$506-$536, который док называет
+    //  "LFO-фаза", на самом деле огибающая фильтра. Док сам помечает
+    //  назначение этих веток открытым вопросом (§9 п.2).
+    //  BOFS/WOFS биполярные: формула |x + $C00000| = |x - 0.5| в 24 битах.
+    //  Форма огибающей [C] не установлена, здесь простая AD.
+    // ------------------------------------------------------------------
+    void trigger() noexcept { envPhase = 0.0; envVal = 0.0; attacking = true; }
+
+    void tickEnvBlock (int atk7, int dec7, double sr) noexcept
+    {
+        const double blocksPerSec = sr / 16.0;        // огибающая идёт на блок
+        if (attacking)
+        {
+            const double rate = 1.0 / (1.0 + std::clamp (atk7,0,127) * 8.0);
+            envVal += rate;
+            if (envVal >= 1.0) { envVal = 1.0; attacking = false; }
+        }
+        else
+        {
+            const double rate = 1.0 / (1.0 + std::clamp (dec7,0,127) * 8.0);
+            envVal -= rate;
+            if (envVal < 0.0) envVal = 0.0;
+        }
+        (void) blocksPerSec;
+    }
+
+    // base7/width7 0..127 ; bofs7/wofs7 0..127 где 64 = ноль (биполярные)
+    void setParams (int base7, int width7, int hpq7, int lpq7,
+                    int bofs7, int wofs7, double sr) noexcept
+    {
+        const double bofs = (std::clamp (bofs7,0,127) - 64) / 64.0;   // -1..+1
+        const double wofs = (std::clamp (wofs7,0,127) - 64) / 64.0;
+
+        const int baseMod  = (int) std::lround (std::clamp (
+                                base7  + envVal * bofs * 127.0, 0.0, 127.0));
+        const int widthMod = (int) std::lround (std::clamp (
+                                width7 + envVal * wofs * 127.0, 0.0, 127.0));
+
+        fHp = cutoffCoeff (baseMod, sr);
+        fLp = cutoffCoeff (std::min (127, baseMod + widthMod), sr);
+        qHp = qFromKnob (hpq7);      // отдельный Q для HP-секции
+        qLp = qFromKnob (lpq7);      // отдельный Q для LP-секции
+    }
+
+    // 16 сэмплов = 8 итераций x 2 аккумулятора, как do #<$8 в железе
+    void processBlock16 (s24* buf) noexcept
+    {
+        for (int i = 0; i < 8; ++i)
+        {
+            buf[i*2+0] = one (buf[i*2+0]);
+            buf[i*2+1] = one (buf[i*2+1]);
+        }
+    }
+
+private:
+    inline s24 one (s24 in) noexcept
+    {
+        double x = toFloat (in);
+
+        // HP-секция, петля P:$05D3-$05E8
+        hpLo += fHp * hpBp;
+        const double hpHi = x - hpLo - qHp * hpBp;
+        hpBp += fHp * hpHi;
+        hpBp  = std::clamp (hpBp, -1.6, 1.6);
+        x = hpHi;
+
+        // LP-секция, петля P:$05EB-$05FA
+        lpLo += fLp * lpBp;
+        const double lpHi = x - lpLo - qLp * lpBp;
+        lpBp += fLp * lpHi;
+        lpBp  = std::clamp (lpBp, -1.6, 1.6);
+        x = lpLo;
+
+        return fromFloat (std::clamp (x, -1.0, 1.0));
+    }
+
+    double fHp{0.2}, fLp{0.5}, qHp{1.2}, qLp{1.2};
+    double hpLo{0}, hpBp{0}, lpLo{0}, lpBp{0};
+    double envPhase{0}, envVal{0};
+    bool   attacking{false};
+};
+
+} // namespace mmnova
+`},
+
+{p:"Source/mmnova/MnMFixed.h",b:"ТИР A",d:"Арифметика DSP56303. sat24 = bset #$14,sr — механизм дисторшна.",
+c:`#pragma once
+#include <cstdint>
+#include <cmath>
+#include <algorithm>
+
+namespace mmnova {
+
+using s24 = int32_t;
+using s56 = int64_t;
+
+static constexpr s24 kOne24 =  0x7FFFFF;
+static constexpr s24 kMin24 = -0x800000;
+static constexpr double kInv24 = 1.0 / 8388608.0;
+
+inline s24 sext24 (int32_t v) noexcept {
+    v &= 0xFFFFFF;
+    return (v & 0x800000) ? (v | ~0xFFFFFF) : v;
+}
+
+// bset #$14,sr -> SR.SM. Жёсткий клип 24-битного аккумулятора.
+// Единственный источник искажения: отдельной машины дисторшна нет.
+inline s24 sat24 (s56 a) noexcept {
+    if (a > kOne24) return kOne24;
+    if (a < kMin24) return kMin24;
+    return (s24) a;
+}
+
+inline s56 mpy  (s24 x, s24 y) noexcept { return ((s56) x * (s56) y) << 1; }
+inline s24 fmul (s24 x, s24 y) noexcept { return sat24 (((s56) x * (s56) y) >> 23); }
+
+inline double toFloat (s24 x) noexcept { return (double) x * kInv24; }
+inline s24 fromFloat (double x) noexcept {
+    double s = x * 8388608.0;
+    if (s >  8388607.0) s =  8388607.0;
+    if (s < -8388608.0) s = -8388608.0;
+    return (s24) std::llround (s);
+}
+
+inline s24    paramWord  (int v7) noexcept { return (s24) (std::clamp (v7,0,127) << 16); }
+inline int    paramIndex (s24 w)  noexcept { return (int) ((w >> 16) & 0x7F); }
+inline double paramNorm  (s24 w)  noexcept { return paramIndex (w) / 127.0; }
+
+} // namespace mmnova
+`},
+];
+
+function tar(fs){
+ const e=new TextEncoder(),bl=[];
+ const S=(b,s,o,m)=>{const y=e.encode(s),l=Math.min(y.length,m);for(let i=0;i<l;i++)b[o+i]=y[i]};
+ const O=(b,v,o,l)=>{S(b,v.toString(8).padStart(l-1,'0'),o,l-1);b[o+l-1]=0};
+ const mt=Math.floor(Date.now()/1000);
+ for(const f of fs){
+  const c=e.encode(f.c),h=new Uint8Array(512);
+  S(h,"mnm-filter-q/"+f.p,0,100);O(h,0o644,100,8);O(h,1000,108,8);O(h,1000,116,8);
+  O(h,c.length,124,12);O(h,mt,136,12);
+  for(let i=148;i<156;i++)h[i]=32;h[156]=48;S(h,"ustar",257,6);S(h,"00",263,2);
+  let k=0;for(let i=0;i<512;i++)k+=h[i];O(h,k,148,7);h[155]=32;
+  bl.push(h);const pl=Math.ceil(c.length/512)*512,d=new Uint8Array(pl);d.set(c);bl.push(d);
+ }
+ bl.push(new Uint8Array(1024));
+ const t=bl.reduce((a,b)=>a+b.length,0),bf=new Uint8Array(t);
+ let o=0;for(const b of bl){bf.set(b,o);o+=b.length}return bf;
+}
+
+let ai=0;
+function tree(){
+ const el=document.getElementById('tree');el.innerHTML='';
+ F.forEach((f,i)=>{
+  const s=i===ai,b=document.createElement('button');
+  b.className=`w-full text-left px-3 py-2 rounded-lg m text-xs border cursor-pointer ${s?'bg-red-500/15 border-red-500/40 text-white':'bg-[#0e1217] border-slate-800/80 text-slate-300 hover:bg-slate-800/60'}`;
+  b.innerHTML=`<div class="flex justify-between gap-2"><span class="font-semibold truncate">${f.p.split('/').pop()}</span><span class="text-[10px] px-1.5 rounded ${s?'bg-red-500/30 text-red-200':'bg-slate-800 text-slate-400'}">${f.b}</span></div><div class="text-[10px] text-slate-500 truncate">${f.p}</div>`;
+  b.onclick=()=>{ai=i;tree();show()};el.appendChild(b);
+ });
+ document.getElementById('sz').textContent=F.length+" файла • "+(tar(F).length/1024).toFixed(1)+" KB";
+}
+function show(){const f=F[ai];
+ document.getElementById('fp').textContent=f.p;
+ document.getElementById('fb').textContent=f.b;
+ document.getElementById('fd').textContent=f.d;
+ document.getElementById('cd').textContent=f.c;}
+document.getElementById('tar').onclick=()=>{
+ const b=new Blob([tar(F)],{type:'application/x-tar'}),u=URL.createObjectURL(b);
+ const a=document.createElement('a');a.href=u;a.download='mnm-filter-q.tar';
+ document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);};
+document.getElementById('copy').onclick=async()=>{
+ await navigator.clipboard.writeText(F[ai].c);
+ const b=document.getElementById('copy'),o=b.textContent;b.textContent='✓ Скопировано';
+ setTimeout(()=>b.textContent=o,1500);};
+document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tb').forEach(x=>x.className='tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer');
+ b.className='tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer';
+ document.querySelectorAll('.tp').forEach(p=>p.classList.add('hidden'));
+ document.getElementById(b.dataset.t).classList.remove('hidden');});
+tree();show();
+</script>
+</body>
+</html>

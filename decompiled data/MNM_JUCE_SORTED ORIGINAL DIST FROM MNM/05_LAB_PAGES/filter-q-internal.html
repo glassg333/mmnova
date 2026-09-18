@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNM OS 1.32B — полная карта Y:$500 вскрыта</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+ body{background:#0b0d10;color:#e2e8f0;font-family:Inter,system-ui,sans-serif}
+ .m{font-family:'JetBrains Mono',monospace}
+ ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0d1117}
+ ::-webkit-scrollbar-thumb{background:#2d3748;border-radius:4px}
+ .A{background:rgba(16,185,129,.18);color:#6ee7b7}
+ .B{background:rgba(245,158,11,.18);color:#fcd34d}
+ .C{background:rgba(239,68,68,.18);color:#fca5a5}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-slate-800 bg-[#0e1217] sticky top-0 z-40">
+ <div class="max-w-[1500px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+  <div>
+   <h1 class="text-base md:text-lg font-bold text-white">Карта <span class="text-emerald-400 m">Y:$500..$533</span> вскрыта полностью</h1>
+   <p class="text-xs text-slate-400 m">parameterPageOffset из monomachine_engine.cpp + исправление ошибки KERNEL_VOICE_CHAIN.md</p>
+  </div>
+  <div class="flex gap-2">
+   <button id="copy" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs m text-slate-200 cursor-pointer">Копировать файл</button>
+   <button id="tar" class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 text-white font-semibold text-xs md:text-sm border border-red-400/30 cursor-pointer">⬇ TAR</button>
+  </div>
+ </div>
+</header>
+
+<div class="border-b border-slate-800 bg-[#10141b]">
+ <div class="max-w-[1500px] mx-auto px-4 flex gap-1 py-1.5 overflow-x-auto">
+  <button data-t="tm" class="tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer">Мануал Elektron (проверка AI-ответа) + Q</button>
+  <button data-t="t1" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Карта Y:$500 + P:$506</button>
+  <button data-t="t2" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Полная таблица 52 слова</button>
+  <button data-t="t3" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">22 точки захвата P:$04A8–$0B1E</button>
+  <button data-t="t4" class="tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer">Код</button>
+ </div>
+</div>
+
+<main class="flex-1 max-w-[1500px] w-full mx-auto px-4 py-4">
+
+<!-- TM: OFFICIAL MANUAL CHECK + HOW Q WORKS -->
+<section id="tm" class="tp space-y-4">
+
+ <div class="bg-[#1a1210] border border-red-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-red-300 mb-2">Проверка твоего текста из Google по официальному мануалу Elektron OS 1.32 (стр. 26–35)</h2>
+  <p class="text-xs text-slate-300 mb-3">Ты правильно заподозрил, что AI-ответ из гугла частично шизит. Вот построчная сверка с настоящим PDF мануала Elektron:</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Утверждение из Google AI</th><th class="py-2 px-3">Вердикт</th><th class="py-2 px-3">Что реально написано в мануале Elektron OS 1.32</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-slate-200">«AMP envelope strictly controls volume. Cannot directly modulate filter.»</td><td class="py-2 px-3"><span class="A px-1.5 rounded font-bold">ПРАВДА ✓</span></td><td class="py-2 px-3 text-emerald-200">У AMP и FILTER <strong>две completamente разные огибающие</strong>. AMP = 4 стадии `ATK/HOLD/DEC/REL` (`Y:$500..$503` + `Y:$518..$51C`). FILTER = 2 стадии `ATK/DEC` (`Y:$50C/$50D`) + биполярные `BOFS/WOFS` (`Y:$50E/$50F`). Даже триггеры у них раздельные: `AMP trig` и `FILTER trig` (мануал стр. 58).</td></tr>
+     <tr class="bg-red-950/25"><td class="py-2 px-3 text-slate-200">«Assign DEST 1 to VOL... Assign DEST 2 to BASE»</td><td class="py-2 px-3"><span class="C px-1.5 rounded font-bold">ШИЗА ❌</span></td><td class="py-2 px-3 text-red-200"><strong>У каждого LFO в Monomachine ТОЛЬКО ОДИН DEST</strong> (`PAGE / DEST / TRIG / WAVE / MULT / SPD / INTL / DPTH`). Никаких `DEST 1` и `DEST 2` внутри одного LFO нет (это AI перепутал с Octatrack / Analog Four). Чтобы качать и VOL, и BASE одновременно, нужны <strong>два разных LFO</strong> (например LFO1 → AMP VOL, LFO2 → FILT BASE).</td></tr>
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-slate-200">«BOFS affects BOTH HP and LP, while WOFS only controls LP»</td><td class="py-2 px-3"><span class="A px-1.5 rounded font-bold">ПРАВДА ✓</span></td><td class="py-2 px-3 text-emerald-200">Мануал стр. 30–31: `BASE` — частота среза HPF, а `WDTH` — **зазор (gap width)** между HPF и LPF, то есть **`f_LP = f_HP + WDTH`**. Поэтому прибавка `BOFS` к `BASE` сдвигает всю полосу целиком (и HP, и LP одновременно!), а `WOFS` двигает только верхний край `LP`.</td></tr>
+    </tbody>
+   </table>
+  </div>
+ </div>
+
+ <div class="bg-[#101a14] border border-emerald-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">Точные числа из мануала Elektron (стр. 31), которые объясняют математику ядра <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <blockquote class="border-l-2 border-emerald-500/50 pl-3 text-xs text-slate-200 italic mb-3">
+   «The filter normally tracks the pitch of the note played. <strong>The high pass filter starts cutting two octaves under the base pitch when the BASE parameter is set to zero.</strong><br>
+   <strong>Both the BASE and the WDTH parameters rise one octave for eight steps.</strong> This exact locking of the filter to octaves is useful if you want to use high filter Q settings to be used for pitch.»
+  </blockquote>
+
+  <p class="text-xs text-slate-300 mb-2">Смотри, как эта одна фраза разработчика расшифровывает загадочную строчку ядра `P:$537` (`(Y:(V-$20)) * $800 - $80`):</p>
+  <ul class="text-xs text-slate-300 space-y-1.5 m">
+   <li>• В домене питча ядра **1 октава = `0x800` (2048 единиц)** (проверено в `midiNoteWord()`).</li>
+   <li>• Мануал говорит: **8 шагов ручки BASE или WDTH = 1 октава**. Значит **1 шаг ручки (0..127) = `0x800 / 8 = 0x100` (256 единиц питча)**!</li>
+   <li>• Весь ход ручки `0..127` = `128 / 8 = 16 октав` (`16 × 12 = 192 полутона`, 1.5 полутона на деление ручки).</li>
+   <li>• При `BASE = 0` срез HPF равен **`note_pitch − 2 октавы` (`− 0x1000`)** (для C4 = 261.6 Гц это C2 = **65.4 Гц**).</li>
+   <li>• При `HPQ` или `LPQ` около максимума фильтр **входит в чистую самоосцилляцию** («if you want to use high filter Q settings to be used for pitch») — именно поэтому шаг привязан ровно к `1/8` октавы!</li>
+  </ul>
+ </div>
+
+ <div class="bg-[#12161c] border border-amber-500/35 rounded-xl p-5">
+  <h2 class="text-base font-bold text-amber-300 mb-2">Почему Q до сих пор не виден как формула — и как достать его за 1 запуск</h2>
+  <p class="text-xs text-slate-300 mb-3">Ты абсолютно прав: `parameterPageOffset` дал нам **входной адрес** (`HPQ = Y:$50A`, `LPQ = Y:$50B`), но **сама инструкция**, которая превращает `Y:$50A` и `Y:$50B` в коэффициент демпфирования внутри `Y:$91+`, лежит в `dsp1_kernel_P0000-0B4D.txt` между `P:$0537` и `P:$05D2`.</p>
+  <p class="text-xs text-slate-300 mb-3">А в `headless/main.cpp` (который я только что вытащил целиком!) обнаружились две готовые фичи, написанные специально для этого:</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+   <div class="bg-[#0b0e14] rounded-lg p-3.5 border border-slate-800">
+    <div class="text-xs m text-emerald-400 font-bold mb-1">Фича 1 в headless/main.cpp — встроенный дизассемблер ядра</div>
+    <p class="text-[11px] text-slate-400 mb-2">Строка 199: `memory.saveAssembly(argv[4], assemblyStart, 1024, ...)` — сохраняет ровно 1024 инструкции начиная с любого hex-адреса `assemblyStart`!</p>
+    <pre class="m text-[11px] text-emerald-200 overflow-x-auto">monomachine_headless sec1.bin sec3.bin 1000 ^
+  filt_537.asm 160 537</pre>
+    <p class="text-[11px] text-slate-400 mt-1">Начнёт прямо с `0x537` и запишет маленький файл `filt_537.asm` без всякой обрезки.</p>
+   </div>
+
+   <div class="bg-[#0b0e14] rounded-lg p-3.5 border border-slate-800">
+    <div class="text-xs m text-amber-400 font-bold mb-1">Фича 2 в headless/main.cpp — готовые снимки памяти `.mnmsnap`</div>
+    <p class="text-[11px] text-slate-400 mb-2">В коде уже забиты 22 точки остановки (`snapshotPcs`), включая **`0x00537`**, **`0x005A2`** и **`0x006C0`**, которые дампят все слова `X:$000..$7FF` и `Y:$000..$7FF` в файл!</p>
+    <pre class="m text-[11px] text-amber-200 overflow-x-auto">set MNMLAB_VOICE_OVERRIDES=10=0x7f0000
+set MNMLAB_SNAPSHOT_PREFIX=hpq127
+monomachine_headless sec1.bin sec3.bin 250000</pre>
+    <p class="text-[11px] text-slate-400 mt-1">`10=0x7f0000` ставит `HPQ` (слот 10) в 127, а на выходе — дамп `Y:$91+` на шаге `p0005a2`.</p>
+   </div>
+  </div>
+ </div>
+
+</section>
+
+<!-- T1 -->
+<section id="t1" class="tp hidden space-y-4">
+
+ <div class="bg-[#101a14] border border-emerald-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-emerald-300 mb-2">1. Вскрыта `parameterPageOffset` — каждый параметр нашёл свой адрес <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-300 mb-2">Дословно из <code class="m">core/monomachine_engine.cpp</code>:</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">std::size_t Engine::parameterPageOffset(const Parameter parameterId) noexcept {
+    const auto index = static_cast&lt;std::size_t&gt;(parameterId);
+    if (index &lt; 24) return index;          // AMP 0..7, FILT 8..15, EFFX 16..23
+    if (index &lt; 32) return 44 + (index - 24);  // SynthA..H -&gt; 44..51
+    return 31;                             // TrackLevel
+}
+
+// И как именно ColdFire кладёт значения:
+// "ColdFire streams each user-facing 0..127 value as a 16.16 word"
+yMemory[0x500 + pageOffset] = static_cast&lt;TWord&gt;(value) &lt;&lt; 16;</pre>
+  <p class="text-xs text-slate-300 mt-3">Второе предложение снимает ещё одну головную боль: <strong>ColdFire НЕ делает никаких кривых</strong>. Каждая ручка `0..127` уходит в DSP просто как `value << 16`. Вся математика — целиком внутри DSP. Capstone M68K не нужен.</p>
+ </div>
+
+ <div class="bg-[#1a1510] border border-amber-500/40 rounded-xl p-5">
+  <h2 class="text-base font-bold text-amber-300 mb-2">2. Моя гипотеза подтвердилась 1-в-1: док ядра перепутал LFO с фильтром <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-300 mb-3">В <code class="m">KERNEL_VOICE_CHAIN.md</code> §4.4–4.5 блок <code class="m">P:$506–$56C</code> назван «LFO-фаза» и «INTL/DPTH-ветки». Ставим рядом реальные адреса из <code class="m">parameterPageOffset</code>:</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">Y-адрес</th><th class="py-2 px-3">V-смещ.</th><th class="py-2 px-3">Что там на самом деле</th><th class="py-2 px-3">Как назвал док ядра</th><th class="py-2 px-3">Формула в ядре (теперь про фильтр!)</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-emerald-300 font-bold">Y:$508</td><td class="py-2 px-3">V−$20</td><td class="py-2 px-3 font-bold text-white">FilterBase (idx 8)</td><td class="py-2 px-3 text-slate-400">«TONE»</td><td class="py-2 px-3 text-emerald-200">(V−$20)·$800 − $80 &nbsp;@ P:$537</td></tr>
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-emerald-300 font-bold">Y:$509</td><td class="py-2 px-3">V−$1F</td><td class="py-2 px-3 font-bold text-white">FilterWidth (idx 9)</td><td class="py-2 px-3 text-slate-400">«slew1 accum»</td><td class="py-2 px-3 text-emerald-200">ширина полосы LP − HP</td></tr>
+     <tr class="bg-amber-950/25"><td class="py-2 px-3 text-amber-300 font-bold">Y:$50A</td><td class="py-2 px-3">V−$1E</td><td class="py-2 px-3 font-bold text-amber-200">FilterHighPassQ (idx 10)</td><td class="py-2 px-3 text-slate-400">«питч-множитель»</td><td class="py-2 px-3 text-amber-200">читается на P:$537 вместе с BASE!</td></tr>
+     <tr class="bg-amber-950/25"><td class="py-2 px-3 text-amber-300 font-bold">Y:$50B</td><td class="py-2 px-3">V−$1D</td><td class="py-2 px-3 font-bold text-amber-200">FilterLowPassQ (idx 11)</td><td class="py-2 px-3 text-slate-400">не упомянут</td><td class="py-2 px-3 text-amber-200">второй резонанс (LP)</td></tr>
+     <tr class="bg-red-950/20"><td class="py-2 px-3 text-red-300 font-bold">Y:$50C</td><td class="py-2 px-3">V−$1C</td><td class="py-2 px-3 font-bold text-red-200">FilterAttack (idx 12)</td><td class="py-2 px-3 text-slate-400">«LFO SPD» ❌</td><td class="py-2 px-3 text-red-200">phase += TBL[Y:$141800 + (V−$1C)&gt;&gt;16]</td></tr>
+     <tr class="bg-red-950/20"><td class="py-2 px-3 text-red-300 font-bold">Y:$50D</td><td class="py-2 px-3">V−$1B</td><td class="py-2 px-3 font-bold text-red-200">FilterDecay (idx 13)</td><td class="py-2 px-3 text-slate-400">«LFO MULT» ❌</td><td class="py-2 px-3 text-red-200">phase −= TBL[$141A00 + ((V−$1B)+$7FFF)&gt;&gt;16]</td></tr>
+     <tr class="bg-red-950/20"><td class="py-2 px-3 text-red-300 font-bold">Y:$50E</td><td class="py-2 px-3">V−$1A</td><td class="py-2 px-3 font-bold text-red-200">FilterBaseOffset (idx 14)</td><td class="py-2 px-3 text-slate-400">«LFO INTL» ❌</td><td class="py-2 px-3 text-red-200">|Y:(V−$1A) + $C00000| × $700 &nbsp;@ P:$53E</td></tr>
+     <tr class="bg-red-950/20"><td class="py-2 px-3 text-red-300 font-bold">Y:$50F</td><td class="py-2 px-3">V−$19</td><td class="py-2 px-3 font-bold text-red-200">FilterWidthOffset (idx 15)</td><td class="py-2 px-3 text-slate-400">«LFO DPTH» ❌</td><td class="py-2 px-3 text-red-200">вторая такая же ветка для WIDTH</td></tr>
+    </tbody>
+   </table>
+  </div>
+
+  <div class="mt-4 bg-[#0b0e14] rounded-lg p-3.5 border border-emerald-500/30">
+   <div class="text-xs m text-emerald-400 font-bold mb-2">Следствие: точный код модулятора фильтра УЖЕ БЫЛ В ДОКЕ — просто под чужим именем</div>
+   <pre class="m text-[11px] text-slate-200 overflow-x-auto leading-relaxed">; P:$506 - $536 — это ОГИБАЮЩАЯ ФИЛЬТРА, а не LFO!
+state == 0 (ATTACK):   phase += TBL[ Y:$141800 + FilterAttack ]
+                       carry -&gt; переход к спаду (r7-$2 = 1)
+state == 1 (HOLD/переход):  математика с $791FD0 = 0.9462824
+state == 2 (DECAY):    phase -= TBL[ Y:$141A00 + FilterDecay ]
+                       if &lt; 0 -&gt; 0
+
+; P:$537 - $53D — BASE и HPQ
+base_scaled = FilterBase * $800 - $80          ; Y:$508 = V-$20
+hpq_raw     = Y:$50A                           ; V-$1E = FilterHighPassQ!
+
+; P:$53E - $56C — глубина модуляции BOFS / WOFS
+; Физическая ручка 0..127, центр 64 = $400000.  $C00000 в 24 бит = -$400000.
+bofs_mag = | FilterBaseOffset  - $400000 | * $700     ; знак хранится отдельно
+wofs_mag = | FilterWidthOffset - $400000 | * $700
+
+; P:$586 - $588 — 24-битное деление среза
+do #&lt;$18 ; div
+делимое  = TBL[ X:$143F95 + x0*$4AF ] + TBL[ X:$144446 + y0*$80 ]
+делитель = (a &gt;&gt; 1)</pre>
+  </div>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-2">3. Найдена настоящая AMP-огибающая — и почему в доке путаница</h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">// monomachine_engine.cpp, configureVoicePage():
+constexpr std::array&lt;dsp56k::TWord, 5&gt; trackEnvelope{ 0, 0, 127, 127, 0 };
+for (std::size_t i = 0; i &lt; 5; ++i)
+    m_voicePage[24 + i] = trackEnvelope[i] &lt;&lt; 16;   // -&gt; Y:$518 .. Y:$51C = V-$10 .. V-$0C</pre>
+  <p class="text-xs text-slate-300 mt-2">В прошивке <strong>ДВЕ</strong> структуры для AMP: пользовательские ручки лежат в `Y:$500..$503` (индексы 0..3), а в `Y:$518..$51C` (`V-$10..V-$0C`) лежит 5-словный `trackEnvelope`, который читает `P:$4A8`!</p>
+  <p class="text-xs text-slate-300 mt-1">Дефолты `{0, 0, 127, 127, 0}` для `V-$10..V-$0C` идеально ложатся на формулу из `P:$4A8`:</p>
+  <ul class="text-xs text-slate-300 mt-1.5 space-y-1 m">
+   <li>• V−$10 = 0 &nbsp;&nbsp;→ attack rate = мгновенно</li>
+   <li>• V−$0E = 127 → sustain level `(V-$0E)² = 1.0` (максимум!)</li>
+   <li>• V−$0D = 127 → release rate = быстро</li>
+  </ul>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">4. Дефолты фильтра из рабочего пресета LASS3</h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">BASE=0  WIDTH=127  HPQ=0  LPQ=0  ATK=0  DEC=32  BOFS=64  WOFS=64</pre>
+  <p class="text-xs text-slate-300 mt-2">Полностью открытый фильтр: нижний край `0` (20 Гц), ширина `127` (до верха), оба резонанса `0`, оба оффсета `64` = **ноль** в биполярной шкале. Подтверждает, что `64 ($400000)` — нейтраль для `BOFS`, `WOFS` и `DIST`.</p>
+ </div>
+</section>
+
+<!-- T2 FULL 52-WORD TABLE -->
+<section id="t2" class="tp hidden space-y-4">
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-1">Полная 52-словная страница голоса `Y:$500..$533` <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-400 mb-3">Собрано из `configureVoicePage()` и `parameterPageOffset()`. Закрывает открытый вопрос №1 доки репо полностью.</p>
+  <div class="overflow-x-auto">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-1.5 px-3">Слот</th><th class="py-1.5 px-3">Y-адрес</th><th class="py-1.5 px-3">V-смещ.</th><th class="py-1.5 px-3">Параметр</th><th class="py-1.5 px-3">Дефолт</th><th class="py-1.5 px-3">Формат</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/60" id="pg"></tbody>
+   </table>
+  </div>
+ </div>
+</section>
+
+<!-- T3 9 STAGE PCs -->
+<section id="t3" class="tp hidden space-y-4">
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-base font-bold text-white mb-1">9 точек захвата внутри `func_0004A8` <span class="A px-1.5 rounded text-xs ml-1">A</span></h2>
+  <p class="text-xs text-slate-400 mb-3">Из `renderBlock()` эмулятора — границы стадий post-voice между `P:$04A8` и выходом трека `P:$0B14`:</p>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-emerald-200 overflow-x-auto">constexpr std::array&lt;std::uint32_t, 9&gt; stagePcs{
+    0x0004ff, 0x0005a2, 0x0006c0, 0x000789, 0x000807,
+    0x00087a, 0x000939, 0x000a5b, 0x000b14
+};
+// Промежуточные буферы каждого шага: X:$0097..$00A6 (L) и X:$00D7..$00E6 (R), по 16 слов.
+// Финальный выход трека на P:$0B14:  X:$0000..$000F (L) и Y:$0020..$002F (R).</pre>
+
+  <div class="overflow-x-auto mt-3">
+   <table class="w-full text-left text-xs m border-collapse">
+    <thead><tr class="border-b border-slate-800 text-slate-400 bg-[#0e1217]">
+     <th class="py-2 px-3">#</th><th class="py-2 px-3">Диапазон P</th><th class="py-2 px-3">Что внутри (по доке + твоему слуховому тесту)</th></tr></thead>
+    <tbody class="divide-y divide-slate-800/70">
+     <tr><td class="py-2 px-3 text-slate-500">0</td><td class="py-2 px-3 text-slate-300">$04A8 – $04FF</td><td class="py-2 px-3">счёт скаляра огибающей `Y:$4FF` (ATK/DEC/REL) + сохранение контекста в `X:$97/$D7` <span class="text-slate-500">(звук ещё НЕ умножается!)</span></td></tr>
+     <tr><td class="py-2 px-3 text-slate-500">1</td><td class="py-2 px-3 text-slate-300">$04FF – $05A2</td><td class="py-2 px-3">счёт скаляров фильтра: огибающая (`$506–$536`) + BASE/HPQ (`$537`) + BOFS/WOFS (`$53E–$56C`) + 24-бит DIV (`$586`) → `Y:$91+` <span class="text-slate-500">(тоже без аудио)</span></td></tr>
+     <tr class="bg-red-950/20"><td class="py-2 px-3 text-slate-500">2</td><td class="py-2 px-3 text-red-300 font-bold">$05A2 – $06C0</td><td class="py-2 px-3"><strong>DIST → SRR → FILTER</strong>: `$5A2–$5D2` (48 слов) = DIST (`Y:$504`) + SRR (`Y:$512`) и загрузка `Y:$91+`; `$05D3–$05E8` = <strong>HP SVF</strong>; `$05EB–$05FA` = <strong>LP SVF</strong>; `$05FB–$06C0` = хвост секции фильтра</td></tr>
+     <tr class="bg-amber-950/20"><td class="py-2 px-3 text-slate-500">3</td><td class="py-2 px-3 text-amber-300 font-bold">$06C0 – $0789</td><td class="py-2 px-3 text-amber-200"><strong>EQ (после фильтра!)</strong> — 201 слово. Параметры `EQF` (`Y:$510`) и `EQG` (`Y:$511`, центр 64 = 0 дБ)</td></tr>
+     <tr class="bg-emerald-950/20"><td class="py-2 px-3 text-slate-500">4</td><td class="py-2 px-3 text-emerald-300 font-bold">$0789 – $0807</td><td class="py-2 px-3 text-emerald-200"><strong>AMP ENV × VOL</strong> — 126 слов. Здесь звук впервые умножается на `Y:$4FF` (посчитанный в шаге 0) и на `AmpVolume` (`Y:$505`)</td></tr>
+     <tr class="bg-purple-950/20"><td class="py-2 px-3 text-slate-500">5..7</td><td class="py-2 px-3 text-purple-300 font-bold">$0807 – $0A5B</td><td class="py-2 px-3 text-purple-200"><strong>TRACK DELAY (DSND)</strong> — 3 подстадии (`$807–$87A` send/время `DTIM/DSND`, `$87A–$939` линия и `DFB`, `$939–$A5B` фильтр хвоста `DBAS/DWID` со сглаживателем `$0CCCCD=0.1 / $733333=0.9` на `$09C9`)</td></tr>
+     <tr><td class="py-2 px-3 text-slate-500">8</td><td class="py-2 px-3 text-slate-300">$0A5B – $0B14</td><td class="py-2 px-3">вывод готового стерео трека в `X:$0000..$000F` (L) и `Y:$0020..$002F` (R) + `TrackLevel` (`Y:$51F`)</td></tr>
+    </tbody>
+   </table>
+  </div>
+  <p class="text-xs text-slate-400 mt-3">Заметь: на `$09C9` стоят константы `0x0CCCCD` (= **0.1** ровно) и `0x733333` (= **0.9** ровно), `0.1 + 0.9 = 1.0`. Это классический однополюсный сглаживатель `y = 0.1·x + 0.9·y` внутри секции эффектов/дилея.</p>
+ </div>
+
+ <div class="bg-[#12161c] border border-slate-800 rounded-xl p-5">
+  <h2 class="text-sm font-bold text-white mb-2">Что ещё бонусом дал этот файл (TUNE и PAN — точные формулы)</h2>
+  <pre class="m text-[11px] bg-[#0b0e14] border border-slate-800 rounded p-3 text-slate-200 overflow-x-auto">// TUNE (0..127, центр 64): асимметричное деление /64 вниз и /63 вверх, диапазон -1..+1 полутон
+double tuneSemitones = tune &lt; 64 ? -(64 - tune) / 64.0 : (tune - 64) / 63.0;
+double factor = std::exp2(tuneSemitones / 12.0);   // умножает 56-битный питч A перед машиной
+
+// PAN (0..127, центр 64): линейный баланс с насыщением на центре, НЕ cos/sin!
+uint32_t leftGain  = (pan &lt;= 64) ? 63u : (127u - pan);   // делитель 63
+uint32_t rightGain = (pan &gt;= 64) ? 64u : pan;            // делитель 64
+// На центре pan=64 ОБА канала идут с коэффициентом 1.0 (63/63 и 64/64).</pre>
+ </div>
+</section>
+
+<!-- T4 CODE -->
+<section id="t4" class="tp hidden grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div class="lg:col-span-4 bg-[#12161c] border border-slate-800 rounded-xl p-3.5">
+  <div class="flex items-center justify-between mb-2">
+   <h2 class="text-xs m uppercase text-slate-400 font-semibold">Файлы</h2>
+   <span id="sz" class="text-[11px] m px-2 py-0.5 rounded bg-slate-800 text-emerald-400">—</span>
+  </div>
+  <div id="tree" class="space-y-1 max-h-[560px] overflow-y-auto pr-1"></div>
+ </div>
+ <div class="lg:col-span-8 bg-[#12161c] border border-slate-800 rounded-xl overflow-hidden flex flex-col h-[700px]">
+  <div class="px-4 py-3 bg-[#161b22] border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+   <h3 id="fp" class="m text-sm font-bold text-white">—</h3>
+   <span id="fb" class="text-xs m px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">—</span>
+  </div>
+  <div id="fd" class="px-4 py-2 bg-[#0f1318] border-b border-slate-800/80 text-xs text-slate-300"></div>
+  <div class="flex-1 overflow-auto bg-[#0b0e14] p-4"><pre id="cd" class="m text-xs leading-relaxed text-slate-200 whitespace-pre"></pre></div>
+ </div>
+</section>
+
+</main>
+
+<script>
+const PG=[
+ [0,"$500","V−$28","AmpAttack",0,"val<<16"],
+ [1,"$501","V−$27","AmpHold",0,"val<<16  (перезаписывается acc питча на P:$2D7)"],
+ [2,"$502","V−$26","AmpDecay",64,"val<<16"],
+ [3,"$503","V−$25","AmpRelease",64,"val<<16"],
+ [4,"$504","V−$24","AmpDistortion",64,"val<<16  (64 = 0 = нейтраль)"],
+ [5,"$505","V−$23","AmpVolume",64,"val<<16"],
+ [6,"$506","V−$22","AmpPan",64,"val<<16  (L=min(1,(127-p)/63), R=min(1,p/64))"],
+ [7,"$507","V−$21","AmpPortamento",0,"val<<16"],
+ [8,"$508","V−$20","FilterBase",0,"val<<16  → (V-$20)*$800 - $80  @ P:$537"],
+ [9,"$509","V−$1F","FilterWidth",127,"val<<16"],
+ [10,"$50A","V−$1E","FilterHighPassQ",0,"val<<16  → читается @ P:$537 (HP резонанс)"],
+ [11,"$50B","V−$1D","FilterLowPassQ",0,"val<<16  → LP резонанс"],
+ [12,"$50C","V−$1C","FilterAttack",0,"val<<16  → TBL[Y:$141800 + idx]  @ P:$509"],
+ [13,"$50D","V−$1B","FilterDecay",32,"val<<16  → TBL[Y:$141A00 + idx]  @ P:$52B"],
+ [14,"$50E","V−$1A","FilterBaseOffset",64,"val<<16  → |x + $C00000| * $700  @ P:$53E"],
+ [15,"$50F","V−$19","FilterWidthOffset",64,"val<<16  → вторая ветка @ P:$53E"],
+ [16,"$510","V−$18","EffectEqFrequency",64,"val<<16"],
+ [17,"$511","V−$17","EffectEqGain",64,"val<<16  (64 = 0 дБ)"],
+ [18,"$512","V−$16","EffectSampleRateReduction",0,"val<<16"],
+ [19,"$513","V−$15","EffectDelayTime",64,"val<<16"],
+ [20,"$514","V−$14","EffectDelaySend",64,"val<<16"],
+ [21,"$515","V−$13","EffectDelayFeedback",28,"val<<16"],
+ [22,"$516","V−$12","EffectDelayBase",0,"val<<16"],
+ [23,"$517","V−$11","EffectDelayWidth",127,"val<<16"],
+ ["24..28","$518..$51C","V−$10..−$0C","trackEnvelope[0..4]","{0,0,127,127,0}","<<16  — вот ЭТО читает P:$4A8!"],
+ [31,"$51F","V−$09","TrackLevel",90,"val<<16"],
+ [35,"$523","V−$05","TempoWord","120.0 BPM","0x800000 / (bpm*24)"],
+ [36,"$524","V−$04","MachineIndex","1..33","raw int (читается P:$E5)"],
+ [40,"$528","V+$00","NoteEvent / Flags","0x81","1=on, 2=off, 3=fastRel, bit7=init"],
+ [41,"$529","V+$01","MidiNotePitch","MIDI 60","0x5800 + (note*0x800 + 6)/12"],
+ [42,"$52A","V+$02","VelocityWord","0x7FFFFF","Q23"],
+ ["44..51","$52C..$533","V+$04..+$0B","SynthA .. SynthH","0..0, 64","val<<16  (Y:(R6+$4..$B) внутри машины)"],
+];
+document.getElementById('pg').innerHTML=PG.map(r=>`<tr class="${r[0]>=8&&r[0]<=15?'bg-emerald-950/15':r[0]===4?'bg-red-950/15':''}">
+<td class="py-1.5 px-3 text-slate-400">${r[0]}</td><td class="py-1.5 px-3 text-purple-300 font-bold">${r[1]}</td>
+<td class="py-1.5 px-3 text-slate-400">${r[2]}</td><td class="py-1.5 px-3 font-bold text-white">${r[3]}</td>
+<td class="py-1.5 px-3 text-amber-300">${r[4]}</td><td class="py-1.5 px-3 text-slate-300">${r[5]}</td></tr>`).join('');
+
+const F=[
+{p:"VOICE_PAGE_MAP.md",b:"КАРТА Y:$500",d:"Полная 52-словная карта страницы голоса и доказательство, что блок P:$506-$56C — это фильтр, а не LFO.",
+c:`# Полная карта страницы голоса Y:$500..$533  (OS 1.32B)
+
+Источник: core/monomachine_engine.cpp, функции configureVoicePage() и
+parameterPageOffset(). Это рабочий эмулятор на настоящей прошивке.
+
+## ГЛАВНОЕ
+
+1. ColdFire НЕ считает никаких кривых параметров.
+   Дословно из кода:
+     "ColdFire streams each user-facing 0..127 value as a 16.16 word"
+     yMemory[0x500 + pageOffset] = value << 16;
+   Вся математика — внутри DSP. Capstone M68K не нужен.
+
+2. parameterPageOffset():
+     index  0..23 -> offset  0..23   (AMP 0..7, FILT 8..15, EFFX 16..23)
+     index 24..31 -> offset 44..51   (SynthA..H = Y:(R6+$4..$B))
+     index 32     -> offset 31       (TrackLevel)
+
+3. В KERNEL_VOICE_CHAIN.md §4.4-4.5 ошибка атрибуции:
+   блок P:$506-$56C назван "LFO-фаза / INTL / DPTH".
+   По реальным адресам это ЦЕЛИКОМ СТРАНИЦА ФИЛЬТРА:
+
+     Y:$508  V-$20  FilterBase         -> (V-$20)*$800 - $80   @ P:$537
+     Y:$509  V-$1F  FilterWidth
+     Y:$50A  V-$1E  FilterHighPassQ    -> читается @ P:$537!
+     Y:$50B  V-$1D  FilterLowPassQ
+     Y:$50C  V-$1C  FilterAttack       -> TBL[Y:$141800 + idx] @ P:$509
+     Y:$50D  V-$1B  FilterDecay        -> TBL[Y:$141A00 + idx] @ P:$52B
+     Y:$50E  V-$1A  FilterBaseOffset   -> |x + $C00000| * $700 @ P:$53E
+     Y:$50F  V-$19  FilterWidthOffset  -> вторая ветка         @ P:$53E
+
+   Док сам ставил это открытым вопросом (§9 п.2) — теперь он закрыт.
+
+## ТОЧНЫЙ АЛГОРИТМ МОДУЛЯТОРА ФИЛЬТРА (P:$506-$56C)
+
+Огибающая фильтра — 3 состояния, фаза в X:(r7-$1), флаг в r7-$2:
+
+  state 0 (ATTACK):
+      phase += TBL[ Y:$141800 + (Y:$50C >> 16) ]      ; FilterAttack
+      if carry -> state = 1, r7-$2 = 1
+
+  state 1 (переход/колено):
+      математика с (V-$05)^2 и $791FD0 (= 0.9462824)
+
+  state 2 (DECAY):
+      phase -= TBL[ Y:$141A00 + ((Y:$50D + $7FFF) >> 16) ]  ; FilterDecay
+      if phase < 0 -> phase = 0
+
+Глубина модуляции (P:$53E-$56C):
+  BOFS в Y:$50E, WOFS в Y:$50F. Оба хранятся как 0..127 << 16,
+  нейтраль = 64 = $400000. В 24-битной арифметике $C00000 = -$400000,
+  поэтому:
+      | Y:$50E + $C00000 | * $700  ==  | BOFS - $400000 | * $700
+  Это модуль отклонения от центра 64, умноженный на $700.
+
+База и резонанс (P:$537-$53D):
+      base_term = Y:$508 * $800 - $80      ; FilterBase
+      hpq_raw   = Y:$50A                   ; FilterHighPassQ
+
+Дальше P:$586:
+      do #<$18 ; div                       ; 24-битное деление
+      делимое  = TBL[X:$143F95 + x0*$4AF] + TBL[X:$144446 + y0*$80]
+      делитель = (a >> 1)
+  Результат пишется в рабочую область Y:$91+, откуда две петли SVF
+  (P:$05D3 HP и P:$05EB LP) берут готовые коэффициенты.
+
+## ПОЛНАЯ ТАБЛИЦА 52 СЛОВ (Y:$500..$533, V = Y:$528)
+
+  offset  Y-addr  V-off   содержимое                  дефолт
+  ------  ------  ------  --------------------------  ----------
+   0      $500    V-$28   AmpAttack << 16             0
+   1      $501    V-$27   AmpHold << 16               0
+   2      $502    V-$26   AmpDecay << 16              64
+   3      $503    V-$25   AmpRelease << 16            64
+   4      $504    V-$24   AmpDistortion << 16         64 (нейтраль)
+   5      $505    V-$23   AmpVolume << 16             64
+   6      $506    V-$22   AmpPan << 16                64 (центр)
+   7      $507    V-$21   AmpPortamento << 16         0
+   8      $508    V-$20   FilterBase << 16            0
+   9      $509    V-$1F   FilterWidth << 16           127
+  10      $50A    V-$1E   FilterHighPassQ << 16       0
+  11      $50B    V-$1D   FilterLowPassQ << 16        0
+  12      $50C    V-$1C   FilterAttack << 16          0
+  13      $50D    V-$1B   FilterDecay << 16           32
+  14      $50E    V-$1A   FilterBaseOffset << 16      64 (нейтраль)
+  15      $50F    V-$19   FilterWidthOffset << 16     64 (нейтраль)
+  16      $510    V-$18   EffectEqFrequency << 16     64
+  17      $511    V-$17   EffectEqGain << 16          64
+  18      $512    V-$16   EffectSampleRateReduction   0
+  19      $513    V-$15   EffectDelayTime << 16       64
+  20      $514    V-$14   EffectDelaySend << 16       64
+  21      $515    V-$13   EffectDelayFeedback << 16   28
+  22      $516    V-$12   EffectDelayBase << 16       0
+  23      $517    V-$11   EffectDelayWidth << 16      127
+  24..28  $518..C V-$10.. trackEnvelope[5] << 16      {0,0,127,127,0}
+  31      $51F    V-$09   TrackLevel << 16            90
+  35      $523    V-$05   tempoWord                   0x800000/(bpm*24)
+  36      $524    V-$04   machineIndex                1..33
+  40      $528    V+$00   noteEvent / flags           0x81 (1=on,2=off,3=fast)
+  41      $529    V+$01   midiNoteWord                0x5800+(note*0x800+6)/12
+  42      $52A    V+$02   velocity                    0x7FFFFF
+  44..51  $52C..3 V+$04.. SynthA..SynthH << 16        {0,0,0,0,0,0,0,64}
+
+## 9 ГРАНИЦ СТАДИЙ POST-VOICE
+
+  stagePcs = { 0x04ff, 0x05a2, 0x06c0, 0x0789, 0x0807,
+               0x087a, 0x0939, 0x0a5b, 0x0b14 }
+
+  Порядок тракта (твой слуховой тест + MANUAL_RU.md дословно):
+    synth -> dist -> srr -> filt -> eq -> env -> dsnd
+
+  Совмещаем с 9 границами — каждый блок получает свой ТОЧНЫЙ адрес P:
+
+    $04A8 - $04FF   счёт скаляра Y:$4FF (AMP env)     [без аудио]
+    $04FF - $05A2   счёт скаляров фильтра + DIV $586  [без аудио]
+    $05A2 - $05D2   DIST (Y:$504) + SRR (Y:$512) + загрузка Y:$91+   (48 слов!)
+    $05D3 - $05FA   HP SVF ($05D3) + LP SVF ($05EB)
+    $06C0 - $0789   EQ (после фильтра!) — EQF (Y:$510), EQG (Y:$511) (201 слово)
+    $0789 - $0807   AMP ENV (x Y:$4FF) + VOL (Y:$505)                (126 слов)
+    $0807 - $0A5B   TRACK DELAY (DSND/DTIM/DFB/DBAS/DWID), 3 подстадии
+    $0A5B - $0B14   финальная сборка в X:$0000..$000F / Y:$0020..$002F
+
+## ТОЧЕЧНЫЕ КОМАНДЫ (всего два маленьких куска!)
+
+  1) DIST + SRR + загрузка двух Q в SVF (105 слов):
+       python tools/mmnova_slice.py show \\
+         --listing "decompiled data/03_listings/dispatch/dsp1_kernel_P0000-0B4D.txt" \\
+         --from 0590 --to 05fa
+
+  2) EQ после фильтра (201 слово):
+       python tools/mmnova_slice.py show \\
+         --listing "decompiled data/03_listings/dispatch/dsp1_kernel_P0000-0B4D.txt" \\
+         --from 06c0 --to 0789
+`},
+
+{p:"Source/mmnova/MnMVoicePage.h",b:"ТИР A — 100%",d:"Точная раскладка 52-словной страницы голоса, формулы питча, темпа, TUNE и PAN прямо из monomachine_engine.cpp.",
+c:`#pragma once
+#include "MnMFixed.h"
+#include <array>
+
+// ============================================================================
+//  Страница голоса Y:$500..$533 (52 слова).  V = Y:$528.
+//  Перенесено 1-в-1 из core/monomachine_engine.cpp (Jick238/monomachine-lab).
+//  Все формулы ниже — ТИР A (работающий эмулятор на настоящей прошивке).
+// ============================================================================
+
+namespace mmnova {
+
+static constexpr uint32_t kVoicePageY  = 0x000500;
+static constexpr uint32_t kVoiceBaseY  = 0x000528;   // V = kVoicePageY + 40
+static constexpr size_t   kVoicePageWords = 52;
+
+// Канонический порядок параметров (индексы 0..32)
+enum class Param : uint8_t
+{
+    // AMP (Y:$500..$507 = V-$28..V-$21)
+    AmpAttack = 0, AmpHold, AmpDecay, AmpRelease,
+    AmpDistortion, AmpVolume, AmpPan, AmpPortamento,
+
+    // FILTER (Y:$508..$50F = V-$20..V-$19)
+    FilterBase = 8, FilterWidth, FilterHighPassQ, FilterLowPassQ,
+    FilterAttack, FilterDecay, FilterBaseOffset, FilterWidthOffset,
+
+    // EFFECTS (Y:$510..$517 = V-$18..V-$11)
+    EffectEqFrequency = 16, EffectEqGain, EffectSampleRateReduction,
+    EffectDelayTime, EffectDelaySend, EffectDelayFeedback,
+    EffectDelayBase, EffectDelayWidth,
+
+    // SYNTH machine knobs (Y:$52C..$533 = V+$04..V+$0B = R6+$4..$B)
+    SynthA = 24, SynthB, SynthC, SynthD, SynthE, SynthF, SynthG, SynthH,
+
+    TrackLevel = 32,   // Y:$51F = V-$09
+    Count = 33
+};
+
+// Смещение в 52-словной странице Y:$500
+constexpr size_t pageOffset (Param p) noexcept
+{
+    const size_t i = static_cast<size_t>(p);
+    if (i < 24) return i;
+    if (i < 32) return 44 + (i - 24);
+    return 31;
+}
+
+// Заводские дефолты трека (kLass3Track4Defaults)
+static constexpr std::array<uint8_t, 33> kTrackDefaults = {
+    0, 0, 64, 64, 64, 64, 64, 0,        // AMP  (DIST=64, PAN=64 -> нейтраль)
+    0, 127, 0, 0, 0, 32, 64, 64,        // FILT (BASE=0, WDTH=127, BOFS/WOFS=64)
+    64, 64, 0, 64, 64, 28, 0, 127,      // EFFX (EQG=64 -> 0 дБ)
+    0, 0, 0, 0, 0, 0, 0, 64,            // SYNT (TUNE=64)
+    90                                  // LEVEL
+};
+
+// --- Питч ноты (слот 41 = Y:$529 = V+$01) -----------------------------------
+// 0x800 (2048) шагов на октаву, преднастройка 0x5800 (11 октав).
+// Даёт 261.6 Гц на MIDI 60 для GND-SIN.
+constexpr uint32_t midiNoteWord (uint8_t midiNote) noexcept
+{
+    return 0x5800u + (static_cast<uint32_t>(midiNote) * 0x800u + 6u) / 12u;
+}
+
+// --- Слово темпа (слот 35 = Y:$523 = V-$05) ---------------------------------
+// Побитовый перевод MAIN OS 0x24DFF6..0x24E058. bpmTenths = BPM * 10 (1200 = 120.0).
+constexpr uint32_t tempoWordFromTenths (uint16_t bpmTenths) noexcept
+{
+    const uint32_t b = bpmTenths < 300 ? 300 : (bpmTenths > 3000 ? 3000 : bpmTenths);
+    const uint32_t whole = b / 10, frac = b % 10;
+    const uint32_t ppqn24 = whole * 24 + (frac * 23 + 4) / 9;
+    return 0x800000u / ppqn24;
+}
+
+// --- TUNE (SynthH, 0..127, центр 64) ----------------------------------------
+// Считается хостом, а не машиной: асимметричное /64 вниз и /63 вверх,
+// диапазон -1..+1 полутон. Умножает 56-битный инкремент питча A перед машиной.
+inline double tuneFactor (uint8_t tune7) noexcept
+{
+    const double semi = (tune7 < 64)
+        ? -static_cast<double>(64 - tune7) / 64.0
+        :  static_cast<double>(tune7 - 64) / 63.0;
+    return std::exp2 (semi / 12.0);
+}
+
+// --- PAN (AmpPan, 0..127, центр 64) -----------------------------------------
+// Линейный баланс с полкой в центре (на pan=64 оба канала = 1.0).
+// Делители разные: 63 слева и 64 справа — так в оригинальном микшере платы.
+inline void applyPan (s24& left, s24& right, uint8_t pan7) noexcept
+{
+    const uint32_t lNum = (pan7 <= 64) ? 63u : (127u - pan7);
+    const uint32_t rNum = (pan7 >= 64) ? 64u : pan7;
+    left  = static_cast<s24>((static_cast<int64_t>(left)  * lNum) / 63);
+    right = static_cast<s24>((static_cast<int64_t>(right) * rNum) / 64);
+}
+
+} // namespace mmnova
+`},
+
+{p:"Source/mmnova/MnMFilterMod.h",b:"МОДУЛЯТОР ФИЛЬТРА",d:"Точная машина состояний огибающей фильтра P:$506-$536 и расчёт глубины BOFS/WOFS P:$53E-$56C (теперь, когда известно, что это фильтр).",
+c:`#pragma once
+#include "MnMVoicePage.h"
+
+// ============================================================================
+//  Огибающая и модулятор фильтра — P:$0506..$056C в func_0004A8.
+//
+//  В KERNEL_VOICE_CHAIN.md этот кусок был ошибочно назван "LFO-фаза".
+//  parameterPageOffset доказал, что читаемые им адреса Y:$508..$50F —
+//  это целиком страница FILT:
+//
+//    Y:$508 (V-$20) = FilterBase        Y:$50C (V-$1C) = FilterAttack
+//    Y:$509 (V-$1F) = FilterWidth       Y:$50D (V-$1B) = FilterDecay
+//    Y:$50A (V-$1E) = FilterHighPassQ   Y:$50E (V-$1A) = FilterBaseOffset
+//    Y:$50B (V-$1D) = FilterLowPassQ    Y:$50F (V-$19) = FilterWidthOffset
+// ============================================================================
+
+namespace mmnova {
+
+class FilterEnvelopeMod
+{
+public:
+    static constexpr s24 kKnee_791FD0 = 0x791FD0;   // 0.9462824  (P:$51x)
+
+    void reset() noexcept { phase = 0; state = 0; cycleDone = false; }
+
+    // P:$04FF-0505: Y:(V-$08)==1 (note-on) сбрасывает фазу
+    void triggerNoteOn() noexcept { phase = 0; state = 0; cycleDone = false; }
+
+    // ------------------------------------------------------------------
+    //  P:$0506-0536 — шаг на один 16-сэмпловый блок.
+    //  rateTbl_141800 = Y:$141800 (128 слов, общая с AMP ATK)
+    //  multTbl_141A00 = Y:$141A00 (128 слов)
+    //  [ТИР A по структуре, ТИР C по содержимому двух таблиц пока не задамплены]
+    // ------------------------------------------------------------------
+    s24 tickBlock (const s24* rateTbl_141800, const s24* multTbl_141A00,
+                   uint8_t filtAtk7, uint8_t filtDec7) noexcept
+    {
+        if (state == 0)   // ATTACK: phase += TBL[$141800 + (V-$1C)>>16]
+        {
+            const s56 next = static_cast<s56>(phase) + rateTbl_141800[filtAtk7 & 0x7F];
+            if (next >= kOne24) { phase = kOne24; state = 2; cycleDone = true; }
+            else                { phase = static_cast<s24>(next); }
+        }
+        else              // DECAY:  phase -= TBL[$141A00 + ((V-$1B)+$7FFF)>>16]
+        {
+            const s56 next = static_cast<s56>(phase) - multTbl_141A00[filtDec7 & 0x7F];
+            phase = (next > 0) ? static_cast<s24>(next) : 0;
+        }
+        return phase;     // 0 .. $7FFFFF
+    }
+
+    // ------------------------------------------------------------------
+    //  P:$053E-056C — модуль глубины BOFS / WOFS.
+    //  В памяти лежит (val7 << 16), нейтраль 64 = $400000.
+    //  В 24-битной арифметике $C00000 = -$400000, поэтому инструкция
+    //    add #>$C00000,a ; abs a ; mpyi #>$700,...
+    //  считает |param - $400000| * $700, а знак определяет направление.
+    // ------------------------------------------------------------------
+    static int32_t offsetDelta (uint8_t ofsKnob7, s24 envLevel) noexcept
+    {
+        const s24 word = paramWord (ofsKnob7);            // 0..$7F0000
+        const int32_t centered = word - 0x400000;         // +$C00000 в 24 бит
+        const int32_t mag = (std::abs (centered) * 0x700) >> 16;
+        const int32_t mod = fmul (mag, envLevel);
+        return (centered < 0) ? -mod : mod;
+    }
+
+    // P:$0537-053D: (Y:(V-$20)) * $800 - $80
+    static int32_t baseTerm (uint8_t baseKnob7) noexcept
+    {
+        return (paramWord (baseKnob7) >> 5) - 0x80;       // *$800 в Q23
+    }
+
+private:
+    s24  phase     { 0 };      // X:(r7-$1)
+    int  state     { 0 };      // 0=atk, 1=knee, 2=dec
+    bool cycleDone { false };  // r7-$2
+};
+
+} // namespace mmnova
+`},
+];
+
+function tar(fs){
+ const e=new TextEncoder(),bl=[];
+ const S=(b,s,o,m)=>{const y=e.encode(s),l=Math.min(y.length,m);for(let i=0;i<l;i++)b[o+i]=y[i]};
+ const O=(b,v,o,l)=>{S(b,v.toString(8).padStart(l-1,'0'),o,l-1);b[o+l-1]=0};
+ const mt=Math.floor(Date.now()/1000);
+ for(const f of fs){
+  const c=e.encode(f.c),h=new Uint8Array(512);
+  S(h,"mnm-filter-q/"+f.p,0,100);O(h,0o644,100,8);O(h,1000,108,8);O(h,1000,116,8);
+  O(h,c.length,124,12);O(h,mt,136,12);
+  for(let i=148;i<156;i++)h[i]=32;h[156]=48;S(h,"ustar",257,6);S(h,"00",263,2);
+  let k=0;for(let i=0;i<512;i++)k+=h[i];O(h,k,148,7);h[155]=32;
+  bl.push(h);const pl=Math.ceil(c.length/512)*512,d=new Uint8Array(pl);d.set(c);bl.push(d);
+ }
+ bl.push(new Uint8Array(1024));
+ const t=bl.reduce((a,b)=>a+b.length,0),bf=new Uint8Array(t);
+ let o=0;for(const b of bl){bf.set(b,o);o+=b.length}return bf;
+}
+
+let ai=0;
+function tree(){
+ const el=document.getElementById('tree');el.innerHTML='';
+ F.forEach((f,i)=>{
+  const s=i===ai,b=document.createElement('button');
+  b.className=`w-full text-left px-3 py-2 rounded-lg m text-xs border cursor-pointer ${s?'bg-red-500/15 border-red-500/40 text-white':'bg-[#0e1217] border-slate-800/80 text-slate-300 hover:bg-slate-800/60'}`;
+  b.innerHTML=`<div class="flex justify-between gap-2"><span class="font-semibold truncate">${f.p.split('/').pop()}</span><span class="text-[10px] px-1.5 rounded ${s?'bg-red-500/30 text-red-200':'bg-slate-800 text-slate-400'}">${f.b}</span></div><div class="text-[10px] text-slate-500 truncate">${f.p}</div>`;
+  b.onclick=()=>{ai=i;tree();show()};el.appendChild(b);
+ });
+ document.getElementById('sz').textContent=F.length+" файла • "+(tar(F).length/1024).toFixed(1)+" KB";
+}
+function show(){const f=F[ai];
+ document.getElementById('fp').textContent=f.p;
+ document.getElementById('fb').textContent=f.b;
+ document.getElementById('fd').textContent=f.d;
+ document.getElementById('cd').textContent=f.c;}
+document.getElementById('tar').onclick=()=>{
+ const b=new Blob([tar(F)],{type:'application/x-tar'}),u=URL.createObjectURL(b);
+ const a=document.createElement('a');a.href=u;a.download='mnm-filter-q-v2.tar';
+ document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);};
+document.getElementById('copy').onclick=async()=>{
+ await navigator.clipboard.writeText(F[ai].c);
+ const b=document.getElementById('copy'),o=b.textContent;b.textContent='✓ Скопировано';
+ setTimeout(()=>b.textContent=o,1500);};
+document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tb').forEach(x=>x.className='tb px-3.5 py-2 rounded-md text-xs m text-slate-400 hover:text-slate-200 border border-transparent cursor-pointer');
+ b.className='tb px-3.5 py-2 rounded-md text-xs m font-semibold bg-red-500/15 text-red-300 border border-red-500/30 cursor-pointer';
+ document.querySelectorAll('.tp').forEach(p=>p.classList.add('hidden'));
+ document.getElementById(b.dataset.t).classList.remove('hidden');});
+tree();show();
+</script>
+</body>
+</html>

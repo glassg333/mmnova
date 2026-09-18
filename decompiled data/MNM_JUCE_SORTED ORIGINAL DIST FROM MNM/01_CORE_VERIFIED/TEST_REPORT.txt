@@ -1,0 +1,24 @@
+D=0.500 k=0.0162 c=1.0000 peak=0.0332 (emu peak~0.032) x0=0.000
+DIST D=0.5 passive (x0==0)                     got 0.0000000 want 0.0000000 OK
+D=0.626 k=0.0787 c=0.3536 peak=0.1582 (emu peak~0.157) x0=0.252
+D=0.752 k=0.2661 c=0.3536 peak=0.5312 (emu peak~0.532) x0=0.504
+D=0.878 k=0.5785 c=0.3536 peak=1.0000 (emu peak~1.000) x0=0.756
+DIST k(0) = 0.0162109                          got 0.0162109 want 0.0162109 OK
+DIST c(0) = 1.0                                got 0.9999999 want 1.0000000 OK
+DIST k(1) = 1.0000                             got 1.0000000 want 1.0000000 OK
+DIST c(255) = sqrt(2)/4                        got 0.3535534 want 0.3535534 OK
+drive[0] == 1.0                                got 0.9999999 want 1.0000000 OK
+drive[128] == sqrt2/4                          got 0.3535534 want 0.3535534 OK
+cutoff[0] == 0.000403                          got 0.0004030 want 0.0004030 OK
+decay[127] == -1.0                             got -1.0000000 want -1.0000000 OK
+rate[0] == 0.5 (ATK=0: +0.5/blk)               got 0.5000000 want 0.5000000 OK
+AMP env ATK=0 after 1 blk = 0.5                got 0.5000000 want 0.5000000 OK
+AMP env ATK=0 after 3 blk = 1.0                got 0.9999999 want 1.0000000 OK
+filter open: f=0.9073 (TBL top=0.9131 => 2sin(pi*6656/44100))
+filter top coeff == 0x741D05 (idx1699)         got 0.9073486 want 0.9071356 OK
+filter min coeff ~= 0x000D35                   got 0.0003662 want 0.0004030 OK
+chain block1 peak L=0.0019 R=0.0000 env=0.5000
+chain pan center: L==R                         got 1.0000000 want 1.0000000 OK
+
+ALL CHECKS PASSED
+exit=0
