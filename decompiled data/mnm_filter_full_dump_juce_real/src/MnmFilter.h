@@ -188,9 +188,13 @@ public:
                 case Mode::LP:       y = lp; break;
                 case Mode::BP:       y = bp; break;
                 case Mode::HP:       y = hp; break;
-                case Mode::NOTCH:    y = lp + hp; break;            // lp + hp = notch
-                case Mode::ALLPASS:  y = lp - hp; break;            // approximation
-                case Mode::PEAK:     y = lp - 2.0f * bp + hp; break;
+                // Standard notch: y = input - d·bp
+                // На cutoff-частоте |bp| ≈ Q·input, d = 1/Q → y = input - (1/Q)·(Q·input) = 0 (notch)
+                case Mode::NOTCH:    y = in[i] - d_ * bp; break;
+                // Allpass approximation: y = input - 2·d·bp (gives phase shift, ~flat magnitude)
+                case Mode::ALLPASS:  y = in[i] - 2.0f * d_ * bp; break;
+                // Peak (peak at cutoff, unity elsewhere):
+                case Mode::PEAK:     y = in[i] - d_ * bp - (lp + hp - in[i]); break;
             }
             out[i] = y;
         }
