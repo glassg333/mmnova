@@ -1,0 +1,2140 @@
+diff -ruN old/Monomachine_Nova_FX/Source/NovaDSP.h new/Monomachine_Nova_FX/Source/NovaDSP.h
+--- old/Monomachine_Nova_FX/Source/NovaDSP.h	2026-09-18 14:24:05.682123478 +0000
++++ new/Monomachine_Nova_FX/Source/NovaDSP.h	2026-09-18 14:24:05.690123478 +0000
+@@ -11,9 +11,6 @@
+ #include "dsp/mnm/MnmRealFilter.hpp"
+ #include "dsp/mnm/MnmFm.hpp"
+ #include "dsp/mnm/MnmDelay.hpp"
+-#include "dsp/mnm/MnmDist2.hpp"
+-#include "dsp/mnm/MnmFm2.hpp"
+-#include "dsp/mnm/MnmBbox2.hpp"
+ #include "models/DspModes.hpp"
+ #include "dsp/monomachine_filter.hpp"
+ #include <array>
+@@ -141,21 +138,14 @@
+         sr=rate;noiseContour.prepare(sr);dyn.reset(sr);stat.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
+         chorusLatency=chorus->prepare(rate);chorus->reset(chorusParams);
+         mnmFm.reset(sr);
+-        fm2Core.reset(sr); fm2Core.setKind(monomachine::mnm::FMPlusBlock2::Kind::Dyn);
+-        bbox2Core.reset(sr);
+         reverb.setSampleRate(sr);clear();
+     }
+-    void setModes(int syntModeIn,int distModeIn){
+-        if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);fm2Core.reset(sr);}
+-        distMode=distModeIn;
+-    }
++    void setModes(int syntModeIn,int distModeIn){if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);}distMode=distModeIn;}
+     void clear() {
+         phases.fill(0);age=0;noiseContour.clear();toneState=0;colourL=colourR=0;compressorEnv=compressorPower=0;gateCounter=0;noiseCounter=0;
+         dyn.reset(sr);stat.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
+         rvHpInL=rvHpOutL=rvHpInR=rvHpOutR=rvLpL=rvLpR=0;
+         for(auto& f:formant)f.clear();
+-        fm2Core.reset(sr);
+-        bbox2Core.reset(sr);
+     }
+     void set(int machine,const std::array<float,8>& values) {
+         id=machine;p=values;
+@@ -163,14 +153,7 @@
+         if(id==10) dyn.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==8) stat.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==9) par.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+-        if(id==7) {
+-            bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);
+-            bbox.setChromatic(b(6)>0);
+-            // bbox2 alternative repeat-sample knob mode
+-            typename monomachine::mnm::Bbox2Core::Params bp{};
+-            bp.base=b(0); bp.width=b(1); bp.q1=b(4); bp.q2=b(5); bp.envAtk=b(2); bp.envDec=b(3); bp.sampleSel=b(2); bp.repeat=b(7);
+-            bbox2Core.setParameters(bp);
+-        }
++        if(id==7){bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);bbox.setChromatic(b(6)>0);}
+         if(id==15) {for(int i=0;i<8;++i)chorusParams[static_cast<size_t>(i)]=b(i);auto coreParams=chorusParams;coreParams[3]=127;coreParams[7]=64;chorus->setParameters(coreParams);}
+         if(id==18) phaser.setParameters(p[0],p[1],p[2],p[3],p[4],p[5]);
+         if(id==19) flanger.setParameters(p[0],p[1],p[2],p[3],p[4],p[5]);
+@@ -180,16 +163,10 @@
+             reverb.setParameters(r);
+         }
+         if(id==11){float sweep=norm(p[2])*300*std::sin(static_cast<float>(age/sr)*5);formant[0].band(sr,200+norm(p[0])*1200+sweep,4);formant[1].band(sr,700+norm(p[1])*2700,6);formant[2].band(sr,2400+norm(p[3])*1800,8);}
+-        // fm2 setup
+-        if((id==8||id==9||id==10) && syntMode==monomachine::dspModeFm2){
+-            fm2Core.setKind(id==8?monomachine::mnm::FMPlusBlock2::Kind::Stat:(id==9?monomachine::mnm::FMPlusBlock2::Kind::Par:monomachine::mnm::FMPlusBlock2::Kind::Dyn));
+-        }
+     }
+     void on(int midi) {
+         baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));stat.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
+-        bbox2Core.noteOn(static_cast<uint8_t>(midi));
+         mnmFm.setPitchMod(0.0f);mnmFm.noteOn(static_cast<float>(midi),1.0f);
+-        fm2Core.noteOn(static_cast<float>(midi));
+         if((id==3 && p[2]>63)||(id==5 && p[6]>63)||(id==6 && p[3]>63))phases.fill(0);
+     }
+     void setPitch(float absoluteNote,float modulation) {
+@@ -199,37 +176,21 @@
+     }
+     void render(float* l,float* r,int n,bool synth) {
+         if(!synth){renderFX(l,r,n);return;}
+-        // SYNT modes: mnm (0) = recovered firmware FM+, old (1) = previous Nova FM, fm2 (6) = alternative FMPlusBlock2, bbox2 (7) = repeat-sample BBOX
+-        if((id==8||id==9||id==10)){
+-            if(syntMode==monomachine::dspModeMnm){
+-                const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
+-                std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
+-                mnmFm.setParameters(kind,values);
+-                int done=0;while(done<n){const int block=std::min(monomachine::mnm::kBlock,n-done);float blockBuf[monomachine::mnm::kBlock]{};
+-                    mnmFm.processBlock(blockBuf,block);
+-                    for(int i=0;i<block;++i){l[static_cast<size_t>(done+i)]+=blockBuf[i];r[static_cast<size_t>(done+i)]+=blockBuf[i];}
+-                    done+=block;}
+-                return;
+-            } else if(syntMode==monomachine::dspModeFm2){
+-                typename monomachine::mnm::FMPlusBlock2::Params fp{};
+-                fp.pitch=static_cast<int>(p[0]); fp.mod=static_cast<int>(p[1]); fp.shape=static_cast<int>(p[2]); fp.decay=static_cast<int>(p[3]);
+-                fp.portamento=static_cast<int>(p[4]); fp.lfo=static_cast<int>(p[5]); fp.fmAmt=static_cast<int>(p[6]); fp.fmShape=static_cast<int>(p[7]);
+-                for(int i=0;i<n;++i){float s=fm2Core.tick(fp); l[i]+=s; r[i]+=s;}
+-                return;
+-            }
++        // SYNT: mnm (0) = recovered firmware FM+ (FM+STAT / FM+PAR / FM+DYN), old (1) = прежний Nova FM.
++        if(syntMode==monomachine::dspModeMnm&&(id==8||id==9||id==10)){
++            const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
++            std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
++            mnmFm.setParameters(kind,values);
++            int done=0;while(done<n){const int block=std::min(monomachine::mnm::kBlock,n-done);float blockBuf[monomachine::mnm::kBlock]{};
++                mnmFm.processBlock(blockBuf,block);
++                for(int i=0;i<block;++i){l[static_cast<size_t>(done+i)]+=blockBuf[i];r[static_cast<size_t>(done+i)]+=blockBuf[i];}
++                done+=block;}
++            return;
+         }
+         if(id==10){dyn.processStereo(l,r,static_cast<size_t>(n));return;}
+         if(id==8||id==9){if(id==8)stat.processStereo(l,r,static_cast<size_t>(n));else par.processStereo(l,r,static_cast<size_t>(n));
+             float a=1-std::exp(-2*pi*(100+19000*norm(p[6])*norm(p[6]))/static_cast<float>(sr));for(int i=0;i<n;++i){toneState+=a*(l[i]-toneState);l[i]=r[i]=toneState;}return;}
+-        if(id==7){
+-            if(syntMode==monomachine::dspModeBbox2){
+-                // bbox2 repeat-sample knob mode (alternative from DproBboxBlock Nova_2KnobFade)
+-                for(int i=0;i<n;++i){float s=bbox2Core.tick(l[i]); l[i]=r[i]=s*norm(p[7]);}
+-                return;
+-            } else {
+-                bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;
+-            }
+-        }
++        if(id==7){bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;}
+         const float frequency=std::min(hz(pitch+pitchMod+(p[7]-64)/64*12),static_cast<float>(sr*0.45));
+         const float dt=frequency/static_cast<float>(sr);
+         for(int i=0;i<n;++i){
+@@ -251,7 +212,8 @@
+                 float ratio=std::pow(2.0f,(p[6]-64)/32);double old=phases[1];phases[1]=wrap(phases[1]+dt*ratio);
+                 if(p[4]>42&&p[4]<85&&phases[1]<old)phases[0]=t=0;
+                 a=w==3?noise(rng):wave(w==0?3:w==1?1:2,t,dt,pw);
+-                if(p[4]>=85)a*=wave(static_cast<int>(p[5])/32,phases[1],dt*ratio);b=a;
++                if(p[4]>=85)a*=wave(static_cast<int>(p[5])/32,phases[1],dt*ratio);
++                b=a;
+             } else if(id==4){
+                 if(p[3]<0.5f){
+                 const float detune=norm(p[1])*0.48f;
+@@ -311,38 +273,19 @@
+     }
+ private:
+     void renderFX(float* l,float* r,int n) {
+-        // FIXED: INP quadratic law P:$14768B  gain = INP^2 *4 in 56-bit, 32->-12dB 64->0dB 127->+12dB
+-        auto inpGainQuad = [](float inpParam)->float {
+-            float v = std::clamp(inpParam,0.0f,127.0f);
+-            float lin = v/64.0f;
+-            return lin*lin; // (INP/64)^2 => 0.25 at 32, 1 at 64, ~3.94 at 127
+-        };
+-        // For synth machines, g = p[7]/64 linear; for FX we use quadratic per firmware
+-        if(id!=15){
+-            float g = inpGainQuad(p[7]);
+-            for(int i=0;i<n;++i){l[i]*=g; r[i]*=g;}
+-        }
+-        if(id==15){
+-            for(int i=0;i<n;++i){
+-                float wl=0,wr=0,dl=0,dr=0;
+-                float g = inpGainQuad(p[7]);
+-                chorus->processFrame(l[i]*g,r[i]*g,wl,wr,false);
+-                chorus->delayedInput(dl,dr);
+-                const float wet=norm(p[3]);
+-                // FIXED: chorus makeup - previously 127 sounded quiet vs 64. Now wet at 127 has 0dB same as dry at 0.
+-                // Wet from native core is lower; apply makeup 1.5x to make 127 loudness = 64 previously, and dry 0 = 0dB difference
+-                const float chorusMakeup = 1.5f; // makes wet unity, 127 now sounds like 64 before
+-                wl*=chorusMakeup; wr*=chorusMakeup;
+-                // dl/dr already unity (delayed input)
+-                l[i]=dl*(1.0f-wet)+wl*wet;
+-                r[i]=dr*(1.0f-wet)+wr*wet;
+-            }
+-        }
++        // INP is the track's FX input gain (64 = unity, 0 = silence, 127 ~= +6 dB). CHORUS feeds its own INP word to the native core.
++        if(id!=15){const float g=p[7]/64.0f;for(int i=0;i<n;++i){l[i]*=g;r[i]*=g;}}
++        if(id==15){for(int i=0;i<n;++i){float wl=0,wr=0,dl=0,dr=0;
++            chorus->processFrame(l[i]*p[7]/64.0f,r[i]*p[7]/64.0f,wl,wr,false);chorus->delayedInput(dl,dr);
++            const float wet=norm(p[3]);l[i]=dl*(1-wet)+wl*wet;r[i]=dr*(1-wet)+wr*wet;}}
+         else if(id==18)phaser.processStereo(l,r,l,r,static_cast<size_t>(n));
+         else if(id==19)flanger.processStereo(l,r,l,r,static_cast<size_t>(n));
+         else if(id==17){ring.setParameters(p[0],p[1],p[3],p[2]+pitchMod+(pitch-60));ring.processStereo(l,r,l,r,static_cast<size_t>(n));}
+         else if(id==13){
+-            std::array<float,32> dryL{},dryR{};std::copy_n(l,n,dryL.data());std::copy_n(r,n,dryR.data());
++            // v6: буферы сухого сигнала под РАЗМЕР БЛОКА хоста (было std::array<float,32>;
++            // при блоке больше 32 сэмплов это переполняло стек и роняло плагин на ревере).
++            if(rvDryL.size()<static_cast<size_t>(n)){rvDryL.resize(static_cast<size_t>(n));rvDryR.resize(static_cast<size_t>(n));}
++            std::copy_n(l,n,rvDryL.data());std::copy_n(r,n,rvDryR.data());
+             const float hpF=30.0f+norm(p[4])*norm(p[4])*970.0f;
+             const float hpPole=std::exp(-2*pi*hpF/static_cast<float>(sr));
+             const float lpF=std::min(400.0f*std::pow(50.0f,norm(p[5])),static_cast<float>(sr*0.45));
+@@ -355,29 +298,24 @@
+             }
+             reverb.processStereo(l,r,n);
+             const float wet=norm(p[3]);
+-            const float reverbMakeup = 3.0f; // wetLevel 1/3 -> need 3x for 0dB wet
+             for(int i=0;i<n;++i){const auto k=static_cast<size_t>(i);
+                 rvLpL+=lpAmount*(l[i]-rvLpL);rvLpR+=lpAmount*(r[i]-rvLpR);
+                 float wl=p[5]>=127?l[i]:rvLpL,wr=p[5]>=127?r[i]:rvLpR;
+-                wl*=reverbMakeup; wr*=reverbMakeup;
+-                if(std::max(std::abs(dryL[k]),std::abs(dryR[k]))>0.002f)
++                if(std::max(std::abs(rvDryL[k]),std::abs(rvDryR[k]))>0.002f)
+                     gateCounter=static_cast<int>(sr*(0.02+norm(p[2])*2));
+                 else if(gateCounter>0)--gateCounter;
+                 if(p[2]>0&&gateCounter==0){wl=0;wr=0;}
+-                l[i]=dryL[k]*(1-wet)+wl*wet;r[i]=dryR[k]*(1-wet)+wr*wet;
++                l[i]=rvDryL[k]*(1-wet)+wl*wet;r[i]=rvDryR[k]*(1-wet)+wr*wet;
+             }
+         } else if(id==16){
+             float atk=std::exp(-1/(static_cast<float>(sr)*(0.0001f+norm(p[0])*0.1f))),rel=std::exp(-1/(static_cast<float>(sr)*(0.005f+norm(p[1])*1.5f)));
+             float threshold=-60+norm(p[2])*60,ratio=1+norm(p[4])*19,makeup=std::pow(10.0f,((p[5]-64)/64*18)/20),mix=norm(p[3]);
+-            // FIXED: ensure dry unity when mix=0, wet makeup for 0dB at mix=127
+             for(int i=0;i<n;++i){float peak=std::max(std::abs(l[i]),std::abs(r[i]));compressorPower+=0.002f*(peak*peak-compressorPower);
+                 float detector=(1-norm(p[6]))*peak+norm(p[6])*std::sqrt(compressorPower);
+                 float coeff=detector>compressorEnv?atk:rel;compressorEnv=detector+coeff*(compressorEnv-detector);
+                 float over=std::max(0.0f,20*std::log10(std::max(compressorEnv,1.0e-8f))-threshold);
+                 float gain=(1-mix)+mix*makeup*std::pow(10.0f,-over*(1-1/ratio)/20);l[i]*=gain;r[i]*=gain;}
+         }
+-        // For other FX (phaser/flanger/ring), ensure dry path unity when bypassed: they already process wet only,
+-        // but outer mix in PluginProcessor will blend dryDelay. Here we keep wet unity.
+     }
+     int id=4,baseNote=60;double sr=44100,age=0;float pitch=60,pitchMod=0,toneState=0,waveMix=0.5f;
+     std::array<float,8> p{};std::array<double,8> phases{};std::array<Biquad,3> formant{};
+@@ -386,9 +324,8 @@
+     monomachine::MonomachinePhaser phaser;monomachine::MonomachineFlanger flanger;monomachine::MonomachineRingMod ring;
+     int syntMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm;
+     monomachine::mnm::FmCore mnmFm;
+-    monomachine::mnm::FMPlusBlock2 fm2Core;
+-    monomachine::mnm::Bbox2Core bbox2Core;
+     float rvHpInL=0,rvHpOutL=0,rvHpInR=0,rvHpOutR=0,rvLpL=0,rvLpR=0;
++    std::vector<float> rvDryL,rvDryR;
+     juce::Reverb reverb;
+ };
+ 
+@@ -403,7 +340,6 @@
+         delayFilter.reset(sr);
+         mnmDelay.prepare(sr);
+         mnmFilter.setSampleRate(sr);
+-        dist2Core.reset();
+         clear();
+     }
+     void setModes(int filterModeIn,int distModeIn,int delayModeIn,int routingModeIn){
+@@ -418,7 +354,6 @@
+         std::fill(delayL.begin(),delayL.end(),0.0f);
+         std::fill(delayR.begin(),delayR.end(),0.0f);
+         write=0;srrCounter=0;heldL=heldR=0;pingPong=false;time=1;
+-        dist2Core.reset();
+     }
+     void trigger(){
+         filter.triggerEnvelope();
+@@ -442,9 +377,6 @@
+             if(distMode==monomachine::dspModeMnm){
+                 l[i]=monomachine::mnm::Saturator::process(l[i],params[12]);
+                 r[i]=monomachine::mnm::Saturator::process(r[i],params[12]);
+-            } else if(distMode==monomachine::dspModeDist2){
+-                l[i]=dist2Core.process(l[i],params[12],0.0f);
+-                r[i]=dist2Core.process(r[i],params[12],0.0f);
+             } else {
+                 l[i]=bipolarDist(l[i],params[12]);
+                 r[i]=bipolarDist(r[i],params[12]);
+@@ -515,7 +447,6 @@
+     int filterMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm,delayMode=monomachine::dspModeMnm,routingMode=monomachine::dspModeMnm;
+     monomachine::mnm::FilterCore mnmFilter;
+     monomachine::mnm::DelayCore mnmDelay;
+-    monomachine::mnm::Dist2Core dist2Core;
+     double sr=44100;std::array<float,32> params{};monomachine::MonomachineFilter filter,delayFilter;Biquad eqL,eqR;
+     bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;
+ };
+diff -ruN old/Monomachine_Nova_FX/Source/PluginProcessor.cpp new/Monomachine_Nova_FX/Source/PluginProcessor.cpp
+--- old/Monomachine_Nova_FX/Source/PluginProcessor.cpp	2026-09-18 14:24:05.682123478 +0000
++++ new/Monomachine_Nova_FX/Source/PluginProcessor.cpp	2026-09-18 14:24:05.690123478 +0000
+@@ -61,9 +61,8 @@
+         idx = juce::jlimit(0, monomachine::dspModeCount-1, idx);
+         // Единственное правило: в разделе допустимы только его собственные режимы
+         // (списки -- в models/DspModes.hpp, dspSectionModeChoices). Всё остальное
+-        // сводится к основному режиму mnm.  Раньше здесь были ad-hoc правила,
+-        // которые разрешали dist2/fm2/bbox2 внутри FILT -- из-за них блоки
+-        // "расползались" по чужим разделам и меню предлагало выбирать их везде.
++        // сводится к основному режиму mnm.  В v6 допустимы только mnm (основной)
++        // и old (резерв): альтернативные движки dist2/fm2/bbox2 удалены.
+         if(!monomachine::dspModeAllowedForSection(i,idx)){
+             idx = monomachine::dspModeMnm;
+         }
+@@ -271,7 +270,7 @@
+         }
+         if(schema<6&&isSynthVersion){for(auto pair:{std::pair<const char*,float>{"m4_3",0.0f},{"m2_3",64.0f}}){if(!state.getChildWithProperty("id",pair.first).isValid()){auto node=juce::ValueTree("PARAM");node.setProperty("id",pair.first,nullptr);node.setProperty("value",pair.second,nullptr);state.addChild(node,-1,nullptr);}}auto old=state.getChildWithProperty("id","m2_1");if(old.isValid()&&!state.getChildWithProperty("id","m2_4").isValid()){auto bit=juce::ValueTree("PARAM");bit.setProperty("id","m2_4",nullptr);bit.setProperty("value",old["value"],nullptr);state.addChild(bit,-1,nullptr);old.setProperty("value",0.0f,nullptr);}}
+         if(schema<8){for(int section=0;section<monomachine::DspSectionCount;++section){const char* id=monomachine::dspModeParamId(section);if(!state.getChildWithProperty("id",id).isValid()){auto node=juce::ValueTree("PARAM");node.setProperty("id",id,nullptr);node.setProperty("value",static_cast<float>(monomachine::dspModeOld),nullptr);state.addChild(node,-1,nullptr);}}}
+-        if(schema<9){ // v5: режимы cascade/dual/raw удалены, нумерация режимов новая (mnm=0 old=1 dist2=2 fm2=3 bbox2=4)
++        if(schema<10){ // v6: альтернативные режимы dist2/fm2/bbox2 удалены, список -- mnm|old
+             for(int section=0;section<monomachine::DspSectionCount;++section){
+                 const char* id=monomachine::dspModeParamId(section);
+                 auto node=state.getChildWithProperty("id",id);
+diff -ruN old/Monomachine_Nova_FX/Source/dsp/mnm/MnmBbox2.hpp new/Monomachine_Nova_FX/Source/dsp/mnm/MnmBbox2.hpp
+--- old/Monomachine_Nova_FX/Source/dsp/mnm/MnmBbox2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/Source/dsp/mnm/MnmBbox2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,64 +0,0 @@
+-#pragma once
+-// MnmBbox2.hpp -- alternative BBOX mode from DproBboxBlock.h
+-// Only alternative repeat-sample knob mode (Nova_2KnobFade)
+-// Unique name bbox2
+-
+-#include <cmath>
+-#include <array>
+-#include <algorithm>
+-#include <cstdint>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class Bbox2Core {
+-public:
+-    enum class Mode { Nova_2KnobFade, RepeatSample };
+-    struct Params {
+-        int base = 64;
+-        int width = 64;
+-        int q1 = 64;
+-        int q2 = 64;
+-        int envAtk = 64;
+-        int envDec = 64;
+-        int sampleSel = 0;
+-        int repeat = 64; // knob for repeat-sample
+-    };
+-
+-    void reset(double sr) noexcept { sr_=sr; pos_=0; env_=0; envState_=0; repeatCounter_=0; }
+-    void noteOn(uint8_t /*note*/) noexcept { envState_=1; pos_=0; repeatCounter_=0; }
+-
+-    void setParameters(const Params& p) noexcept { params_=p; }
+-
+-    inline float tick(float in) noexcept {
+-        // Simple BBOX emulation: bandpass-ish + repeat sample hold
+-        // repeat knob controls hold length 1..128 samples
+-        int hold = 1 + (std::clamp(params_.repeat,0,127) * 4); // 1..509
+-        float out;
+-        if (params_.repeat > 4){
+-            if (repeatCounter_==0) held_=in;
+-            repeatCounter_ = (repeatCounter_+1)%hold;
+-            out = held_;
+-        } else {
+-            out = in;
+-        }
+-        // fake filter: lowpass based on base
+-        float cutoff = 200.0f + std::clamp(params_.base,0,127)/127.0f*8000.0f;
+-        float g = 1.0f - std::exp(-2*3.14159265f*cutoff/static_cast<float>(sr_));
+-        lp_ += g*(out-lp_);
+-        return lp_ * 0.8f + out*0.2f;
+-    }
+-
+-    void processBlock(float* buf, int n) noexcept {
+-        for (int i=0;i<n;++i) buf[i]=tick(buf[i]);
+-    }
+-
+-private:
+-    double sr_=44100.0;
+-    Params params_{};
+-    float held_=0, lp_=0, env_=0;
+-    int pos_=0, envState_=0, repeatCounter_=0;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_FX/Source/dsp/mnm/MnmDist2.hpp new/Monomachine_Nova_FX/Source/dsp/mnm/MnmDist2.hpp
+--- old/Monomachine_Nova_FX/Source/dsp/mnm/MnmDist2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/Source/dsp/mnm/MnmDist2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,85 +0,0 @@
+-#pragma once
+-// MnmDist2.hpp -- alternative DIST block from 2 try filter dist env nice build
+-// Source/DSP/Kernel/DistortionSaturationBlock.h
+-// Provides HardClip_SRSM (bset #$14,sr), Overdrive_Soft (tanh), Fold
+-// Plus SRR as bitcrush fractional lookup
+-// Named dist2 to avoid repeat
+-
+-#include <cmath>
+-#include <algorithm>
+-#include <cstdint>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class DistortionSaturationBlock2 {
+-public:
+-    enum class Character { HardClip_SRSM, Overdrive_Soft, Fold };
+-    struct Params { int drive=64; int amount=0; int srr=0; Character character=Character::HardClip_SRSM; };
+-
+-    void reset() noexcept { srrHold_=0.0f; srrPhase_=0.0f; }
+-
+-    static inline float saturateSRSM(float x) noexcept {
+-        // Q23 sat24 emulation: clamp to +-1.0
+-        if (x > 1.0f) return 1.0f;
+-        if (x < -1.0f) return -1.0f;
+-        return x;
+-    }
+-
+-    void processBlock16(float* mono, int n, double /*sr*/, const Params& p) noexcept {
+-        const float g = 1.0f + (std::clamp(p.drive,0,127)/127.0f)*7.0f;
+-        const float wet = std::clamp(p.amount,0,127)/127.0f;
+-        const float srrN = std::clamp(p.srr,0,127)/127.0f;
+-        const float step = std::max(1.0f/32.0f, 1.0f - srrN*(31.0f/32.0f));
+-        for (int i=0;i<n;++i){
+-            float x=mono[i];
+-            if (p.srr>0){ srrPhase_+=step; if(srrPhase_>=1.0f){ srrPhase_-=1.0f; srrHold_=x; } x=srrHold_; }
+-            const float d=x*g; float s;
+-            switch(p.character){
+-                case Character::HardClip_SRSM: s=saturateSRSM(d); break;
+-                case Character::Overdrive_Soft: s=std::tanh(d); break;
+-                case Character::Fold: { float f=d; while(f>1.0f) f=2.0f-f; while(f<-1.0f) f=-2.0f-f; s=f; break; }
+-                default: s=saturateSRSM(d); break;
+-            }
+-            mono[i]=std::clamp(x*(1.0f-wet)+s*wet, -1.0f, 1.0f);
+-        }
+-    }
+-
+-    // stereo helper
+-    inline float processSample(float x, float driveParam, float amountParam, float srrParam, Character ch) noexcept {
+-        // driveParam 0..127, amount 0..127, srr 0..127
+-        Params p; p.drive = static_cast<int>(driveParam); p.amount = static_cast<int>(amountParam); p.srr = static_cast<int>(srrParam); p.character = ch;
+-        float mono[1]={x};
+-        processBlock16(mono,1,44100.0,p);
+-        return mono[0];
+-    }
+-
+-private:
+-    float srrHold_=0, srrPhase_=0;
+-};
+-
+-// Wrapper for TrackChain usage: uses DIST param as amount, with drive derived
+-class Dist2Core {
+-public:
+-    void reset() { block.reset(); }
+-    inline float process(float x, float distParam, float srrParam) noexcept {
+-        // distParam 0..127 (64 neutral), map to amount and drive
+-        // For mnm dist2: amount = distParam, drive = 64 + (distParam-64)*0.5 if >64
+-        int amount = std::clamp(static_cast<int>(distParam),0,127);
+-        int drive = 64;
+-        if (distParam > 64) drive = 64 + static_cast<int>((distParam-64)*0.8f);
+-        float out[1]={x};
+-        typename DistortionSaturationBlock2::Params p;
+-        p.drive = drive;
+-        p.amount = amount > 64 ? amount : 0; // only when positive
+-        p.srr = static_cast<int>(srrParam);
+-        p.character = DistortionSaturationBlock2::Character::HardClip_SRSM;
+-        block.processBlock16(out,1,44100.0,p);
+-        return out[0];
+-    }
+-private:
+-    DistortionSaturationBlock2 block;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm2.hpp new/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm2.hpp
+--- old/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,73 +0,0 @@
+-#pragma once
+-// MnmFm2.hpp -- alternative FM+ block from 2 try filter dist env nice build
+-// Source/DSP/Machines/FMPlusBlocks.h
+-// FM+ carries mod indexing etc. Provides DYN/STAT/PAR variations with unique names fm2
+-
+-#include <cmath>
+-#include <array>
+-#include <cstdint>
+-#include <algorithm>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class FMPlusBlock2 {
+-public:
+-    enum class Kind { Dyn, Stat, Par };
+-    struct Params {
+-        int pitch = 60;
+-        int mod = 64;
+-        int shape = 0;
+-        int decay = 64;
+-        int portamento = 0;
+-        int lfo = 0;
+-        int fmAmt = 64;
+-        int fmShape = 0;
+-    };
+-    void reset(double sr) noexcept { sr_=sr; phase_=0; env_=0; envState_=0; }
+-    void setKind(Kind k) noexcept { kind_=k; }
+-
+-    void noteOn(float midiNote) noexcept { note_=midiNote; envState_=1; phase_=0; }
+-
+-    inline float tick(const Params& p) noexcept {
+-        // envelope
+-        const float atk = 0.001f + (1.0f - std::clamp(p.decay,0,127)/127.0f)*0.2f;
+-        const float rel = 0.005f + (std::clamp(p.decay,0,127)/127.0f)*1.0f;
+-        if (envState_==1){ env_ += 1.0f/(sr_*atk); if(env_>=1.0f){ env_=1.0f; envState_=2; } }
+-        else if (envState_==2){ env_ -= 1.0f/(sr_*rel); if(env_<=0.0f){ env_=0.0f; envState_=0; } }
+-
+-        float freq = 440.0f*std::pow(2.0f,(note_-69.0f)/12.0f);
+-        float modFreq = freq * (1.0f + std::clamp(p.fmAmt-64, -64,63)/64.0f * 2.0f);
+-        float modIndex = std::clamp(p.mod,0,127)/127.0f * 8.0f;
+-
+-        double inc = freq / sr_;
+-        double modInc = modFreq / sr_;
+-        modPhase_ += modInc;
+-        if (modPhase_>=1.0) modPhase_-=1.0;
+-
+-        float mod = std::sin(2.0f*3.14159265f*static_cast<float>(modPhase_)) * modIndex;
+-        float carrier = std::sin(2.0f*3.14159265f*static_cast<float>(phase_+mod));
+-        phase_ += inc;
+-        if (phase_>=1.0) phase_-=1.0;
+-
+-        // shape
+-        if (p.shape==1) carrier = carrier>0?1.0f:-1.0f;
+-        else if (p.shape==2) carrier = 2.0f*static_cast<float>(phase_)-1.0f;
+-
+-        return carrier * env_;
+-    }
+-
+-    void processBlock(float* out, int n, const Params& p) noexcept {
+-        for (int i=0;i<n;++i) out[i]=tick(p);
+-    }
+-
+-private:
+-    double sr_=44100.0;
+-    double phase_=0, modPhase_=0;
+-    float note_=60, env_=0;
+-    int envState_=0;
+-    Kind kind_=Kind::Dyn;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_FX/Source/dsp/monomachine_bbox.hpp new/Monomachine_Nova_FX/Source/dsp/monomachine_bbox.hpp
+--- old/Monomachine_Nova_FX/Source/dsp/monomachine_bbox.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/Source/dsp/monomachine_bbox.hpp	2026-09-18 14:24:05.690123478 +0000
+@@ -1,4 +1,20 @@
+-// Nova: deterministic default kit, external pitch bend, prepared-slot swap, short-sample retriggers.
++// Nova v6: рабочий кит BBOX = СТАРЫЙ (до реворка 1.4) + снейр и два тома из нового,
++//          старый закон RTIM с инверсией, сглаживание повторов по СЭМПЛАМ.
++// -----------------------------------------------------------------------------
++// ЧТО ИЗМЕНИЛОСЬ В v6 (мономашина-нова, раздел BBOX)
++//   1. RTIM: возвращена СТАРАЯ формула (1.0-1.3.1) 5...255 мс -- но ИНВЕРТИРОВАННАЯ,
++//      как просили: rtim=0 -> 255 мс (реже всего), rtim=127 -> 5 мс (чаще всего).
++//      Интервал повтора теперь НИКОГДА не 0 (было 255*((127-rtim)/126)^2 -> 0 мс),
++//      поэтому звук не пропадает и повторы не сливаются в тишину на 100...127.
++//   2. Затухание повторов оставлено из новой версии: gain = 10^(-0.75*counter/total).
++//   3. Клик на перезапуске сэмпла убран сглаживанием ПО СЭМПЛАМ (kDeclickSamples=8,
++//      ~0.18 мс при 44.1 кГц): короткий фейд в начале удара + спад перед повтором.
++//      Миллисекундных огибающих в тракте повтора больше нет.
++//   4. STRT (start position): смещение мягче (1/8 активной длины вместо 1/4),
++//      короткие удары больше не срезаются так сильно; предел 30 мс сохранён.
++//   5. Кит по умолчанию: ОСНОВНОЙ=старый кит (кик, клэп, колокол, Blipp/лазер,
++//      остальное) + три голоса нового кита: Snare Drum 1 (слот 2), Tom 1 (слот 3),
++//      Tom 2 (слот 4). Полностью старый кит остался в generateLegacyKit().
+ #pragma once
+ 
+ #include <vector>
+@@ -30,6 +46,10 @@
+ class MonomachineBBox {
+ public:
+     static constexpr size_t kMaxSlots = 24;
++    // Длина сглаживания при перезапуске удара -- в СЭМПЛАХ, а не в миллисекундах:
++    // 16 сэмплов = 0.36 мс при 44.1 кГц. Спад ДОХОДИТ ровно до нуля к моменту
++    // перезапуска, поэтому перезапуск не даёт щелчка (раньше позиция прыгала скачком).
++    static constexpr size_t kDeclickSamples = 16;
+ 
+     struct SampleSlot {
+         std::string name;
+@@ -42,7 +62,7 @@
+     static void analyseSlot(SampleSlot& slot){float peak=0;for(float v:slot.data)peak=std::max(peak,std::abs(v));slot.activeFrames=slot.data.size();while(slot.activeFrames>1&&std::abs(slot.data[slot.activeFrames-1])<peak*0.0001f)--slot.activeFrames;}
+     int playingSlot()const noexcept{return m_isPlaying?static_cast<int>(m_currentPlayingSlot):-1;}
+     size_t retriggerInterval()const noexcept{return m_retrigIntervalSamples;}
+-    double startPosition(const SampleSlot& slot)const{const double x=static_cast<double>(m_paramStrt)/127;return x*x*std::min(static_cast<double>(slot.activeFrames?slot.activeFrames:slot.data.size())*0.25,slot.originalSampleRate*0.030);}
++    double startPosition(const SampleSlot& slot)const{const double x=static_cast<double>(m_paramStrt)/127;return x*x*std::min(static_cast<double>(slot.activeFrames?slot.activeFrames:slot.data.size())*0.125,slot.originalSampleRate*0.030);}
+     MonomachineBBox(bool modern=true) {
+         m_slots.resize(kMaxSlots);
+         m_rng.seed(1337);
+@@ -87,8 +107,12 @@
+         float semitones = (static_cast<float>(ptch) - 64.0f) / 64.0f * 24.0f;
+         m_pitchRatio = std::pow(2.0f, semitones / 12.0f);
+ 
+-        // Retrig interval in samples
+-        float retrigMs = 255.0f * std::pow((127.0f-static_cast<float>(rtim))/126.0f,2.0f);
++        // Retrig interval in samples.
++        // v6: СТАРАЯ формула 1.0-1.3.1 (5.0 + 250.0*rtim/127 = 5...255 мс), но по
++        // просьбе ИНВЕРТИРОВАННАЯ: rtim=0 -> 255 мс, rtim=127 -> 5 мс.
++        // Главное: интервал никогда не равен нулю, поэтому на 100...127 повторы
++        // не превращаются в вечную перезагрузку сэмпла (это и съедало звук).
++        float retrigMs = 5.0f + ((127.0f - static_cast<float>(rtim)) / 127.0f) * 250.0f;
+         m_retrigIntervalSamples = std::max(size_t(1),static_cast<size_t>((retrigMs / 1000.0f) * m_sampleRate));
+     }
+ 
+@@ -151,6 +175,8 @@
+         const size_t dataSize = data.size();
+         const double rateFactor = (slot.originalSampleRate / m_sampleRate) * m_pitchRatio * m_keyTrackRatio * m_bendRatio;
+ 
++        const size_t declick = std::max<size_t>(1, std::min(kDeclickSamples, m_retrigIntervalSamples / 2));
++
+         for (size_t i = 0; i < numFrames; ++i) {
+             if (!m_isPlaying) {
+                 outL[i] = 0.0f;
+@@ -159,7 +185,9 @@
+             }
+ 
+             // Check Retrigger
++            size_t samplesToRestart = 0;   // сколько сэмплов осталось ДО перезапуска
+             if (m_retrigTotal > 0 && m_retrigCounter < m_retrigTotal) {
++                samplesToRestart = m_retrigSamplesRemaining;
+                 if (m_retrigSamplesRemaining == 0) {
+                     m_playbackPos = startPosition(slot);m_hitAge=0;
+                     m_retrigSamplesRemaining = m_retrigIntervalSamples;
+@@ -181,8 +209,15 @@
+             float frac = static_cast<float>(m_playbackPos - idx0);
+             float sample = data[idx0] + frac * (data[idx1] - data[idx0]);
+ 
+-            const double fadeFrames=std::max(1.0,std::min(m_sampleRate*0.0005,static_cast<double>(dataSize)/64));
+-            const float fade=static_cast<float>(std::min(1.0,static_cast<double>(m_hitAge++)/fadeFrames));
++            // Сглаживание в СЭМПЛАХ: фейд в начале удара + спад перед перезапуском.
++            // Раньше здесь был миллисекундный fadeFrames (~22 сэмпла), который
++            // заметно съедал атаку и не спасал от щелчка в момент перезапуска.
++            const float fadeIn=static_cast<float>(std::min(1.0,static_cast<double>(m_hitAge++)/static_cast<double>(declick)));
++            float fadeOut=1.0f;
++            if(m_retrigTotal>0&&m_retrigCounter<m_retrigTotal&&samplesToRestart<declick)
++                fadeOut=static_cast<float>(samplesToRestart)/static_cast<float>(declick);
++            const float fade=std::min(fadeIn,fadeOut);
++            // Затухание серии повторов -- из новой версии (10^(-0.75*counter/total)).
+             const float gain=m_retrigTotal?std::pow(10.0f,-0.75f*static_cast<float>(m_retrigCounter)/m_retrigTotal):1.0f;
+             outL[i] = sample*gain*fade;
+             outR[i] = outL[i];
+@@ -197,13 +232,21 @@
+     const std::vector<SampleSlot>& getSlots() const noexcept { return m_slots; }
+ 
+ private:
+-    // A varied native kit, not extracted Elektron PCM. Each slot is generated independently.
++    // РАБОЧИЙ кит v6: основа -- СТАРЫЙ кит (до реворка 1.4), он же звучал как надо:
++    // кик, клэп, колокол (Cow Bell), лазер/zap (Blipp) и остальное. Из нового кита
++    // взяты только три голоса, которые понравились: Snare Drum 1 (слот 2),
++    // Tom 1 (слот 3), Tom 2 (слот 4) -- см. таблицу modernVoice ниже.
++    // Индексы слотов, которые берутся из нового кита (0-based).
+     void generateDefaultDrumKit() {
+         static const char* names[24]={"Bass Drum 1","Snare Drum 1","Tom 1","Tom 2","Bongo Congo","Clap",
+             "Rim Shot","Cow Bell","Closed HiHat","Open HiHat","Ride Cymbal","Crash Cymbal",
+             "Bass Drum 2","Snare Drum 2","Timbale","Aggobell","Timpani","Snap",
+             "Wood","Triangle","Shaker","Maracas","Whistle","Blipp"};
+         const size_t type[24]={0,1,3,15,18,6,4,8,2,7,19,19,12,13,15,20,3,5,16,20,14,14,20,10};
++        // true = голос из НОВОГО кита (снейр -- слот 2, Tom 1 -- слот 3, Tom 2 -- слот 4),
++        // false = СТАРЫЙ кит (кик, клэп, колокол Cow Bell, лазер Blipp и всё остальное).
++        static const bool modernVoice[24]={false,true,true,true,false,false,false,false,false,false,false,false,
++                                           false,false,false,false,false,false,false,false,false,false,false,false};
+         constexpr double pi=3.14159265358979323846;
+         for(size_t index=0;index<kMaxSlots;++index){const size_t slot=type[index];auto& out=m_slots[index];out.loaded=true;out.originalSampleRate=44100;out.name=names[index];
+             out.data.resize(22050);double phase=0,phase2=0;uint32_t seed=0x1234567u+static_cast<uint32_t>(index)*7919u;float previous=0;
+@@ -216,11 +259,14 @@
+                 else if(index==11){const float high=noise-previous;previous=noise;v=high*0.5*std::exp(-t/0.30);}
+                 else if(index==20){const float high=noise-previous;previous=noise;v=high*0.6*std::exp(-t/0.045);}
+                 else if(index==21){v=noise*(0.5+0.5*std::sin(2*pi*95*t))*std::exp(-t/0.095);}
+-                else if(slot==0||slot==12){const double f=slot==0?48:57;phase+=2*pi*(f+150*std::exp(-t/0.009))/44100;double body=std::sin(phase+0.9*std::exp(-t/0.012)*std::sin(phase*1.7));v=std::tanh(body*1.8)*std::exp(-t/(slot==0?0.11:0.085))+noise*std::exp(-t/0.0015)*0.16;}
+-                else if(slot==1||slot==13){phase+=2*pi*(slot==1?185:240)/44100;const double body=std::sin(phase+0.65*std::exp(-t/.016)*std::sin(phase*1.83));const double high=noise-previous;previous=noise;v=0.6*body*std::exp(-t/.024)+high*.35*std::exp(-t/(slot==1?.032:.045));}
+-                else if(slot==5){phase+=2*pi*430/44100;v=(0.25*std::sin(phase)+noise*.75)*env;}
+-                else if(slot==6||slot==17){double burst=0;for(int hit=0;hit<4;++hit){double d=t-hit*.008;if(d>=0)burst+=std::exp(-d/.0025);}const double band=noise-previous*.8;previous=noise;v=band*(burst*.5+.35*std::exp(-t/.055));}
+-                else if(slot==3||slot==15||slot==18){phase+=2*pi*((index==16?65:slot==3?85:index==14?290:slot==15?175:230)+90*std::exp(-t/.015))/44100;v=(std::sin(phase+1.8*std::exp(-t/.04)*std::sin(phase*1.414))+.16*std::sin(phase*2.76))*env;}
++                else if(slot==0||slot==12){phase+=2*pi*(slot==0?45:65)/44100+0.10*std::exp(-t/0.008);v=std::sin(phase)*std::exp(-t/(slot==0?0.13:0.075))+noise*std::exp(-t/0.002)*0.12;}
++                else if(slot==1||slot==13||slot==5){
++                    if(slot!=5&&modernVoice[index]){phase+=2*pi*(slot==1?185:240)/44100;const double body=std::sin(phase+0.65*std::exp(-t/.016)*std::sin(phase*1.83));const double high=noise-previous;previous=noise;v=0.6*body*std::exp(-t/.024)+high*.35*std::exp(-t/(slot==1?.032:.045));}
++                    else {phase+=2*pi*(slot==5?430:190)/44100;v=(0.25*std::sin(phase)+noise*0.75)*env;}}
++                else if(slot==6||slot==17){double burst=t<0.03?(std::fmod(t,slot==6?0.009:0.012)<0.004?1.0:0.1):0.35;v=noise*burst*env;}
++                else if(slot==3||slot==15||slot==18){
++                    phase+=2*pi*((index==16?65:slot==3?85:index==14?290:slot==15?175:230)+90*std::exp(-t/.015))/44100;
++                    v=modernVoice[index]?(std::sin(phase+1.8*std::exp(-t/.04)*std::sin(phase*1.414))+.16*std::sin(phase*2.76))*env:std::sin(phase)*env;}
+                 else if(slot==4||slot==16||slot==22){phase+=2*pi*(slot==4?850:slot==16?1750:3500)/44100;v=(std::sin(phase)+0.4*std::sin(phase*1.67))*std::exp(-t/0.014);}
+                 else if(slot==8||slot==9||slot==20){phase+=2*pi*(index==19?2200:slot==8?540:slot==9?870:1300)/44100;phase2+=2*pi*(slot==8?800:slot==9?1237:1743)/44100;v=(std::sin(phase)+0.6*std::sin(phase2))*env*0.65;}
+                 else if(slot==10||slot==21){const double hz=slot==10?90+2200*std::exp(-t/0.025):100+2300*(1-std::exp(-t/0.07));phase+=2*pi*hz/44100;v=std::sin(phase+0.7*std::sin(phase*2.31))*env;}
+diff -ruN old/Monomachine_Nova_FX/Source/models/DspModes.hpp new/Monomachine_Nova_FX/Source/models/DspModes.hpp
+--- old/Monomachine_Nova_FX/Source/models/DspModes.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/Source/models/DspModes.hpp	2026-09-18 14:24:05.690123478 +0000
+@@ -1,27 +1,22 @@
+ #pragma once
+-// DSP mode registry -- Monomachine Nova 1.6.2 (ревизия v5)
++// DSP mode registry -- Monomachine Nova 1.6.3 (ревизия v6)
+ // -----------------------------------------------------------------------------
+-// ГЛАВНОЕ ПРАВИЛО: в каждом разделе -- свой короткий список режимов,
+-// первым всегда основной "mnm". Резервные режимы помечены и отделены.
++// ГЛАВНОЕ ПРАВИЛО: в каждом разделе свой короткий список режимов,
++// первым всегда основной "mnm".
+ //
+-// ЧТО ИЗМЕНИЛОСЬ В v5
+-//   * Удалены режимы cascade / dual / raw (индексы 2, 3, 4). Их принёс прошлый
+-//     патч DSP MODE вместе с файлом dsp/mnm/MnmFilterModes.hpp -- в исходной
+-//     1.6.x их не было, и ничто, кроме диспетчера фильтра, их не использовало.
+-//     Вместе с режимами удалены сами классы (SvfCascadeFilter, DualSectionFilter,
+-//     TruthfulRawFilter) и их ветки в NovaDSP.h.
+-//   * Нумерация режимов сдвинута: mnm=0, old=1, dist2=2, fm2=3, bbox2=4.
+-//     Старые состояния читаются: dspModeLegacyIndexToCurrent() переводит
+-//     прежние индексы (2/3/4 -> mnm, 5/6/7 -> 2/3/4), см. PluginProcessor (schema<9).
+-//   * Раскладка режимов по разделам: дист -- к дисту, фильтр -- к фильтру,
+-//     синт -- к синту, чтобы каждый можно было слушать и тестировать в своём разделе.
++// ЧТО ИЗМЕНИЛОСЬ В v6
++//   * Альтернативные движки dist2 / fm2 / bbox2 УДАЛЕНЫ вместе с кодом
++//     (MnmDist2.hpp, MnmFm2.hpp, MnmBbox2.hpp выведены из сборки в *.bak-v6).
++//     Осталось ровно два режима: mnm (основной) и old (прежнее приближение Nova).
++//   * Новые режимы теперь есть ТОЛЬКО у фильтра: FILT mnm = реальный фильтр из дампа
++//     прошивки (MnmRealFilter.hpp, таблицы kLP 258 коэффициентов, SVF $F528BD/$4A4DF0).
++//     Все остальные разделы -- как в 1.6.0: их прежние алгоритмы получили режим old.
++//   * Схема состояния 9 -> 10: старые индексы режимов (2/3/4 для новых и 5/6/7 для
++//     прежних нумераций) сводятся к основному mnm, см. dspModeLegacyIndexToCurrent.
+ //
+ // Числа режимов:
+-// 0 mnm    -- ОСНОВНОЙ: реальный фильтр/синт/дист/дилей из прошивки OS 1.32B
+-// 1 old    -- прежние приближения Nova (biquad/tanh/линейный дилей) -- резерв
+-// 2 dist2  -- резерв DIST: DistortionSaturationBlock (HardClip/Soft/Fold + SRR)
+-// 3 fm2    -- резерв SYNT: FMPlusBlocks (DYN/STAT/PAR + таблица отношений)
+-// 4 bbox2  -- резерв SYNT: BBOX retrigger Nova_2KnobFade
++// 0 mnm -- ОСНОВНОЙ: реальный фильтр из прошивки (FILT), ядра прошивки для AMP/DIST/DLY/SYNT
++// 1 old -- РЕЗЕРВ: прежние приближения Nova (biquad-фильтр, tanh-дист, линейный дилей...)
+ 
+ #include <array>
+ #include <cstdint>
+@@ -68,24 +63,18 @@
+ 
+ // Полный список режимов. Нужен параметру AudioParameterChoice (значение = индекс),
+ // поэтому порядок здесь = нумерация выше и меняться не должен.
+-inline const char* dspModeChoices() { return "mnm|old|dist2|fm2|bbox2"; }
+-inline constexpr int dspModeMnm   = 0;
+-inline constexpr int dspModeOld   = 1;
+-inline constexpr int dspModeDist2 = 2;
+-inline constexpr int dspModeFm2   = 3;
+-inline constexpr int dspModeBbox2 = 4;
+-inline constexpr int dspModeCount = 5;
++inline const char* dspModeChoices() { return "mnm|old"; }
++inline constexpr int dspModeMnm = 0;
++inline constexpr int dspModeOld = 1;
++inline constexpr int dspModeCount = 2;
+ 
+-// Версия схемы состояния: 8 -> 9 из-за перенумерации режимов.
+-inline constexpr int kDspModeSchemaVersion = 9;
++// Версия схемы состояния: 9 -> 10 из-за удаления режимов dist2/fm2/bbox2.
++inline constexpr int kDspModeSchemaVersion = 10;
+ 
+ inline const char* dspModeName(int mode) {
+     switch (mode) {
+         case 0: return "mnm";
+         case 1: return "old";
+-        case 2: return "dist2";
+-        case 3: return "fm2";
+-        case 4: return "bbox2";
+         default: return "?";
+     }
+ }
+@@ -98,39 +87,35 @@
+     return -1;
+ }
+ 
+-// Перевод индексов режимов из состояния со схемой < 9 (до удаления cascade/dual/raw).
+-//   0 mnm -> mnm      1 old -> old
+-//   2 cascade, 3 dual, 4 raw -> mnm (режимы удалены)
+-//   5 dist2 -> dist2  6 fm2 -> fm2  7 bbox2 -> bbox2
++// Перевод индексов режимов из состояний с прежними схемами (8 и меньше):
++//   0 mnm -> mnm, 1 old -> old,
++//   2/3/4 (cascade/dual/raw из старого патча) и 5/6/7 (dist2/fm2/bbox2) -> mnm.
++// Так ни одно сохранённое состояние не остаётся с несуществующим режимом.
+ inline int dspModeLegacyIndexToCurrent(int legacy) noexcept {
+     switch (legacy) {
+         case 0: return dspModeMnm;
+         case 1: return dspModeOld;
+-        case 2: case 3: case 4: return dspModeMnm;   // cascade/dual/raw больше нет
+-        case 5: return dspModeDist2;
+-        case 6: return dspModeFm2;
+-        case 7: return dspModeBbox2;
+         default: return dspModeMnm;
+     }
+ }
+ 
+-// false -> в меню остаются только основные (mnm) режимы, резервные полностью скрыты.
++// false -> в меню остаются только основные (mnm) режимы, резерв полностью скрыт.
+ inline constexpr bool kShowBackupModes = true;
+ 
+ // -----------------------------------------------------------------------------
+ // Списки режимов ПО РАЗДЕЛАМ. Первым всегда "mnm" (основной режим раздела).
+ // Только эти списки решают, что можно включить в разделе: и меню, и аудио-поток
+-// читают их (раньше правила были размазаны по трём ad-hoc условиям).
++// читают их.
+ // -----------------------------------------------------------------------------
+ inline const char* dspSectionModeChoices(int section) {
+     switch (section) {
+-        case DspSynt:    return "mnm|old|fm2|bbox2";  // синт: FmCore прошивки, резерв -- Nova FM и FMPlus/BBOX
+-        case DspAmp:     return "mnm|old";            // амплитуда: kernel ADSR-таблицы
+-        case DspFilter:  return "mnm|old";            // фильтр: реальный дамп, резерв -- прежнее приближение
+-        case DspDist:    return "mnm|old|dist2";      // дист: ALU-сатурация прошивки, резерв -- DistortionSaturationBlock
+-        case DspDelay:   return "mnm|old";            // дилей: m32 FX-DLY
+-        case DspRouting: return "mnm";                // цепочка проверена и она одна
+-        case DspChorus:  return "mnm";                // хорус: единственная реализация
++        case DspSynt:    return "mnm|old";   // синт: FmCore прошивки, резерв -- прежний Nova FM
++        case DspAmp:     return "mnm|old";   // амплитуда: kernel ADSR-таблицы
++        case DspFilter:  return "mnm|old";   // фильтр: РЕАЛЬНЫЙ дамп прошивки, резерв -- прежнее приближение
++        case DspDist:    return "mnm|old";   // дист: ALU-сатурация прошивки, резерв -- прежний bipolarDist
++        case DspDelay:   return "mnm|old";   // дилей: m32 FX-DLY
++        case DspRouting: return "mnm";       // цепочка проверена и она одна
++        case DspChorus:  return "mnm";       // хорус: единственная реализация (ядро OS 1.32B)
+         default:         return "mnm";
+     }
+ }
+@@ -175,11 +160,8 @@
+ // Основной режим раздела -- всегда mnm и всегда доступен.
+ inline constexpr int dspModePrimaryForSection(int) { return dspModeMnm; }
+ 
+-// Совместимость: прежние вспомогательные предикаты (оставлены для внешнего кода,
+-// сами правила теперь целиком описаны списками выше).
++// Совместимость с прежним кодом.
+ inline constexpr int dspModeFilter = DspFilter;
+-inline bool dspModeIsDistOnly(int mode) noexcept { return mode == dspModeDist2; }
+-inline bool dspModeIsSyntOnly(int mode) noexcept { return mode == dspModeFm2 || mode == dspModeBbox2; }
+ 
+ // -----------------------------------------------------------------------------
+ // Тексты (меню/тултипы). Константы резонанса -- реальные из прошивки:
+@@ -187,13 +169,13 @@
+ // -----------------------------------------------------------------------------
+ inline const char* dspModeProvenance(int section) {
+     switch (section) {
+-        case DspSynt:   return "SYNT: mnm=recovered OS1.32B FmCore (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=Nova FM, fm2=FMPlusBlocks (ratio tbl P:$141A80), bbox2=Nova_2KnobFade retrig";
++        case DspSynt:   return "SYNT: mnm=восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=прежний Nova FM";
+         case DspAmp:    return "AMP: kernel P:$4A8-$4F5 ADSR FSM, таблицы Y:$141800/Y:$141880, LFO $791FD0=0.94628";
+-        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из mnm_filter_full_dump_juce_real (kLP 258 coeffs P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD env BOFS/WOFS). Резерв: old=прежнее приближение";
+-        case DspDist:   return "DIST: mnm=ALU sat bset #$14,sr hardclip +-1.0 P:$1476A5. Резерв: old=tanh, dist2=DistortionSaturationBlock + SRR";
+-        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49 recip. Резерв: old=линейная интерполяция";
+-        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsndEQ (routing-100/exact/verified)";
+-        case DspChorus: return "CHOR: mnm=OS1.32B native core 24-bit Q23, 16-frame schedule, unity dry";
++        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из дампа прошивки (kLP 258 коэффициентов P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD-огибающая BOFS/WOFS). Резерв: old=прежнее приближение";
++        case DspDist:   return "DIST: mnm=ALU-сатурация прошивки bset #$14,sr (hardclip +-1.0). Резерв: old=прежний bipolarDist";
++        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49. Резерв: old=линейная интерполяция";
++        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsnd";
++        case DspChorus: return "CHOR: mnm=нативное ядро OS1.32B 24-bit (как в 1.6.0), INP линейный, микс dry->wet по MIX";
+         default:        return "";
+     }
+ }
+@@ -201,20 +183,17 @@
+ inline const char* dspModeProvenanceForMode(int section, int mode) {
+     if (mode == dspModeMnm) {
+         switch (section) {
+-            case DspSynt:   return "SYNT mnm (основной): recovered OS1.32B FmCore (P:$4A8-$4F5, tone LP P:$144AC7)";
++            case DspSynt:   return "SYNT mnm (основной): восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7)";
+             case DspAmp:    return "AMP mnm (основной): kernel ADSR FSM Y:$141800/Y:$141880";
+-            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 coeffs + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16 (порт), AD-огибающая BOFS/WOFS, при дефолте unity THRU";
+-            case DspDist:   return "DIST mnm (основной): ALU sat bset #$14,sr hardclip +-1.0";
+-            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + recip P:$144C49";
+-            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsndEQ (verified)";
+-            case DspChorus: return "CHOR mnm (основной): native OS1.32B core 24-bit, unity dry";
+-            default:        return "mnm (основной): recovered firmware";
++            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 коэффициентов + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16, AD-огибающая BOFS/WOFS, при дефолте unity THRU";
++            case DspDist:   return "DIST mnm (основной): ALU-сатурация прошивки bset #$14,sr";
++            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + P:$144C49";
++            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsnd (проверено)";
++            case DspChorus: return "CHOR mnm (основной): нативное ядро OS1.32B 24-bit, линейный INP, микс dry->wet";
++            default:        return "mnm (основной): восстановленная прошивка";
+         }
+     }
+-    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дилей -- линейная интерполяция)";
+-    if (mode == dspModeDist2) return "dist2 (резерв DIST): DistortionSaturationBlock HardClip_SRSM/Overdrive/Fold + SRR";
+-    if (mode == dspModeFm2) return "fm2 (резерв SYNT): FMPlusBlocks DYN/STAT/PAR + таблица отношений";
+-    if (mode == dspModeBbox2) return "bbox2 (резерв SYNT): DproBboxBlock Nova_2KnobFade, repeat-sample, hold = repeat*4";
++    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дист -- tanh/bipolar, дилей -- линейная интерполяция)";
+     return "?";
+ }
+ 
+diff -ruN old/Monomachine_Nova_FX/tests/DeliveryTests.cpp new/Monomachine_Nova_FX/tests/DeliveryTests.cpp
+--- old/Monomachine_Nova_FX/tests/DeliveryTests.cpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_FX/tests/DeliveryTests.cpp	2026-09-18 14:24:05.690123478 +0000
+@@ -52,9 +52,9 @@
+ static void dsp1Checks(P& p){
+  {nova::NoiseContour f;f.prepare(44100);struct Test{size_t profile;double hz,target;};for(auto t:{Test{0,30,-38},Test{0,13500,0},Test{1,3500,-16},Test{2,22,-16},Test{2,180,-22},Test{2,10000,-29},Test{3,3700,-29},Test{3,11800,-29}}){double v=f.magnitudeDb(t.profile,t.hz);std::cout<<"NOISE contour "<<t.profile<<" @"<<t.hz<<": "<<v<<" dB / target "<<t.target<<"\n";check(std::abs(v-t.target)<1,"NOISE anchor outside 1 dB tolerance");}}
+  {std::array<float,8> a{0,0,0,1,0,0,0,64};auto base=renderMachine(4,a);a[0]=127;a[2]=127;auto widthZero=renderMachine(4,a);check(base==widthZero,"UNIW zero leaves extra voices");a[0]=0;a[1]=127;auto levelZero=renderMachine(4,a);check(base==levelZero,"UNIL zero leaves extra voices");a={0,0,0,0,0,0,0,64};auto legacy=renderMachine(4,a);double ratio=std::sqrt(energy(base)/energy(legacy));check(ratio>0.05&&ratio<0.14,"SAW trim");a[3]=1;a[5]=127;auto sub1=renderMachine(4,a);a[5]=0;a[6]=127;auto sub2=renderMachine(4,a);a[6]=0;a[4]=127;auto dirty=renderMachine(4,a);check(sub1!=sub2&&sub1!=dirty,"sub voices identical");std::cout<<"SAW new/legacy RMS ratio="<<ratio<<" PASS\n";}
+- {monomachine::MonomachineBBox b;b.reset(44100);std::array<float,8> pulse{0,1,0,0,0,0,0,0};b.loadSample(0,"pulse",pulse.data(),pulse.size());b.setParameters(64,0,1,1);const size_t interval=b.retriggerInterval();check(interval>11000,"RTIM 1 must be long");b.noteOn(48);std::vector<float> l(interval+20),r(l.size());b.processStereo(l.data(),r.data(),l.size());int hits=0;for(float v:l)if(v>0.001f)++hits;check(hits==2,"RTRG1 is not exactly one repeat");check(std::abs(20*std::log10(l[interval+1]/l[1])+15)<0.01,"repeat attenuation");b.setParameters(64,0,1,127);check(b.retriggerInterval()==1,"RTIM127 not minimum");b.setParameters(64,0,127,110);size_t step=b.retriggerInterval();b.noteOn(48);std::vector<float> many(step*127+20),mr(many.size());b.processStereo(many.data(),mr.data(),many.size());check(std::abs(20*std::log10(many[step*127+1]/many[1])+15)<0.02,"long retrigger tail not attenuated");for(size_t i=1;i<=127;++i)check(many[step*i+1]<many[step*(i-1)+1],"repeat series not decaying");
++ {monomachine::MonomachineBBox b;b.reset(44100);std::array<float,8> pulse{0,1,0,0,0,0,0,0};b.loadSample(0,"pulse",pulse.data(),pulse.size());b.setParameters(64,0,1,1);const size_t interval=b.retriggerInterval();check(interval>11000,"RTIM 1 must be long");b.noteOn(48);std::vector<float> l(interval+20),r(l.size());b.processStereo(l.data(),r.data(),l.size());int hits=0;for(float v:l)if(v>0.001f)++hits;check(hits==2,"RTRG1 is not exactly one repeat");check(std::abs(20*std::log10(l[interval+1]/l[1])+15)<0.01,"repeat attenuation");b.setParameters(64,0,1,127);check(b.retriggerInterval()>=200&&b.retriggerInterval()<=441,"RTIM 127 must be about 5 ms, not zero");b.setParameters(64,0,127,110);size_t step=b.retriggerInterval();b.noteOn(48);std::vector<float> many(step*127+20),mr(many.size());b.processStereo(many.data(),mr.data(),many.size());check(std::abs(20*std::log10(many[step*127+1]/many[1])+15)<0.02,"long retrigger tail not attenuated");for(size_t i=1;i<=127;++i)check(many[step*i+1]<many[step*(i-1)+1],"repeat series not decaying");
+   std::vector<float> hit(22050);for(size_t i=0;i<hit.size();++i)hit[i]=std::exp(-static_cast<float>(i)/(44100*.025f));b.loadSample(0,"hit",hit.data(),hit.size());b.setParameters(64,48,0,0);check(b.startPosition(b.getSlots()[0])<441,"START48 skips too much");
+-  monomachine::MonomachineBBox old(false),modern(true);check(old.getSlots()[7].data==modern.getSlots()[7].data&&old.getSlots()[23].data==modern.getSlots()[23].data,"approved bell/zap changed");for(size_t i:{size_t(0),size_t(1),size_t(2),size_t(3),size_t(5)})check(old.getSlots()[i].data!=modern.getSlots()[i].data,"kit family not updated");}
++  monomachine::MonomachineBBox old(false),modern(true);check(old.getSlots()[7].data==modern.getSlots()[7].data&&old.getSlots()[23].data==modern.getSlots()[23].data,"approved bell/zap changed");for(size_t i:{size_t(1),size_t(2),size_t(3)})check(old.getSlots()[i].data!=modern.getSlots()[i].data,"new snare/toms missing from the working kit");for(size_t i:{size_t(0),size_t(5),size_t(12),size_t(14),size_t(16)})check(old.getSlots()[i].data==modern.getSlots()[i].data,"working kit must keep the old voice");}
+  if(P::isSynthVersion){check(p.parameters.getParameter("m2_3")&&p.parameters.getParameter("m2_4"),"NOISE TIME/BIT not registered");check(p.parameters.getParameter("m4_3")->getAllValueStrings().joinIntoString("|")=="LEGACY|RETRO","SAW MODE missing");check(p.parameters.getParameter("m2_3")->getText(p.parameters.getParameter("m2_3")->getDefaultValue(),32)=="0","TIME does not display zero");}
+  {std::array<float,8> x{0,0,0,64,0,0,0,64};const auto start=juce::Time::getMillisecondCounterHiRes();auto normal=renderMachine(2,x);double elapsed=juce::Time::getMillisecondCounterHiRes()-start;x[3]=48;auto shorter=renderMachine(2,x);x[3]=80;auto longer=renderMachine(2,x);size_t n=12000;double expected=std::exp(-(static_cast<double>(n)/44100)/0.2489085587);check(std::abs(shorter[n]/normal[n]-expected)<0.001,"NOISE TIME shorter rate");check(std::abs(longer[n]/normal[n]-1/std::sqrt(expected))<0.001,"NOISE TIME longer rate");x[3]=64;x[4]=127;check(renderMachine(2,x)!=normal,"BIT has no audio effect");std::cout<<"NOISE 16384 frames incl engine setup: "<<elapsed<<" ms (not a host CPU benchmark)\n";}
+  if(P::isSynthVersion){auto original=p.parameters.copyState();auto legacy=original.createCopy();legacy.setProperty("schema",5,nullptr);for(const char* id:{"m4_3","m2_3","m2_4"}){auto child=legacy.getChildWithProperty("id",id);if(child.isValid())legacy.removeChild(child,nullptr);}legacy.getChildWithProperty("id","m2_1").setProperty("value",101.0f,nullptr);auto xml=legacy.createXml();juce::MemoryBlock data;P::copyXmlToBinary(*xml,data);p.setStateInformation(data.getData(),static_cast<int>(data.getSize()));check(p.parameters.getRawParameterValue("m2_4")->load()==101&&p.parameters.getRawParameterValue("m2_1")->load()==0,"old Redux migration failed");check(p.parameters.getRawParameterValue("m4_3")->load()==0&&p.parameters.getRawParameterValue("m2_3")->load()==64,"legacy SAW / neutral TIME migration failed");
+diff -ruN old/Monomachine_Nova_Synth/Source/NovaDSP.h new/Monomachine_Nova_Synth/Source/NovaDSP.h
+--- old/Monomachine_Nova_Synth/Source/NovaDSP.h	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/NovaDSP.h	2026-09-18 14:24:05.694123478 +0000
+@@ -11,9 +11,6 @@
+ #include "dsp/mnm/MnmRealFilter.hpp"
+ #include "dsp/mnm/MnmFm.hpp"
+ #include "dsp/mnm/MnmDelay.hpp"
+-#include "dsp/mnm/MnmDist2.hpp"
+-#include "dsp/mnm/MnmFm2.hpp"
+-#include "dsp/mnm/MnmBbox2.hpp"
+ #include "models/DspModes.hpp"
+ #include "dsp/monomachine_filter.hpp"
+ #include <array>
+@@ -141,21 +138,14 @@
+         sr=rate;noiseContour.prepare(sr);dyn.reset(sr);stat.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
+         chorusLatency=chorus->prepare(rate);chorus->reset(chorusParams);
+         mnmFm.reset(sr);
+-        fm2Core.reset(sr); fm2Core.setKind(monomachine::mnm::FMPlusBlock2::Kind::Dyn);
+-        bbox2Core.reset(sr);
+         reverb.setSampleRate(sr);clear();
+     }
+-    void setModes(int syntModeIn,int distModeIn){
+-        if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);fm2Core.reset(sr);}
+-        distMode=distModeIn;
+-    }
++    void setModes(int syntModeIn,int distModeIn){if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);}distMode=distModeIn;}
+     void clear() {
+         phases.fill(0);age=0;noiseContour.clear();toneState=0;colourL=colourR=0;compressorEnv=compressorPower=0;gateCounter=0;noiseCounter=0;
+         dyn.reset(sr);stat.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
+         rvHpInL=rvHpOutL=rvHpInR=rvHpOutR=rvLpL=rvLpR=0;
+         for(auto& f:formant)f.clear();
+-        fm2Core.reset(sr);
+-        bbox2Core.reset(sr);
+     }
+     void set(int machine,const std::array<float,8>& values) {
+         id=machine;p=values;
+@@ -163,14 +153,7 @@
+         if(id==10) dyn.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==8) stat.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==9) par.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+-        if(id==7) {
+-            bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);
+-            bbox.setChromatic(b(6)>0);
+-            // bbox2 alternative repeat-sample knob mode
+-            typename monomachine::mnm::Bbox2Core::Params bp{};
+-            bp.base=b(0); bp.width=b(1); bp.q1=b(4); bp.q2=b(5); bp.envAtk=b(2); bp.envDec=b(3); bp.sampleSel=b(2); bp.repeat=b(7);
+-            bbox2Core.setParameters(bp);
+-        }
++        if(id==7){bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);bbox.setChromatic(b(6)>0);}
+         if(id==15) {for(int i=0;i<8;++i)chorusParams[static_cast<size_t>(i)]=b(i);auto coreParams=chorusParams;coreParams[3]=127;coreParams[7]=64;chorus->setParameters(coreParams);}
+         if(id==18) phaser.setParameters(p[0],p[1],p[2],p[3],p[4],p[5]);
+         if(id==19) flanger.setParameters(p[0],p[1],p[2],p[3],p[4],p[5]);
+@@ -180,16 +163,10 @@
+             reverb.setParameters(r);
+         }
+         if(id==11){float sweep=norm(p[2])*300*std::sin(static_cast<float>(age/sr)*5);formant[0].band(sr,200+norm(p[0])*1200+sweep,4);formant[1].band(sr,700+norm(p[1])*2700,6);formant[2].band(sr,2400+norm(p[3])*1800,8);}
+-        // fm2 setup
+-        if((id==8||id==9||id==10) && syntMode==monomachine::dspModeFm2){
+-            fm2Core.setKind(id==8?monomachine::mnm::FMPlusBlock2::Kind::Stat:(id==9?monomachine::mnm::FMPlusBlock2::Kind::Par:monomachine::mnm::FMPlusBlock2::Kind::Dyn));
+-        }
+     }
+     void on(int midi) {
+         baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));stat.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
+-        bbox2Core.noteOn(static_cast<uint8_t>(midi));
+         mnmFm.setPitchMod(0.0f);mnmFm.noteOn(static_cast<float>(midi),1.0f);
+-        fm2Core.noteOn(static_cast<float>(midi));
+         if((id==3 && p[2]>63)||(id==5 && p[6]>63)||(id==6 && p[3]>63))phases.fill(0);
+     }
+     void setPitch(float absoluteNote,float modulation) {
+@@ -199,37 +176,21 @@
+     }
+     void render(float* l,float* r,int n,bool synth) {
+         if(!synth){renderFX(l,r,n);return;}
+-        // SYNT modes: mnm (0) = recovered firmware FM+, old (1) = previous Nova FM, fm2 (6) = alternative FMPlusBlock2, bbox2 (7) = repeat-sample BBOX
+-        if((id==8||id==9||id==10)){
+-            if(syntMode==monomachine::dspModeMnm){
+-                const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
+-                std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
+-                mnmFm.setParameters(kind,values);
+-                int done=0;while(done<n){const int block=std::min(monomachine::mnm::kBlock,n-done);float blockBuf[monomachine::mnm::kBlock]{};
+-                    mnmFm.processBlock(blockBuf,block);
+-                    for(int i=0;i<block;++i){l[static_cast<size_t>(done+i)]+=blockBuf[i];r[static_cast<size_t>(done+i)]+=blockBuf[i];}
+-                    done+=block;}
+-                return;
+-            } else if(syntMode==monomachine::dspModeFm2){
+-                typename monomachine::mnm::FMPlusBlock2::Params fp{};
+-                fp.pitch=static_cast<int>(p[0]); fp.mod=static_cast<int>(p[1]); fp.shape=static_cast<int>(p[2]); fp.decay=static_cast<int>(p[3]);
+-                fp.portamento=static_cast<int>(p[4]); fp.lfo=static_cast<int>(p[5]); fp.fmAmt=static_cast<int>(p[6]); fp.fmShape=static_cast<int>(p[7]);
+-                for(int i=0;i<n;++i){float s=fm2Core.tick(fp); l[i]+=s; r[i]+=s;}
+-                return;
+-            }
++        // SYNT: mnm (0) = recovered firmware FM+ (FM+STAT / FM+PAR / FM+DYN), old (1) = прежний Nova FM.
++        if(syntMode==monomachine::dspModeMnm&&(id==8||id==9||id==10)){
++            const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
++            std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
++            mnmFm.setParameters(kind,values);
++            int done=0;while(done<n){const int block=std::min(monomachine::mnm::kBlock,n-done);float blockBuf[monomachine::mnm::kBlock]{};
++                mnmFm.processBlock(blockBuf,block);
++                for(int i=0;i<block;++i){l[static_cast<size_t>(done+i)]+=blockBuf[i];r[static_cast<size_t>(done+i)]+=blockBuf[i];}
++                done+=block;}
++            return;
+         }
+         if(id==10){dyn.processStereo(l,r,static_cast<size_t>(n));return;}
+         if(id==8||id==9){if(id==8)stat.processStereo(l,r,static_cast<size_t>(n));else par.processStereo(l,r,static_cast<size_t>(n));
+             float a=1-std::exp(-2*pi*(100+19000*norm(p[6])*norm(p[6]))/static_cast<float>(sr));for(int i=0;i<n;++i){toneState+=a*(l[i]-toneState);l[i]=r[i]=toneState;}return;}
+-        if(id==7){
+-            if(syntMode==monomachine::dspModeBbox2){
+-                // bbox2 repeat-sample knob mode (alternative from DproBboxBlock Nova_2KnobFade)
+-                for(int i=0;i<n;++i){float s=bbox2Core.tick(l[i]); l[i]=r[i]=s*norm(p[7]);}
+-                return;
+-            } else {
+-                bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;
+-            }
+-        }
++        if(id==7){bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;}
+         const float frequency=std::min(hz(pitch+pitchMod+(p[7]-64)/64*12),static_cast<float>(sr*0.45));
+         const float dt=frequency/static_cast<float>(sr);
+         for(int i=0;i<n;++i){
+@@ -251,7 +212,8 @@
+                 float ratio=std::pow(2.0f,(p[6]-64)/32);double old=phases[1];phases[1]=wrap(phases[1]+dt*ratio);
+                 if(p[4]>42&&p[4]<85&&phases[1]<old)phases[0]=t=0;
+                 a=w==3?noise(rng):wave(w==0?3:w==1?1:2,t,dt,pw);
+-                if(p[4]>=85)a*=wave(static_cast<int>(p[5])/32,phases[1],dt*ratio);b=a;
++                if(p[4]>=85)a*=wave(static_cast<int>(p[5])/32,phases[1],dt*ratio);
++                b=a;
+             } else if(id==4){
+                 if(p[3]<0.5f){
+                 const float detune=norm(p[1])*0.48f;
+@@ -311,38 +273,19 @@
+     }
+ private:
+     void renderFX(float* l,float* r,int n) {
+-        // FIXED: INP quadratic law P:$14768B  gain = INP^2 *4 in 56-bit, 32->-12dB 64->0dB 127->+12dB
+-        auto inpGainQuad = [](float inpParam)->float {
+-            float v = std::clamp(inpParam,0.0f,127.0f);
+-            float lin = v/64.0f;
+-            return lin*lin; // (INP/64)^2 => 0.25 at 32, 1 at 64, ~3.94 at 127
+-        };
+-        // For synth machines, g = p[7]/64 linear; for FX we use quadratic per firmware
+-        if(id!=15){
+-            float g = inpGainQuad(p[7]);
+-            for(int i=0;i<n;++i){l[i]*=g; r[i]*=g;}
+-        }
+-        if(id==15){
+-            for(int i=0;i<n;++i){
+-                float wl=0,wr=0,dl=0,dr=0;
+-                float g = inpGainQuad(p[7]);
+-                chorus->processFrame(l[i]*g,r[i]*g,wl,wr,false);
+-                chorus->delayedInput(dl,dr);
+-                const float wet=norm(p[3]);
+-                // FIXED: chorus makeup - previously 127 sounded quiet vs 64. Now wet at 127 has 0dB same as dry at 0.
+-                // Wet from native core is lower; apply makeup 1.5x to make 127 loudness = 64 previously, and dry 0 = 0dB difference
+-                const float chorusMakeup = 1.5f; // makes wet unity, 127 now sounds like 64 before
+-                wl*=chorusMakeup; wr*=chorusMakeup;
+-                // dl/dr already unity (delayed input)
+-                l[i]=dl*(1.0f-wet)+wl*wet;
+-                r[i]=dr*(1.0f-wet)+wr*wet;
+-            }
+-        }
++        // INP is the track's FX input gain (64 = unity, 0 = silence, 127 ~= +6 dB). CHORUS feeds its own INP word to the native core.
++        if(id!=15){const float g=p[7]/64.0f;for(int i=0;i<n;++i){l[i]*=g;r[i]*=g;}}
++        if(id==15){for(int i=0;i<n;++i){float wl=0,wr=0,dl=0,dr=0;
++            chorus->processFrame(l[i]*p[7]/64.0f,r[i]*p[7]/64.0f,wl,wr,false);chorus->delayedInput(dl,dr);
++            const float wet=norm(p[3]);l[i]=dl*(1-wet)+wl*wet;r[i]=dr*(1-wet)+wr*wet;}}
+         else if(id==18)phaser.processStereo(l,r,l,r,static_cast<size_t>(n));
+         else if(id==19)flanger.processStereo(l,r,l,r,static_cast<size_t>(n));
+         else if(id==17){ring.setParameters(p[0],p[1],p[3],p[2]+pitchMod+(pitch-60));ring.processStereo(l,r,l,r,static_cast<size_t>(n));}
+         else if(id==13){
+-            std::array<float,32> dryL{},dryR{};std::copy_n(l,n,dryL.data());std::copy_n(r,n,dryR.data());
++            // v6: буферы сухого сигнала под РАЗМЕР БЛОКА хоста (было std::array<float,32>;
++            // при блоке больше 32 сэмплов это переполняло стек и роняло плагин на ревере).
++            if(rvDryL.size()<static_cast<size_t>(n)){rvDryL.resize(static_cast<size_t>(n));rvDryR.resize(static_cast<size_t>(n));}
++            std::copy_n(l,n,rvDryL.data());std::copy_n(r,n,rvDryR.data());
+             const float hpF=30.0f+norm(p[4])*norm(p[4])*970.0f;
+             const float hpPole=std::exp(-2*pi*hpF/static_cast<float>(sr));
+             const float lpF=std::min(400.0f*std::pow(50.0f,norm(p[5])),static_cast<float>(sr*0.45));
+@@ -355,29 +298,24 @@
+             }
+             reverb.processStereo(l,r,n);
+             const float wet=norm(p[3]);
+-            const float reverbMakeup = 3.0f; // wetLevel 1/3 -> need 3x for 0dB wet
+             for(int i=0;i<n;++i){const auto k=static_cast<size_t>(i);
+                 rvLpL+=lpAmount*(l[i]-rvLpL);rvLpR+=lpAmount*(r[i]-rvLpR);
+                 float wl=p[5]>=127?l[i]:rvLpL,wr=p[5]>=127?r[i]:rvLpR;
+-                wl*=reverbMakeup; wr*=reverbMakeup;
+-                if(std::max(std::abs(dryL[k]),std::abs(dryR[k]))>0.002f)
++                if(std::max(std::abs(rvDryL[k]),std::abs(rvDryR[k]))>0.002f)
+                     gateCounter=static_cast<int>(sr*(0.02+norm(p[2])*2));
+                 else if(gateCounter>0)--gateCounter;
+                 if(p[2]>0&&gateCounter==0){wl=0;wr=0;}
+-                l[i]=dryL[k]*(1-wet)+wl*wet;r[i]=dryR[k]*(1-wet)+wr*wet;
++                l[i]=rvDryL[k]*(1-wet)+wl*wet;r[i]=rvDryR[k]*(1-wet)+wr*wet;
+             }
+         } else if(id==16){
+             float atk=std::exp(-1/(static_cast<float>(sr)*(0.0001f+norm(p[0])*0.1f))),rel=std::exp(-1/(static_cast<float>(sr)*(0.005f+norm(p[1])*1.5f)));
+             float threshold=-60+norm(p[2])*60,ratio=1+norm(p[4])*19,makeup=std::pow(10.0f,((p[5]-64)/64*18)/20),mix=norm(p[3]);
+-            // FIXED: ensure dry unity when mix=0, wet makeup for 0dB at mix=127
+             for(int i=0;i<n;++i){float peak=std::max(std::abs(l[i]),std::abs(r[i]));compressorPower+=0.002f*(peak*peak-compressorPower);
+                 float detector=(1-norm(p[6]))*peak+norm(p[6])*std::sqrt(compressorPower);
+                 float coeff=detector>compressorEnv?atk:rel;compressorEnv=detector+coeff*(compressorEnv-detector);
+                 float over=std::max(0.0f,20*std::log10(std::max(compressorEnv,1.0e-8f))-threshold);
+                 float gain=(1-mix)+mix*makeup*std::pow(10.0f,-over*(1-1/ratio)/20);l[i]*=gain;r[i]*=gain;}
+         }
+-        // For other FX (phaser/flanger/ring), ensure dry path unity when bypassed: they already process wet only,
+-        // but outer mix in PluginProcessor will blend dryDelay. Here we keep wet unity.
+     }
+     int id=4,baseNote=60;double sr=44100,age=0;float pitch=60,pitchMod=0,toneState=0,waveMix=0.5f;
+     std::array<float,8> p{};std::array<double,8> phases{};std::array<Biquad,3> formant{};
+@@ -386,9 +324,8 @@
+     monomachine::MonomachinePhaser phaser;monomachine::MonomachineFlanger flanger;monomachine::MonomachineRingMod ring;
+     int syntMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm;
+     monomachine::mnm::FmCore mnmFm;
+-    monomachine::mnm::FMPlusBlock2 fm2Core;
+-    monomachine::mnm::Bbox2Core bbox2Core;
+     float rvHpInL=0,rvHpOutL=0,rvHpInR=0,rvHpOutR=0,rvLpL=0,rvLpR=0;
++    std::vector<float> rvDryL,rvDryR;
+     juce::Reverb reverb;
+ };
+ 
+@@ -403,7 +340,6 @@
+         delayFilter.reset(sr);
+         mnmDelay.prepare(sr);
+         mnmFilter.setSampleRate(sr);
+-        dist2Core.reset();
+         clear();
+     }
+     void setModes(int filterModeIn,int distModeIn,int delayModeIn,int routingModeIn){
+@@ -418,7 +354,6 @@
+         std::fill(delayL.begin(),delayL.end(),0.0f);
+         std::fill(delayR.begin(),delayR.end(),0.0f);
+         write=0;srrCounter=0;heldL=heldR=0;pingPong=false;time=1;
+-        dist2Core.reset();
+     }
+     void trigger(){
+         filter.triggerEnvelope();
+@@ -442,9 +377,6 @@
+             if(distMode==monomachine::dspModeMnm){
+                 l[i]=monomachine::mnm::Saturator::process(l[i],params[12]);
+                 r[i]=monomachine::mnm::Saturator::process(r[i],params[12]);
+-            } else if(distMode==monomachine::dspModeDist2){
+-                l[i]=dist2Core.process(l[i],params[12],0.0f);
+-                r[i]=dist2Core.process(r[i],params[12],0.0f);
+             } else {
+                 l[i]=bipolarDist(l[i],params[12]);
+                 r[i]=bipolarDist(r[i],params[12]);
+@@ -515,7 +447,6 @@
+     int filterMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm,delayMode=monomachine::dspModeMnm,routingMode=monomachine::dspModeMnm;
+     monomachine::mnm::FilterCore mnmFilter;
+     monomachine::mnm::DelayCore mnmDelay;
+-    monomachine::mnm::Dist2Core dist2Core;
+     double sr=44100;std::array<float,32> params{};monomachine::MonomachineFilter filter,delayFilter;Biquad eqL,eqR;
+     bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;
+ };
+diff -ruN old/Monomachine_Nova_Synth/Source/PluginProcessor.cpp new/Monomachine_Nova_Synth/Source/PluginProcessor.cpp
+--- old/Monomachine_Nova_Synth/Source/PluginProcessor.cpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/PluginProcessor.cpp	2026-09-18 14:24:05.694123478 +0000
+@@ -61,9 +61,8 @@
+         idx = juce::jlimit(0, monomachine::dspModeCount-1, idx);
+         // Единственное правило: в разделе допустимы только его собственные режимы
+         // (списки -- в models/DspModes.hpp, dspSectionModeChoices). Всё остальное
+-        // сводится к основному режиму mnm.  Раньше здесь были ad-hoc правила,
+-        // которые разрешали dist2/fm2/bbox2 внутри FILT -- из-за них блоки
+-        // "расползались" по чужим разделам и меню предлагало выбирать их везде.
++        // сводится к основному режиму mnm.  В v6 допустимы только mnm (основной)
++        // и old (резерв): альтернативные движки dist2/fm2/bbox2 удалены.
+         if(!monomachine::dspModeAllowedForSection(i,idx)){
+             idx = monomachine::dspModeMnm;
+         }
+@@ -271,7 +270,7 @@
+         }
+         if(schema<6&&isSynthVersion){for(auto pair:{std::pair<const char*,float>{"m4_3",0.0f},{"m2_3",64.0f}}){if(!state.getChildWithProperty("id",pair.first).isValid()){auto node=juce::ValueTree("PARAM");node.setProperty("id",pair.first,nullptr);node.setProperty("value",pair.second,nullptr);state.addChild(node,-1,nullptr);}}auto old=state.getChildWithProperty("id","m2_1");if(old.isValid()&&!state.getChildWithProperty("id","m2_4").isValid()){auto bit=juce::ValueTree("PARAM");bit.setProperty("id","m2_4",nullptr);bit.setProperty("value",old["value"],nullptr);state.addChild(bit,-1,nullptr);old.setProperty("value",0.0f,nullptr);}}
+         if(schema<8){for(int section=0;section<monomachine::DspSectionCount;++section){const char* id=monomachine::dspModeParamId(section);if(!state.getChildWithProperty("id",id).isValid()){auto node=juce::ValueTree("PARAM");node.setProperty("id",id,nullptr);node.setProperty("value",static_cast<float>(monomachine::dspModeOld),nullptr);state.addChild(node,-1,nullptr);}}}
+-        if(schema<9){ // v5: режимы cascade/dual/raw удалены, нумерация режимов новая (mnm=0 old=1 dist2=2 fm2=3 bbox2=4)
++        if(schema<10){ // v6: альтернативные режимы dist2/fm2/bbox2 удалены, список -- mnm|old
+             for(int section=0;section<monomachine::DspSectionCount;++section){
+                 const char* id=monomachine::dspModeParamId(section);
+                 auto node=state.getChildWithProperty("id",id);
+diff -ruN old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmBbox2.hpp new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmBbox2.hpp
+--- old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmBbox2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmBbox2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,64 +0,0 @@
+-#pragma once
+-// MnmBbox2.hpp -- alternative BBOX mode from DproBboxBlock.h
+-// Only alternative repeat-sample knob mode (Nova_2KnobFade)
+-// Unique name bbox2
+-
+-#include <cmath>
+-#include <array>
+-#include <algorithm>
+-#include <cstdint>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class Bbox2Core {
+-public:
+-    enum class Mode { Nova_2KnobFade, RepeatSample };
+-    struct Params {
+-        int base = 64;
+-        int width = 64;
+-        int q1 = 64;
+-        int q2 = 64;
+-        int envAtk = 64;
+-        int envDec = 64;
+-        int sampleSel = 0;
+-        int repeat = 64; // knob for repeat-sample
+-    };
+-
+-    void reset(double sr) noexcept { sr_=sr; pos_=0; env_=0; envState_=0; repeatCounter_=0; }
+-    void noteOn(uint8_t /*note*/) noexcept { envState_=1; pos_=0; repeatCounter_=0; }
+-
+-    void setParameters(const Params& p) noexcept { params_=p; }
+-
+-    inline float tick(float in) noexcept {
+-        // Simple BBOX emulation: bandpass-ish + repeat sample hold
+-        // repeat knob controls hold length 1..128 samples
+-        int hold = 1 + (std::clamp(params_.repeat,0,127) * 4); // 1..509
+-        float out;
+-        if (params_.repeat > 4){
+-            if (repeatCounter_==0) held_=in;
+-            repeatCounter_ = (repeatCounter_+1)%hold;
+-            out = held_;
+-        } else {
+-            out = in;
+-        }
+-        // fake filter: lowpass based on base
+-        float cutoff = 200.0f + std::clamp(params_.base,0,127)/127.0f*8000.0f;
+-        float g = 1.0f - std::exp(-2*3.14159265f*cutoff/static_cast<float>(sr_));
+-        lp_ += g*(out-lp_);
+-        return lp_ * 0.8f + out*0.2f;
+-    }
+-
+-    void processBlock(float* buf, int n) noexcept {
+-        for (int i=0;i<n;++i) buf[i]=tick(buf[i]);
+-    }
+-
+-private:
+-    double sr_=44100.0;
+-    Params params_{};
+-    float held_=0, lp_=0, env_=0;
+-    int pos_=0, envState_=0, repeatCounter_=0;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDist2.hpp new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDist2.hpp
+--- old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDist2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDist2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,85 +0,0 @@
+-#pragma once
+-// MnmDist2.hpp -- alternative DIST block from 2 try filter dist env nice build
+-// Source/DSP/Kernel/DistortionSaturationBlock.h
+-// Provides HardClip_SRSM (bset #$14,sr), Overdrive_Soft (tanh), Fold
+-// Plus SRR as bitcrush fractional lookup
+-// Named dist2 to avoid repeat
+-
+-#include <cmath>
+-#include <algorithm>
+-#include <cstdint>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class DistortionSaturationBlock2 {
+-public:
+-    enum class Character { HardClip_SRSM, Overdrive_Soft, Fold };
+-    struct Params { int drive=64; int amount=0; int srr=0; Character character=Character::HardClip_SRSM; };
+-
+-    void reset() noexcept { srrHold_=0.0f; srrPhase_=0.0f; }
+-
+-    static inline float saturateSRSM(float x) noexcept {
+-        // Q23 sat24 emulation: clamp to +-1.0
+-        if (x > 1.0f) return 1.0f;
+-        if (x < -1.0f) return -1.0f;
+-        return x;
+-    }
+-
+-    void processBlock16(float* mono, int n, double /*sr*/, const Params& p) noexcept {
+-        const float g = 1.0f + (std::clamp(p.drive,0,127)/127.0f)*7.0f;
+-        const float wet = std::clamp(p.amount,0,127)/127.0f;
+-        const float srrN = std::clamp(p.srr,0,127)/127.0f;
+-        const float step = std::max(1.0f/32.0f, 1.0f - srrN*(31.0f/32.0f));
+-        for (int i=0;i<n;++i){
+-            float x=mono[i];
+-            if (p.srr>0){ srrPhase_+=step; if(srrPhase_>=1.0f){ srrPhase_-=1.0f; srrHold_=x; } x=srrHold_; }
+-            const float d=x*g; float s;
+-            switch(p.character){
+-                case Character::HardClip_SRSM: s=saturateSRSM(d); break;
+-                case Character::Overdrive_Soft: s=std::tanh(d); break;
+-                case Character::Fold: { float f=d; while(f>1.0f) f=2.0f-f; while(f<-1.0f) f=-2.0f-f; s=f; break; }
+-                default: s=saturateSRSM(d); break;
+-            }
+-            mono[i]=std::clamp(x*(1.0f-wet)+s*wet, -1.0f, 1.0f);
+-        }
+-    }
+-
+-    // stereo helper
+-    inline float processSample(float x, float driveParam, float amountParam, float srrParam, Character ch) noexcept {
+-        // driveParam 0..127, amount 0..127, srr 0..127
+-        Params p; p.drive = static_cast<int>(driveParam); p.amount = static_cast<int>(amountParam); p.srr = static_cast<int>(srrParam); p.character = ch;
+-        float mono[1]={x};
+-        processBlock16(mono,1,44100.0,p);
+-        return mono[0];
+-    }
+-
+-private:
+-    float srrHold_=0, srrPhase_=0;
+-};
+-
+-// Wrapper for TrackChain usage: uses DIST param as amount, with drive derived
+-class Dist2Core {
+-public:
+-    void reset() { block.reset(); }
+-    inline float process(float x, float distParam, float srrParam) noexcept {
+-        // distParam 0..127 (64 neutral), map to amount and drive
+-        // For mnm dist2: amount = distParam, drive = 64 + (distParam-64)*0.5 if >64
+-        int amount = std::clamp(static_cast<int>(distParam),0,127);
+-        int drive = 64;
+-        if (distParam > 64) drive = 64 + static_cast<int>((distParam-64)*0.8f);
+-        float out[1]={x};
+-        typename DistortionSaturationBlock2::Params p;
+-        p.drive = drive;
+-        p.amount = amount > 64 ? amount : 0; // only when positive
+-        p.srr = static_cast<int>(srrParam);
+-        p.character = DistortionSaturationBlock2::Character::HardClip_SRSM;
+-        block.processBlock16(out,1,44100.0,p);
+-        return out[0];
+-    }
+-private:
+-    DistortionSaturationBlock2 block;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm2.hpp new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm2.hpp
+--- old/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm2.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm2.hpp	1970-01-01 00:00:00.000000000 +0000
+@@ -1,73 +0,0 @@
+-#pragma once
+-// MnmFm2.hpp -- alternative FM+ block from 2 try filter dist env nice build
+-// Source/DSP/Machines/FMPlusBlocks.h
+-// FM+ carries mod indexing etc. Provides DYN/STAT/PAR variations with unique names fm2
+-
+-#include <cmath>
+-#include <array>
+-#include <cstdint>
+-#include <algorithm>
+-
+-namespace monomachine {
+-namespace mnm {
+-
+-class FMPlusBlock2 {
+-public:
+-    enum class Kind { Dyn, Stat, Par };
+-    struct Params {
+-        int pitch = 60;
+-        int mod = 64;
+-        int shape = 0;
+-        int decay = 64;
+-        int portamento = 0;
+-        int lfo = 0;
+-        int fmAmt = 64;
+-        int fmShape = 0;
+-    };
+-    void reset(double sr) noexcept { sr_=sr; phase_=0; env_=0; envState_=0; }
+-    void setKind(Kind k) noexcept { kind_=k; }
+-
+-    void noteOn(float midiNote) noexcept { note_=midiNote; envState_=1; phase_=0; }
+-
+-    inline float tick(const Params& p) noexcept {
+-        // envelope
+-        const float atk = 0.001f + (1.0f - std::clamp(p.decay,0,127)/127.0f)*0.2f;
+-        const float rel = 0.005f + (std::clamp(p.decay,0,127)/127.0f)*1.0f;
+-        if (envState_==1){ env_ += 1.0f/(sr_*atk); if(env_>=1.0f){ env_=1.0f; envState_=2; } }
+-        else if (envState_==2){ env_ -= 1.0f/(sr_*rel); if(env_<=0.0f){ env_=0.0f; envState_=0; } }
+-
+-        float freq = 440.0f*std::pow(2.0f,(note_-69.0f)/12.0f);
+-        float modFreq = freq * (1.0f + std::clamp(p.fmAmt-64, -64,63)/64.0f * 2.0f);
+-        float modIndex = std::clamp(p.mod,0,127)/127.0f * 8.0f;
+-
+-        double inc = freq / sr_;
+-        double modInc = modFreq / sr_;
+-        modPhase_ += modInc;
+-        if (modPhase_>=1.0) modPhase_-=1.0;
+-
+-        float mod = std::sin(2.0f*3.14159265f*static_cast<float>(modPhase_)) * modIndex;
+-        float carrier = std::sin(2.0f*3.14159265f*static_cast<float>(phase_+mod));
+-        phase_ += inc;
+-        if (phase_>=1.0) phase_-=1.0;
+-
+-        // shape
+-        if (p.shape==1) carrier = carrier>0?1.0f:-1.0f;
+-        else if (p.shape==2) carrier = 2.0f*static_cast<float>(phase_)-1.0f;
+-
+-        return carrier * env_;
+-    }
+-
+-    void processBlock(float* out, int n, const Params& p) noexcept {
+-        for (int i=0;i<n;++i) out[i]=tick(p);
+-    }
+-
+-private:
+-    double sr_=44100.0;
+-    double phase_=0, modPhase_=0;
+-    float note_=60, env_=0;
+-    int envState_=0;
+-    Kind kind_=Kind::Dyn;
+-};
+-
+-} // namespace mnm
+-} // namespace monomachine
+diff -ruN old/Monomachine_Nova_Synth/Source/dsp/monomachine_bbox.hpp new/Monomachine_Nova_Synth/Source/dsp/monomachine_bbox.hpp
+--- old/Monomachine_Nova_Synth/Source/dsp/monomachine_bbox.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/dsp/monomachine_bbox.hpp	2026-09-18 14:24:05.694123478 +0000
+@@ -1,4 +1,20 @@
+-// Nova: deterministic default kit, external pitch bend, prepared-slot swap, short-sample retriggers.
++// Nova v6: рабочий кит BBOX = СТАРЫЙ (до реворка 1.4) + снейр и два тома из нового,
++//          старый закон RTIM с инверсией, сглаживание повторов по СЭМПЛАМ.
++// -----------------------------------------------------------------------------
++// ЧТО ИЗМЕНИЛОСЬ В v6 (мономашина-нова, раздел BBOX)
++//   1. RTIM: возвращена СТАРАЯ формула (1.0-1.3.1) 5...255 мс -- но ИНВЕРТИРОВАННАЯ,
++//      как просили: rtim=0 -> 255 мс (реже всего), rtim=127 -> 5 мс (чаще всего).
++//      Интервал повтора теперь НИКОГДА не 0 (было 255*((127-rtim)/126)^2 -> 0 мс),
++//      поэтому звук не пропадает и повторы не сливаются в тишину на 100...127.
++//   2. Затухание повторов оставлено из новой версии: gain = 10^(-0.75*counter/total).
++//   3. Клик на перезапуске сэмпла убран сглаживанием ПО СЭМПЛАМ (kDeclickSamples=8,
++//      ~0.18 мс при 44.1 кГц): короткий фейд в начале удара + спад перед повтором.
++//      Миллисекундных огибающих в тракте повтора больше нет.
++//   4. STRT (start position): смещение мягче (1/8 активной длины вместо 1/4),
++//      короткие удары больше не срезаются так сильно; предел 30 мс сохранён.
++//   5. Кит по умолчанию: ОСНОВНОЙ=старый кит (кик, клэп, колокол, Blipp/лазер,
++//      остальное) + три голоса нового кита: Snare Drum 1 (слот 2), Tom 1 (слот 3),
++//      Tom 2 (слот 4). Полностью старый кит остался в generateLegacyKit().
+ #pragma once
+ 
+ #include <vector>
+@@ -30,6 +46,10 @@
+ class MonomachineBBox {
+ public:
+     static constexpr size_t kMaxSlots = 24;
++    // Длина сглаживания при перезапуске удара -- в СЭМПЛАХ, а не в миллисекундах:
++    // 16 сэмплов = 0.36 мс при 44.1 кГц. Спад ДОХОДИТ ровно до нуля к моменту
++    // перезапуска, поэтому перезапуск не даёт щелчка (раньше позиция прыгала скачком).
++    static constexpr size_t kDeclickSamples = 16;
+ 
+     struct SampleSlot {
+         std::string name;
+@@ -42,7 +62,7 @@
+     static void analyseSlot(SampleSlot& slot){float peak=0;for(float v:slot.data)peak=std::max(peak,std::abs(v));slot.activeFrames=slot.data.size();while(slot.activeFrames>1&&std::abs(slot.data[slot.activeFrames-1])<peak*0.0001f)--slot.activeFrames;}
+     int playingSlot()const noexcept{return m_isPlaying?static_cast<int>(m_currentPlayingSlot):-1;}
+     size_t retriggerInterval()const noexcept{return m_retrigIntervalSamples;}
+-    double startPosition(const SampleSlot& slot)const{const double x=static_cast<double>(m_paramStrt)/127;return x*x*std::min(static_cast<double>(slot.activeFrames?slot.activeFrames:slot.data.size())*0.25,slot.originalSampleRate*0.030);}
++    double startPosition(const SampleSlot& slot)const{const double x=static_cast<double>(m_paramStrt)/127;return x*x*std::min(static_cast<double>(slot.activeFrames?slot.activeFrames:slot.data.size())*0.125,slot.originalSampleRate*0.030);}
+     MonomachineBBox(bool modern=true) {
+         m_slots.resize(kMaxSlots);
+         m_rng.seed(1337);
+@@ -87,8 +107,12 @@
+         float semitones = (static_cast<float>(ptch) - 64.0f) / 64.0f * 24.0f;
+         m_pitchRatio = std::pow(2.0f, semitones / 12.0f);
+ 
+-        // Retrig interval in samples
+-        float retrigMs = 255.0f * std::pow((127.0f-static_cast<float>(rtim))/126.0f,2.0f);
++        // Retrig interval in samples.
++        // v6: СТАРАЯ формула 1.0-1.3.1 (5.0 + 250.0*rtim/127 = 5...255 мс), но по
++        // просьбе ИНВЕРТИРОВАННАЯ: rtim=0 -> 255 мс, rtim=127 -> 5 мс.
++        // Главное: интервал никогда не равен нулю, поэтому на 100...127 повторы
++        // не превращаются в вечную перезагрузку сэмпла (это и съедало звук).
++        float retrigMs = 5.0f + ((127.0f - static_cast<float>(rtim)) / 127.0f) * 250.0f;
+         m_retrigIntervalSamples = std::max(size_t(1),static_cast<size_t>((retrigMs / 1000.0f) * m_sampleRate));
+     }
+ 
+@@ -151,6 +175,8 @@
+         const size_t dataSize = data.size();
+         const double rateFactor = (slot.originalSampleRate / m_sampleRate) * m_pitchRatio * m_keyTrackRatio * m_bendRatio;
+ 
++        const size_t declick = std::max<size_t>(1, std::min(kDeclickSamples, m_retrigIntervalSamples / 2));
++
+         for (size_t i = 0; i < numFrames; ++i) {
+             if (!m_isPlaying) {
+                 outL[i] = 0.0f;
+@@ -159,7 +185,9 @@
+             }
+ 
+             // Check Retrigger
++            size_t samplesToRestart = 0;   // сколько сэмплов осталось ДО перезапуска
+             if (m_retrigTotal > 0 && m_retrigCounter < m_retrigTotal) {
++                samplesToRestart = m_retrigSamplesRemaining;
+                 if (m_retrigSamplesRemaining == 0) {
+                     m_playbackPos = startPosition(slot);m_hitAge=0;
+                     m_retrigSamplesRemaining = m_retrigIntervalSamples;
+@@ -181,8 +209,15 @@
+             float frac = static_cast<float>(m_playbackPos - idx0);
+             float sample = data[idx0] + frac * (data[idx1] - data[idx0]);
+ 
+-            const double fadeFrames=std::max(1.0,std::min(m_sampleRate*0.0005,static_cast<double>(dataSize)/64));
+-            const float fade=static_cast<float>(std::min(1.0,static_cast<double>(m_hitAge++)/fadeFrames));
++            // Сглаживание в СЭМПЛАХ: фейд в начале удара + спад перед перезапуском.
++            // Раньше здесь был миллисекундный fadeFrames (~22 сэмпла), который
++            // заметно съедал атаку и не спасал от щелчка в момент перезапуска.
++            const float fadeIn=static_cast<float>(std::min(1.0,static_cast<double>(m_hitAge++)/static_cast<double>(declick)));
++            float fadeOut=1.0f;
++            if(m_retrigTotal>0&&m_retrigCounter<m_retrigTotal&&samplesToRestart<declick)
++                fadeOut=static_cast<float>(samplesToRestart)/static_cast<float>(declick);
++            const float fade=std::min(fadeIn,fadeOut);
++            // Затухание серии повторов -- из новой версии (10^(-0.75*counter/total)).
+             const float gain=m_retrigTotal?std::pow(10.0f,-0.75f*static_cast<float>(m_retrigCounter)/m_retrigTotal):1.0f;
+             outL[i] = sample*gain*fade;
+             outR[i] = outL[i];
+@@ -197,13 +232,21 @@
+     const std::vector<SampleSlot>& getSlots() const noexcept { return m_slots; }
+ 
+ private:
+-    // A varied native kit, not extracted Elektron PCM. Each slot is generated independently.
++    // РАБОЧИЙ кит v6: основа -- СТАРЫЙ кит (до реворка 1.4), он же звучал как надо:
++    // кик, клэп, колокол (Cow Bell), лазер/zap (Blipp) и остальное. Из нового кита
++    // взяты только три голоса, которые понравились: Snare Drum 1 (слот 2),
++    // Tom 1 (слот 3), Tom 2 (слот 4) -- см. таблицу modernVoice ниже.
++    // Индексы слотов, которые берутся из нового кита (0-based).
+     void generateDefaultDrumKit() {
+         static const char* names[24]={"Bass Drum 1","Snare Drum 1","Tom 1","Tom 2","Bongo Congo","Clap",
+             "Rim Shot","Cow Bell","Closed HiHat","Open HiHat","Ride Cymbal","Crash Cymbal",
+             "Bass Drum 2","Snare Drum 2","Timbale","Aggobell","Timpani","Snap",
+             "Wood","Triangle","Shaker","Maracas","Whistle","Blipp"};
+         const size_t type[24]={0,1,3,15,18,6,4,8,2,7,19,19,12,13,15,20,3,5,16,20,14,14,20,10};
++        // true = голос из НОВОГО кита (снейр -- слот 2, Tom 1 -- слот 3, Tom 2 -- слот 4),
++        // false = СТАРЫЙ кит (кик, клэп, колокол Cow Bell, лазер Blipp и всё остальное).
++        static const bool modernVoice[24]={false,true,true,true,false,false,false,false,false,false,false,false,
++                                           false,false,false,false,false,false,false,false,false,false,false,false};
+         constexpr double pi=3.14159265358979323846;
+         for(size_t index=0;index<kMaxSlots;++index){const size_t slot=type[index];auto& out=m_slots[index];out.loaded=true;out.originalSampleRate=44100;out.name=names[index];
+             out.data.resize(22050);double phase=0,phase2=0;uint32_t seed=0x1234567u+static_cast<uint32_t>(index)*7919u;float previous=0;
+@@ -216,11 +259,14 @@
+                 else if(index==11){const float high=noise-previous;previous=noise;v=high*0.5*std::exp(-t/0.30);}
+                 else if(index==20){const float high=noise-previous;previous=noise;v=high*0.6*std::exp(-t/0.045);}
+                 else if(index==21){v=noise*(0.5+0.5*std::sin(2*pi*95*t))*std::exp(-t/0.095);}
+-                else if(slot==0||slot==12){const double f=slot==0?48:57;phase+=2*pi*(f+150*std::exp(-t/0.009))/44100;double body=std::sin(phase+0.9*std::exp(-t/0.012)*std::sin(phase*1.7));v=std::tanh(body*1.8)*std::exp(-t/(slot==0?0.11:0.085))+noise*std::exp(-t/0.0015)*0.16;}
+-                else if(slot==1||slot==13){phase+=2*pi*(slot==1?185:240)/44100;const double body=std::sin(phase+0.65*std::exp(-t/.016)*std::sin(phase*1.83));const double high=noise-previous;previous=noise;v=0.6*body*std::exp(-t/.024)+high*.35*std::exp(-t/(slot==1?.032:.045));}
+-                else if(slot==5){phase+=2*pi*430/44100;v=(0.25*std::sin(phase)+noise*.75)*env;}
+-                else if(slot==6||slot==17){double burst=0;for(int hit=0;hit<4;++hit){double d=t-hit*.008;if(d>=0)burst+=std::exp(-d/.0025);}const double band=noise-previous*.8;previous=noise;v=band*(burst*.5+.35*std::exp(-t/.055));}
+-                else if(slot==3||slot==15||slot==18){phase+=2*pi*((index==16?65:slot==3?85:index==14?290:slot==15?175:230)+90*std::exp(-t/.015))/44100;v=(std::sin(phase+1.8*std::exp(-t/.04)*std::sin(phase*1.414))+.16*std::sin(phase*2.76))*env;}
++                else if(slot==0||slot==12){phase+=2*pi*(slot==0?45:65)/44100+0.10*std::exp(-t/0.008);v=std::sin(phase)*std::exp(-t/(slot==0?0.13:0.075))+noise*std::exp(-t/0.002)*0.12;}
++                else if(slot==1||slot==13||slot==5){
++                    if(slot!=5&&modernVoice[index]){phase+=2*pi*(slot==1?185:240)/44100;const double body=std::sin(phase+0.65*std::exp(-t/.016)*std::sin(phase*1.83));const double high=noise-previous;previous=noise;v=0.6*body*std::exp(-t/.024)+high*.35*std::exp(-t/(slot==1?.032:.045));}
++                    else {phase+=2*pi*(slot==5?430:190)/44100;v=(0.25*std::sin(phase)+noise*0.75)*env;}}
++                else if(slot==6||slot==17){double burst=t<0.03?(std::fmod(t,slot==6?0.009:0.012)<0.004?1.0:0.1):0.35;v=noise*burst*env;}
++                else if(slot==3||slot==15||slot==18){
++                    phase+=2*pi*((index==16?65:slot==3?85:index==14?290:slot==15?175:230)+90*std::exp(-t/.015))/44100;
++                    v=modernVoice[index]?(std::sin(phase+1.8*std::exp(-t/.04)*std::sin(phase*1.414))+.16*std::sin(phase*2.76))*env:std::sin(phase)*env;}
+                 else if(slot==4||slot==16||slot==22){phase+=2*pi*(slot==4?850:slot==16?1750:3500)/44100;v=(std::sin(phase)+0.4*std::sin(phase*1.67))*std::exp(-t/0.014);}
+                 else if(slot==8||slot==9||slot==20){phase+=2*pi*(index==19?2200:slot==8?540:slot==9?870:1300)/44100;phase2+=2*pi*(slot==8?800:slot==9?1237:1743)/44100;v=(std::sin(phase)+0.6*std::sin(phase2))*env*0.65;}
+                 else if(slot==10||slot==21){const double hz=slot==10?90+2200*std::exp(-t/0.025):100+2300*(1-std::exp(-t/0.07));phase+=2*pi*hz/44100;v=std::sin(phase+0.7*std::sin(phase*2.31))*env;}
+diff -ruN old/Monomachine_Nova_Synth/Source/models/DspModes.hpp new/Monomachine_Nova_Synth/Source/models/DspModes.hpp
+--- old/Monomachine_Nova_Synth/Source/models/DspModes.hpp	2026-09-18 14:24:05.686123478 +0000
++++ new/Monomachine_Nova_Synth/Source/models/DspModes.hpp	2026-09-18 14:24:05.694123478 +0000
+@@ -1,27 +1,22 @@
+ #pragma once
+-// DSP mode registry -- Monomachine Nova 1.6.2 (ревизия v5)
++// DSP mode registry -- Monomachine Nova 1.6.3 (ревизия v6)
+ // -----------------------------------------------------------------------------
+-// ГЛАВНОЕ ПРАВИЛО: в каждом разделе -- свой короткий список режимов,
+-// первым всегда основной "mnm". Резервные режимы помечены и отделены.
++// ГЛАВНОЕ ПРАВИЛО: в каждом разделе свой короткий список режимов,
++// первым всегда основной "mnm".
+ //
+-// ЧТО ИЗМЕНИЛОСЬ В v5
+-//   * Удалены режимы cascade / dual / raw (индексы 2, 3, 4). Их принёс прошлый
+-//     патч DSP MODE вместе с файлом dsp/mnm/MnmFilterModes.hpp -- в исходной
+-//     1.6.x их не было, и ничто, кроме диспетчера фильтра, их не использовало.
+-//     Вместе с режимами удалены сами классы (SvfCascadeFilter, DualSectionFilter,
+-//     TruthfulRawFilter) и их ветки в NovaDSP.h.
+-//   * Нумерация режимов сдвинута: mnm=0, old=1, dist2=2, fm2=3, bbox2=4.
+-//     Старые состояния читаются: dspModeLegacyIndexToCurrent() переводит
+-//     прежние индексы (2/3/4 -> mnm, 5/6/7 -> 2/3/4), см. PluginProcessor (schema<9).
+-//   * Раскладка режимов по разделам: дист -- к дисту, фильтр -- к фильтру,
+-//     синт -- к синту, чтобы каждый можно было слушать и тестировать в своём разделе.
++// ЧТО ИЗМЕНИЛОСЬ В v6
++//   * Альтернативные движки dist2 / fm2 / bbox2 УДАЛЕНЫ вместе с кодом
++//     (MnmDist2.hpp, MnmFm2.hpp, MnmBbox2.hpp выведены из сборки в *.bak-v6).
++//     Осталось ровно два режима: mnm (основной) и old (прежнее приближение Nova).
++//   * Новые режимы теперь есть ТОЛЬКО у фильтра: FILT mnm = реальный фильтр из дампа
++//     прошивки (MnmRealFilter.hpp, таблицы kLP 258 коэффициентов, SVF $F528BD/$4A4DF0).
++//     Все остальные разделы -- как в 1.6.0: их прежние алгоритмы получили режим old.
++//   * Схема состояния 9 -> 10: старые индексы режимов (2/3/4 для новых и 5/6/7 для
++//     прежних нумераций) сводятся к основному mnm, см. dspModeLegacyIndexToCurrent.
+ //
+ // Числа режимов:
+-// 0 mnm    -- ОСНОВНОЙ: реальный фильтр/синт/дист/дилей из прошивки OS 1.32B
+-// 1 old    -- прежние приближения Nova (biquad/tanh/линейный дилей) -- резерв
+-// 2 dist2  -- резерв DIST: DistortionSaturationBlock (HardClip/Soft/Fold + SRR)
+-// 3 fm2    -- резерв SYNT: FMPlusBlocks (DYN/STAT/PAR + таблица отношений)
+-// 4 bbox2  -- резерв SYNT: BBOX retrigger Nova_2KnobFade
++// 0 mnm -- ОСНОВНОЙ: реальный фильтр из прошивки (FILT), ядра прошивки для AMP/DIST/DLY/SYNT
++// 1 old -- РЕЗЕРВ: прежние приближения Nova (biquad-фильтр, tanh-дист, линейный дилей...)
+ 
+ #include <array>
+ #include <cstdint>
+@@ -68,24 +63,18 @@
+ 
+ // Полный список режимов. Нужен параметру AudioParameterChoice (значение = индекс),
+ // поэтому порядок здесь = нумерация выше и меняться не должен.
+-inline const char* dspModeChoices() { return "mnm|old|dist2|fm2|bbox2"; }
+-inline constexpr int dspModeMnm   = 0;
+-inline constexpr int dspModeOld   = 1;
+-inline constexpr int dspModeDist2 = 2;
+-inline constexpr int dspModeFm2   = 3;
+-inline constexpr int dspModeBbox2 = 4;
+-inline constexpr int dspModeCount = 5;
++inline const char* dspModeChoices() { return "mnm|old"; }
++inline constexpr int dspModeMnm = 0;
++inline constexpr int dspModeOld = 1;
++inline constexpr int dspModeCount = 2;
+ 
+-// Версия схемы состояния: 8 -> 9 из-за перенумерации режимов.
+-inline constexpr int kDspModeSchemaVersion = 9;
++// Версия схемы состояния: 9 -> 10 из-за удаления режимов dist2/fm2/bbox2.
++inline constexpr int kDspModeSchemaVersion = 10;
+ 
+ inline const char* dspModeName(int mode) {
+     switch (mode) {
+         case 0: return "mnm";
+         case 1: return "old";
+-        case 2: return "dist2";
+-        case 3: return "fm2";
+-        case 4: return "bbox2";
+         default: return "?";
+     }
+ }
+@@ -98,39 +87,35 @@
+     return -1;
+ }
+ 
+-// Перевод индексов режимов из состояния со схемой < 9 (до удаления cascade/dual/raw).
+-//   0 mnm -> mnm      1 old -> old
+-//   2 cascade, 3 dual, 4 raw -> mnm (режимы удалены)
+-//   5 dist2 -> dist2  6 fm2 -> fm2  7 bbox2 -> bbox2
++// Перевод индексов режимов из состояний с прежними схемами (8 и меньше):
++//   0 mnm -> mnm, 1 old -> old,
++//   2/3/4 (cascade/dual/raw из старого патча) и 5/6/7 (dist2/fm2/bbox2) -> mnm.
++// Так ни одно сохранённое состояние не остаётся с несуществующим режимом.
+ inline int dspModeLegacyIndexToCurrent(int legacy) noexcept {
+     switch (legacy) {
+         case 0: return dspModeMnm;
+         case 1: return dspModeOld;
+-        case 2: case 3: case 4: return dspModeMnm;   // cascade/dual/raw больше нет
+-        case 5: return dspModeDist2;
+-        case 6: return dspModeFm2;
+-        case 7: return dspModeBbox2;
+         default: return dspModeMnm;
+     }
+ }
+ 
+-// false -> в меню остаются только основные (mnm) режимы, резервные полностью скрыты.
++// false -> в меню остаются только основные (mnm) режимы, резерв полностью скрыт.
+ inline constexpr bool kShowBackupModes = true;
+ 
+ // -----------------------------------------------------------------------------
+ // Списки режимов ПО РАЗДЕЛАМ. Первым всегда "mnm" (основной режим раздела).
+ // Только эти списки решают, что можно включить в разделе: и меню, и аудио-поток
+-// читают их (раньше правила были размазаны по трём ad-hoc условиям).
++// читают их.
+ // -----------------------------------------------------------------------------
+ inline const char* dspSectionModeChoices(int section) {
+     switch (section) {
+-        case DspSynt:    return "mnm|old|fm2|bbox2";  // синт: FmCore прошивки, резерв -- Nova FM и FMPlus/BBOX
+-        case DspAmp:     return "mnm|old";            // амплитуда: kernel ADSR-таблицы
+-        case DspFilter:  return "mnm|old";            // фильтр: реальный дамп, резерв -- прежнее приближение
+-        case DspDist:    return "mnm|old|dist2";      // дист: ALU-сатурация прошивки, резерв -- DistortionSaturationBlock
+-        case DspDelay:   return "mnm|old";            // дилей: m32 FX-DLY
+-        case DspRouting: return "mnm";                // цепочка проверена и она одна
+-        case DspChorus:  return "mnm";                // хорус: единственная реализация
++        case DspSynt:    return "mnm|old";   // синт: FmCore прошивки, резерв -- прежний Nova FM
++        case DspAmp:     return "mnm|old";   // амплитуда: kernel ADSR-таблицы
++        case DspFilter:  return "mnm|old";   // фильтр: РЕАЛЬНЫЙ дамп прошивки, резерв -- прежнее приближение
++        case DspDist:    return "mnm|old";   // дист: ALU-сатурация прошивки, резерв -- прежний bipolarDist
++        case DspDelay:   return "mnm|old";   // дилей: m32 FX-DLY
++        case DspRouting: return "mnm";       // цепочка проверена и она одна
++        case DspChorus:  return "mnm";       // хорус: единственная реализация (ядро OS 1.32B)
+         default:         return "mnm";
+     }
+ }
+@@ -175,11 +160,8 @@
+ // Основной режим раздела -- всегда mnm и всегда доступен.
+ inline constexpr int dspModePrimaryForSection(int) { return dspModeMnm; }
+ 
+-// Совместимость: прежние вспомогательные предикаты (оставлены для внешнего кода,
+-// сами правила теперь целиком описаны списками выше).
++// Совместимость с прежним кодом.
+ inline constexpr int dspModeFilter = DspFilter;
+-inline bool dspModeIsDistOnly(int mode) noexcept { return mode == dspModeDist2; }
+-inline bool dspModeIsSyntOnly(int mode) noexcept { return mode == dspModeFm2 || mode == dspModeBbox2; }
+ 
+ // -----------------------------------------------------------------------------
+ // Тексты (меню/тултипы). Константы резонанса -- реальные из прошивки:
+@@ -187,13 +169,13 @@
+ // -----------------------------------------------------------------------------
+ inline const char* dspModeProvenance(int section) {
+     switch (section) {
+-        case DspSynt:   return "SYNT: mnm=recovered OS1.32B FmCore (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=Nova FM, fm2=FMPlusBlocks (ratio tbl P:$141A80), bbox2=Nova_2KnobFade retrig";
++        case DspSynt:   return "SYNT: mnm=восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=прежний Nova FM";
+         case DspAmp:    return "AMP: kernel P:$4A8-$4F5 ADSR FSM, таблицы Y:$141800/Y:$141880, LFO $791FD0=0.94628";
+-        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из mnm_filter_full_dump_juce_real (kLP 258 coeffs P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD env BOFS/WOFS). Резерв: old=прежнее приближение";
+-        case DspDist:   return "DIST: mnm=ALU sat bset #$14,sr hardclip +-1.0 P:$1476A5. Резерв: old=tanh, dist2=DistortionSaturationBlock + SRR";
+-        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49 recip. Резерв: old=линейная интерполяция";
+-        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsndEQ (routing-100/exact/verified)";
+-        case DspChorus: return "CHOR: mnm=OS1.32B native core 24-bit Q23, 16-frame schedule, unity dry";
++        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из дампа прошивки (kLP 258 коэффициентов P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD-огибающая BOFS/WOFS). Резерв: old=прежнее приближение";
++        case DspDist:   return "DIST: mnm=ALU-сатурация прошивки bset #$14,sr (hardclip +-1.0). Резерв: old=прежний bipolarDist";
++        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49. Резерв: old=линейная интерполяция";
++        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsnd";
++        case DspChorus: return "CHOR: mnm=нативное ядро OS1.32B 24-bit (как в 1.6.0), INP линейный, микс dry->wet по MIX";
+         default:        return "";
+     }
+ }
+@@ -201,20 +183,17 @@
+ inline const char* dspModeProvenanceForMode(int section, int mode) {
+     if (mode == dspModeMnm) {
+         switch (section) {
+-            case DspSynt:   return "SYNT mnm (основной): recovered OS1.32B FmCore (P:$4A8-$4F5, tone LP P:$144AC7)";
++            case DspSynt:   return "SYNT mnm (основной): восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7)";
+             case DspAmp:    return "AMP mnm (основной): kernel ADSR FSM Y:$141800/Y:$141880";
+-            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 coeffs + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16 (порт), AD-огибающая BOFS/WOFS, при дефолте unity THRU";
+-            case DspDist:   return "DIST mnm (основной): ALU sat bset #$14,sr hardclip +-1.0";
+-            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + recip P:$144C49";
+-            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsndEQ (verified)";
+-            case DspChorus: return "CHOR mnm (основной): native OS1.32B core 24-bit, unity dry";
+-            default:        return "mnm (основной): recovered firmware";
++            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 коэффициентов + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16, AD-огибающая BOFS/WOFS, при дефолте unity THRU";
++            case DspDist:   return "DIST mnm (основной): ALU-сатурация прошивки bset #$14,sr";
++            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + P:$144C49";
++            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsnd (проверено)";
++            case DspChorus: return "CHOR mnm (основной): нативное ядро OS1.32B 24-bit, линейный INP, микс dry->wet";
++            default:        return "mnm (основной): восстановленная прошивка";
+         }
+     }
+-    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дилей -- линейная интерполяция)";
+-    if (mode == dspModeDist2) return "dist2 (резерв DIST): DistortionSaturationBlock HardClip_SRSM/Overdrive/Fold + SRR";
+-    if (mode == dspModeFm2) return "fm2 (резерв SYNT): FMPlusBlocks DYN/STAT/PAR + таблица отношений";
+-    if (mode == dspModeBbox2) return "bbox2 (резерв SYNT): DproBboxBlock Nova_2KnobFade, repeat-sample, hold = repeat*4";
++    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дист -- tanh/bipolar, дилей -- линейная интерполяция)";
+     return "?";
+ }
+ 
+diff -ruN old/Monomachine_Nova_Synth/tests/DeliveryTests.cpp new/Monomachine_Nova_Synth/tests/DeliveryTests.cpp
+--- old/Monomachine_Nova_Synth/tests/DeliveryTests.cpp	2026-09-18 14:24:05.690123478 +0000
++++ new/Monomachine_Nova_Synth/tests/DeliveryTests.cpp	2026-09-18 14:24:05.694123478 +0000
+@@ -52,9 +52,9 @@
+ static void dsp1Checks(P& p){
+  {nova::NoiseContour f;f.prepare(44100);struct Test{size_t profile;double hz,target;};for(auto t:{Test{0,30,-38},Test{0,13500,0},Test{1,3500,-16},Test{2,22,-16},Test{2,180,-22},Test{2,10000,-29},Test{3,3700,-29},Test{3,11800,-29}}){double v=f.magnitudeDb(t.profile,t.hz);std::cout<<"NOISE contour "<<t.profile<<" @"<<t.hz<<": "<<v<<" dB / target "<<t.target<<"\n";check(std::abs(v-t.target)<1,"NOISE anchor outside 1 dB tolerance");}}
+  {std::array<float,8> a{0,0,0,1,0,0,0,64};auto base=renderMachine(4,a);a[0]=127;a[2]=127;auto widthZero=renderMachine(4,a);check(base==widthZero,"UNIW zero leaves extra voices");a[0]=0;a[1]=127;auto levelZero=renderMachine(4,a);check(base==levelZero,"UNIL zero leaves extra voices");a={0,0,0,0,0,0,0,64};auto legacy=renderMachine(4,a);double ratio=std::sqrt(energy(base)/energy(legacy));check(ratio>0.05&&ratio<0.14,"SAW trim");a[3]=1;a[5]=127;auto sub1=renderMachine(4,a);a[5]=0;a[6]=127;auto sub2=renderMachine(4,a);a[6]=0;a[4]=127;auto dirty=renderMachine(4,a);check(sub1!=sub2&&sub1!=dirty,"sub voices identical");std::cout<<"SAW new/legacy RMS ratio="<<ratio<<" PASS\n";}
+- {monomachine::MonomachineBBox b;b.reset(44100);std::array<float,8> pulse{0,1,0,0,0,0,0,0};b.loadSample(0,"pulse",pulse.data(),pulse.size());b.setParameters(64,0,1,1);const size_t interval=b.retriggerInterval();check(interval>11000,"RTIM 1 must be long");b.noteOn(48);std::vector<float> l(interval+20),r(l.size());b.processStereo(l.data(),r.data(),l.size());int hits=0;for(float v:l)if(v>0.001f)++hits;check(hits==2,"RTRG1 is not exactly one repeat");check(std::abs(20*std::log10(l[interval+1]/l[1])+15)<0.01,"repeat attenuation");b.setParameters(64,0,1,127);check(b.retriggerInterval()==1,"RTIM127 not minimum");b.setParameters(64,0,127,110);size_t step=b.retriggerInterval();b.noteOn(48);std::vector<float> many(step*127+20),mr(many.size());b.processStereo(many.data(),mr.data(),many.size());check(std::abs(20*std::log10(many[step*127+1]/many[1])+15)<0.02,"long retrigger tail not attenuated");for(size_t i=1;i<=127;++i)check(many[step*i+1]<many[step*(i-1)+1],"repeat series not decaying");
++ {monomachine::MonomachineBBox b;b.reset(44100);std::array<float,8> pulse{0,1,0,0,0,0,0,0};b.loadSample(0,"pulse",pulse.data(),pulse.size());b.setParameters(64,0,1,1);const size_t interval=b.retriggerInterval();check(interval>11000,"RTIM 1 must be long");b.noteOn(48);std::vector<float> l(interval+20),r(l.size());b.processStereo(l.data(),r.data(),l.size());int hits=0;for(float v:l)if(v>0.001f)++hits;check(hits==2,"RTRG1 is not exactly one repeat");check(std::abs(20*std::log10(l[interval+1]/l[1])+15)<0.01,"repeat attenuation");b.setParameters(64,0,1,127);check(b.retriggerInterval()>=200&&b.retriggerInterval()<=441,"RTIM 127 must be about 5 ms, not zero");b.setParameters(64,0,127,110);size_t step=b.retriggerInterval();b.noteOn(48);std::vector<float> many(step*127+20),mr(many.size());b.processStereo(many.data(),mr.data(),many.size());check(std::abs(20*std::log10(many[step*127+1]/many[1])+15)<0.02,"long retrigger tail not attenuated");for(size_t i=1;i<=127;++i)check(many[step*i+1]<many[step*(i-1)+1],"repeat series not decaying");
+   std::vector<float> hit(22050);for(size_t i=0;i<hit.size();++i)hit[i]=std::exp(-static_cast<float>(i)/(44100*.025f));b.loadSample(0,"hit",hit.data(),hit.size());b.setParameters(64,48,0,0);check(b.startPosition(b.getSlots()[0])<441,"START48 skips too much");
+-  monomachine::MonomachineBBox old(false),modern(true);check(old.getSlots()[7].data==modern.getSlots()[7].data&&old.getSlots()[23].data==modern.getSlots()[23].data,"approved bell/zap changed");for(size_t i:{size_t(0),size_t(1),size_t(2),size_t(3),size_t(5)})check(old.getSlots()[i].data!=modern.getSlots()[i].data,"kit family not updated");}
++  monomachine::MonomachineBBox old(false),modern(true);check(old.getSlots()[7].data==modern.getSlots()[7].data&&old.getSlots()[23].data==modern.getSlots()[23].data,"approved bell/zap changed");for(size_t i:{size_t(1),size_t(2),size_t(3)})check(old.getSlots()[i].data!=modern.getSlots()[i].data,"new snare/toms missing from the working kit");for(size_t i:{size_t(0),size_t(5),size_t(12),size_t(14),size_t(16)})check(old.getSlots()[i].data==modern.getSlots()[i].data,"working kit must keep the old voice");}
+  if(P::isSynthVersion){check(p.parameters.getParameter("m2_3")&&p.parameters.getParameter("m2_4"),"NOISE TIME/BIT not registered");check(p.parameters.getParameter("m4_3")->getAllValueStrings().joinIntoString("|")=="LEGACY|RETRO","SAW MODE missing");check(p.parameters.getParameter("m2_3")->getText(p.parameters.getParameter("m2_3")->getDefaultValue(),32)=="0","TIME does not display zero");}
+  {std::array<float,8> x{0,0,0,64,0,0,0,64};const auto start=juce::Time::getMillisecondCounterHiRes();auto normal=renderMachine(2,x);double elapsed=juce::Time::getMillisecondCounterHiRes()-start;x[3]=48;auto shorter=renderMachine(2,x);x[3]=80;auto longer=renderMachine(2,x);size_t n=12000;double expected=std::exp(-(static_cast<double>(n)/44100)/0.2489085587);check(std::abs(shorter[n]/normal[n]-expected)<0.001,"NOISE TIME shorter rate");check(std::abs(longer[n]/normal[n]-1/std::sqrt(expected))<0.001,"NOISE TIME longer rate");x[3]=64;x[4]=127;check(renderMachine(2,x)!=normal,"BIT has no audio effect");std::cout<<"NOISE 16384 frames incl engine setup: "<<elapsed<<" ms (not a host CPU benchmark)\n";}
+  if(P::isSynthVersion){auto original=p.parameters.copyState();auto legacy=original.createCopy();legacy.setProperty("schema",5,nullptr);for(const char* id:{"m4_3","m2_3","m2_4"}){auto child=legacy.getChildWithProperty("id",id);if(child.isValid())legacy.removeChild(child,nullptr);}legacy.getChildWithProperty("id","m2_1").setProperty("value",101.0f,nullptr);auto xml=legacy.createXml();juce::MemoryBlock data;P::copyXmlToBinary(*xml,data);p.setStateInformation(data.getData(),static_cast<int>(data.getSize()));check(p.parameters.getRawParameterValue("m2_4")->load()==101&&p.parameters.getRawParameterValue("m2_1")->load()==0,"old Redux migration failed");check(p.parameters.getRawParameterValue("m4_3")->load()==0&&p.parameters.getRawParameterValue("m2_3")->load()==64,"legacy SAW / neutral TIME migration failed");
+diff -ruN old/Monomachine_Nova_Synth/verify_dsp_mode_patch.py new/Monomachine_Nova_Synth/verify_dsp_mode_patch.py
+--- old/Monomachine_Nova_Synth/verify_dsp_mode_patch.py	2026-09-18 14:24:05.690123478 +0000
++++ new/Monomachine_Nova_Synth/verify_dsp_mode_patch.py	2026-09-18 14:24:05.694123478 +0000
+@@ -1,18 +1,21 @@
+ #!/usr/bin/env python3
+-"""Static checks for the DSP MODE / filter modes patch (revision v5).
++"""Static checks for the DSP MODE / filter modes patch (revision v6).
+ 
+ Компилятор не нужен: скрипт читает исходники и проверяет обещания правки.
+ 
+   1. dsp/mnm/MnmRealFilter.hpp -- основной фильтр: реальные таблицы, устойчивый
+      TPT-SVF, DC-блокер, порядок аргументов страницы FILT, живое отпускание ноты.
+   2. dsp/mnm/MnmKernel.hpp -- дубль FilterCore/real_detail удалён, std::clamp исправлен.
+-  3. dsp/mnm/MnmFilterModes.hpp и режимы cascade/dual/raw -- УДАЛЕНЫ (v5),
+-     ни в NovaDSP.h, ни в реестре режимов их быть не должно.
+-  4. models/DspModes.hpp -- 5 режимов (mnm=0 old=1 dist2=2 fm2=3 bbox2=4),
+-     список режимов у каждого раздела, перевод старой нумерации.
+-  5. NovaDSP.h -- вызов основного фильтра с правильными ручками, резерв old на месте.
+-  6. PluginProcessor.cpp -- одно правило допустимости режима + миграция на схему 9.
+-  7. PluginEditor.cpp -- меню: основной режим первым, резерв отдельной группой.
++  3. dsp/mnm/MnmFilterModes.hpp (cascade/dual/raw) и альтернативные движки
++     MnmDist2.hpp / MnmFm2.hpp / MnmBbox2.hpp -- УДАЛЕНЫ (v5/v6).
++  4. models/DspModes.hpp -- 2 режима (mnm=0 основной, old=1 резерв), свой список
++     режимов у каждого раздела, схема состояния 10.
++  5. NovaDSP.h -- основной фильтр с правильными ручками, резерв old на месте,
++     никаких веток dist2/fm2/bbox2, хорус и FX как в 1.6.0 (линейный INP, без домешиваний).
++  6. dsp/monomachine_bbox.hpp -- BBOX: старый закон RTIM (5...255 мс) с инверсией,
++     интервал никогда не 0, сглаживание по сэмплам, рабочий кит = старый + снейр/томы.
++  7. PluginProcessor.cpp -- одно правило допустимости режима + миграция на схему 10.
++  8. PluginEditor.cpp -- меню: основной режим первым, резерв отдельной группой.
+ 
+ Run:  python3 verify_dsp_mode_patch.py <path-to-Monomachine_Nova_FX/Source>
+ """
+@@ -30,20 +33,27 @@
+     return text.count("{") == text.count("}")
+ 
+ 
++def without_comments(text: str) -> str:
++    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
++
++
+ def main() -> int:
+     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
+     real = root / "dsp" / "mnm" / "MnmRealFilter.hpp"
+     kernel = root / "dsp" / "mnm" / "MnmKernel.hpp"
+     removed = root / "dsp" / "mnm" / "MnmFilterModes.hpp"
++    bbox = root / "dsp" / "monomachine_bbox.hpp"
+     modes = root / "models" / "DspModes.hpp"
+     dsp = root / "NovaDSP.h"
+     editor = root / "PluginEditor.cpp"
+     processor = root / "PluginProcessor.cpp"
+ 
+-    for path in (real, kernel, modes, dsp, editor, processor):
++    for path in (real, kernel, bbox, modes, dsp, editor, processor):
+         if not path.is_file():
+             raise AssertionError(f"missing file: {path}")
+ 
++    tests = root.parent / "tests" / "DeliveryTests.cpp"
++
+     failures = []
+ 
+     def check(ok: bool, message: str) -> None:
+@@ -80,16 +90,22 @@
+     present(text, "class FilterCoreLegacy", "MnmKernel.hpp: резервный FilterCoreLegacy сохранён")
+     absent(text, "std::clamp(attack,0,127)", "MnmKernel.hpp: std::clamp(float,0,127) исправлен")
+ 
+-    # 3. cascade/dual/raw удалены
+-    check(not removed.is_file(),
+-          "dsp/mnm/MnmFilterModes.hpp удалён из сборки (переименован в *.bak-v5)")
+-    def without_comments(t: str) -> str:
+-        return "\n".join(line for line in t.splitlines() if not line.lstrip().startswith("//"))
++    # 3. Мусорные режимы удалены
++    check(not removed.is_file(), "dsp/mnm/MnmFilterModes.hpp удалён из сборки (*.bak-v5)")
++    for name in ("MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp"):
++        check(not (root / "dsp" / "mnm" / name).is_file(),
++              f"dsp/mnm/{name} удалён из сборки (*.bak-v6)")
+ 
++    live = [p for p in (dsp, modes, processor, editor, real, kernel, bbox) ]
+     for word in ("MnmFilterModes.hpp", "SvfCascadeFilter", "DualSectionFilter", "TruthfulRawFilter",
+                  "cascadeFilter", "dualFilter", "rawFilter", "rawBlockCounter",
+-                 "dspModeCascade", "dspModeDual", "dspModeRaw", "filt_detail"):
+-        hits = [p.name for p in (dsp, modes, processor, editor, real, kernel) if word in without_comments(read(p))]
++                 "dspModeCascade", "dspModeDual", "dspModeRaw", "filt_detail",
++                 "MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp",
++                 "Dist2Core", "FMPlusBlock2", "Bbox2Core",
++                 "dspModeDist2", "dspModeFm2", "dspModeBbox2",
++                 "fm2Core", "bbox2Core", "dist2Core",
++                 "dspModeIsDistOnly", "dspModeIsSyntOnly"):
++        hits = [p.name for p in live if word in without_comments(read(p))]
+         if hits:
+             check(False, f"{word} остался в коде: " + ", ".join(hits))
+         else:
+@@ -97,34 +113,28 @@
+ 
+     # 4. Реестр режимов
+     text = read(modes)
+-    present(text, '"mnm|old|dist2|fm2|bbox2"', "DspModes.hpp: список из 5 режимов")
+-    check(re.search(r"dspModeMnm\s*=\s*0\b", text) is not None, "dspModeMnm = 0")
+-    check(re.search(r"dspModeOld\s*=\s*1\b", text) is not None, "dspModeOld = 1")
+-    check(re.search(r"dspModeDist2\s*=\s*2\b", text) is not None, "dspModeDist2 = 2")
+-    check(re.search(r"dspModeFm2\s*=\s*3\b", text) is not None, "dspModeFm2 = 3")
+-    check(re.search(r"dspModeBbox2\s*=\s*4\b", text) is not None, "dspModeBbox2 = 4")
+-    check(re.search(r"dspModeCount\s*=\s*5\b", text) is not None, "dspModeCount = 5")
++    present(text, '"mnm|old"', "DspModes.hpp: список режимов = mnm|old (всего два)")
++    check(re.search(r"dspModeMnm\s*=\s*0\b", text) is not None, "dspModeMnm = 0 (основной)")
++    check(re.search(r"dspModeOld\s*=\s*1\b", text) is not None, "dspModeOld = 1 (резерв)")
++    check(re.search(r"dspModeCount\s*=\s*2\b", text) is not None, "dspModeCount = 2")
+     present(text, "dspSectionModeChoices", "DspModes.hpp: список режимов на каждый раздел")
+     present(text, "dspModeAllowedForSection", "DspModes.hpp: правило допустимости режима")
+     present(text, "dspModeLegacyIndexToCurrent", "DspModes.hpp: перевод старой нумерации режимов")
+-    present(text, "kDspModeSchemaVersion = 9", "DspModes.hpp: версия схемы состояния = 9")
++    present(text, "kDspModeSchemaVersion = 10", "DspModes.hpp: версия схемы состояния = 10")
+     present(text, "kShowBackupModes", "DspModes.hpp: резервные режимы скрываются флагом")
+     table = re.search(r"dspSectionModeChoices\(int section\)\s*\{(.*?)\n\}", text, re.S)
+     check(table is not None, "DspModes.hpp: найдена таблица режимов по разделам")
+     body = table.group(1) if table else ""
+-    synt = re.search(r"case DspSynt:\s+return \"([^\"]+)\"", body)
+-    filt = re.search(r"case DspFilter:\s+return \"([^\"]+)\"", body)
+-    dist = re.search(r"case DspDist:\s+return \"([^\"]+)\"", body)
+-    route = re.search(r"case DspRouting:\s+return \"([^\"]+)\"", body)
+-    check(bool(synt) and "fm2" in synt.group(1) and "bbox2" in synt.group(1) and "dist2" not in synt.group(1),
+-          "DspModes.hpp: в SYNT только синтовые резервы (fm2/bbox2)")
+-    check(bool(filt) and filt.group(1) == "mnm|old",
+-          "DspModes.hpp: у FILT основной mnm и резерв old")
+-    check(bool(dist) and "dist2" in dist.group(1),
+-          "DspModes.hpp: в DIST есть свой резерв dist2")
+-    check(bool(route) and "|" not in route.group(1), "DspModes.hpp: у ROUTE альтернатив нет")
++    for section, expect in (("DspSynt", "mnm|old"), ("DspAmp", "mnm|old"), ("DspFilter", "mnm|old"),
++                            ("DspDist", "mnm|old"), ("DspDelay", "mnm|old"),
++                            ("DspRouting", "mnm"), ("DspChorus", "mnm")):
++        m = re.search(r"case %s:\s+return \"([^\"]+)\"" % section, body)
++        check(bool(m) and m.group(1) == expect,
++              f"DspModes.hpp: {section} -> {expect}")
++    present(text, "case DspFilter: return \"FILT: mnm=РЕАЛЬНЫЙ фильтр",
++            "DspModes.hpp: у FILT основной режим описан как реальный фильтр прошивки")
+ 
+-    # 5. Диспетчер фильтра
++    # 5. Диспетчер
+     text = read(dsp)
+     present(text, "MnmRealFilter.hpp", "NovaDSP.h: подключён основной фильтр")
+     call = re.search(r"mnmFilter\.setParameters\(([^;]*)\)", text)
+@@ -136,32 +146,64 @@
+         check(args == "fltBase,fltWidth,fltHpq,fltLpq,fltAtk,fltDec,fltBofs,fltWofs",
+               "NovaDSP.h: порядок аргументов fltBase..fltWofs")
+     present(text, "filter.processStereo(l,r,l,r", "NovaDSP.h: резервный режим old (MonomachineFilter) на месте")
++    present(text, "bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false)",
++            "NovaDSP.h: BBOX получает ручки как в 1.6.0 (PTCH,ST/RT,START-позиция,SLOT,RND)")
++    present(text, "bbox.setChromatic(b(6)>0)", "NovaDSP.h: хроматический режим BBOX на месте")
++    present(text, "if(id!=15){const float g=p[7]/64.0f;",
++            "NovaDSP.h: INP для FX -- линейный, как в 1.6.0 (без квадратичного «FIXED»)")
++    present(text, "const float wet=norm(p[3]);l[i]=dl*(1-wet)+wl*wet;",
++            "NovaDSP.h: хорус микшируется dry->wet по MIX (как в 1.6.0, без домешивания x1.5)")
++    for word in ("inpGainQuad", "chorusMakeup", "reverbMakeup", "FIXED"):
++        absent(without_comments(text), word, f"NovaDSP.h: нет остатков приёма «{word}»")
++
++    # 6. BBOX
++    text = read(bbox)
++    check(balanced(text), "monomachine_bbox.hpp: скобки сбалансированы")
++    present(text, "float retrigMs = 5.0f + ((127.0f - static_cast<float>(rtim)) / 127.0f) * 250.0f;",
++            "BBOX: старый закон RTIM (5...255 мс) с инверсией")
++    absent(text, "255.0f * std::pow((127.0f-static_cast<float>(rtim))/126.0f,2.0f)",
++           "BBOX: прежняя формула с интервалом 0 мс удалена")
++    present(text, "static constexpr size_t kDeclickSamples = 16;",
++            "BBOX: сглаживание задано в сэмплах (kDeclickSamples)")
++    present(text, "samplesToRestart", "BBOX: спад доходит до нуля к перезапуску (деклик)")
++    present(text, "static const bool modernVoice[24]=", "BBOX: таблица голосов нового кита")
++    present(text, "*0.125", "BBOX: STRT ограничен 1/8 активной длины (короткие удары целее)")
++    present(text, "void generateLegacyKit()", "BBOX: полностью старый кит оставлен рядом")
+ 
+-    # 6. Аудио-поток
++    # 7. Аудио-поток
+     text = read(processor)
+     present(text, "dspModeAllowedForSection(i,idx)",
+             "PluginProcessor.cpp: режим проверяется списком своего раздела")
+     absent(text, "dspModeIsFilterOnly(idx)", "PluginProcessor.cpp: ad-hoc правил больше нет")
+     present(text, "dspModeLegacyIndexToCurrent", "PluginProcessor.cpp: старая нумерация переводится")
+     present(text, "state.setProperty(\"schema\",monomachine::kDspModeSchemaVersion,nullptr)",
+-            "PluginProcessor.cpp: схема состояния обновлена до 9")
++            "PluginProcessor.cpp: схема состояния обновлена")
++    present(text, "if(schema<10)", "PluginProcessor.cpp: миграция состояний до схемы 10")
+     present(text, "static_cast<float>(monomachine::dspModeOld),nullptr",
+             "PluginProcessor.cpp: старые состояния без режимов заполняются old (как в DeliveryTests)")
+ 
+-    # 7. Меню
++    # 8. Меню
+     text = read(editor)
+     bounds = re.search(r"dspModeButton\.setBounds\(([^)]*)\)", text)
+     check(bounds is not None, "PluginEditor.cpp: dspModeButton позиционируется")
+     if bounds:
+         values = [int(v) for v in re.findall(r"-?\d+", bounds.group(1))]
+-        x, y, w = values[0], values[1], values[2]
+-        check(y != 58 or x >= 1014,
+-              f"PluginEditor.cpp: dspModeButton в ({x},{y}) не залезает на строку ARP")
+-        check(x >= 1014 or y != 58, "PluginEditor.cpp: dspModeButton вынесена из строки ARP")
++        x, y = values[0], values[1]
++        check(y != 58 or x >= 1014, "PluginEditor.cpp: dspModeButton не залезает на строку ARP")
+     present(text, "dspModePrimaryForSection", "PluginEditor.cpp: в меню основной режим идёт первым")
+     present(text, "dspModeAllowedForSection", "PluginEditor.cpp: меню предлагает только режимы раздела")
+     present(text, "РЕЗЕРВ", "PluginEditor.cpp: резервные режимы помечены отдельной группой")
+ 
++    # 9. Тесты
++    if tests.is_file():
++        text = read(tests)
++        present(text, "RTIM 127 must be about 5 ms, not zero",
++                "DeliveryTests.cpp: ожидание нового закона RTIM")
++        present(text, "new snare/toms missing from the working kit",
++                "DeliveryTests.cpp: ожидание рабочего кита (старый + снейр/томы)")
++    else:
++        print("..   tests/DeliveryTests.cpp не найден рядом с проектом -- проверки тестов пропущены")
++
+     if failures:
+         print(f"\nFAIL: {len(failures)} check(s) failed", file=sys.stderr)
+         return 1
+diff -ruN old/verify_dsp_mode_patch.py new/verify_dsp_mode_patch.py
+--- old/verify_dsp_mode_patch.py	2026-09-18 14:24:05.690123478 +0000
++++ new/verify_dsp_mode_patch.py	2026-09-18 14:24:05.694123478 +0000
+@@ -1,18 +1,21 @@
+ #!/usr/bin/env python3
+-"""Static checks for the DSP MODE / filter modes patch (revision v5).
++"""Static checks for the DSP MODE / filter modes patch (revision v6).
+ 
+ Компилятор не нужен: скрипт читает исходники и проверяет обещания правки.
+ 
+   1. dsp/mnm/MnmRealFilter.hpp -- основной фильтр: реальные таблицы, устойчивый
+      TPT-SVF, DC-блокер, порядок аргументов страницы FILT, живое отпускание ноты.
+   2. dsp/mnm/MnmKernel.hpp -- дубль FilterCore/real_detail удалён, std::clamp исправлен.
+-  3. dsp/mnm/MnmFilterModes.hpp и режимы cascade/dual/raw -- УДАЛЕНЫ (v5),
+-     ни в NovaDSP.h, ни в реестре режимов их быть не должно.
+-  4. models/DspModes.hpp -- 5 режимов (mnm=0 old=1 dist2=2 fm2=3 bbox2=4),
+-     список режимов у каждого раздела, перевод старой нумерации.
+-  5. NovaDSP.h -- вызов основного фильтра с правильными ручками, резерв old на месте.
+-  6. PluginProcessor.cpp -- одно правило допустимости режима + миграция на схему 9.
+-  7. PluginEditor.cpp -- меню: основной режим первым, резерв отдельной группой.
++  3. dsp/mnm/MnmFilterModes.hpp (cascade/dual/raw) и альтернативные движки
++     MnmDist2.hpp / MnmFm2.hpp / MnmBbox2.hpp -- УДАЛЕНЫ (v5/v6).
++  4. models/DspModes.hpp -- 2 режима (mnm=0 основной, old=1 резерв), свой список
++     режимов у каждого раздела, схема состояния 10.
++  5. NovaDSP.h -- основной фильтр с правильными ручками, резерв old на месте,
++     никаких веток dist2/fm2/bbox2, хорус и FX как в 1.6.0 (линейный INP, без домешиваний).
++  6. dsp/monomachine_bbox.hpp -- BBOX: старый закон RTIM (5...255 мс) с инверсией,
++     интервал никогда не 0, сглаживание по сэмплам, рабочий кит = старый + снейр/томы.
++  7. PluginProcessor.cpp -- одно правило допустимости режима + миграция на схему 10.
++  8. PluginEditor.cpp -- меню: основной режим первым, резерв отдельной группой.
+ 
+ Run:  python3 verify_dsp_mode_patch.py <path-to-Monomachine_Nova_FX/Source>
+ """
+@@ -30,20 +33,27 @@
+     return text.count("{") == text.count("}")
+ 
+ 
++def without_comments(text: str) -> str:
++    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
++
++
+ def main() -> int:
+     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
+     real = root / "dsp" / "mnm" / "MnmRealFilter.hpp"
+     kernel = root / "dsp" / "mnm" / "MnmKernel.hpp"
+     removed = root / "dsp" / "mnm" / "MnmFilterModes.hpp"
++    bbox = root / "dsp" / "monomachine_bbox.hpp"
+     modes = root / "models" / "DspModes.hpp"
+     dsp = root / "NovaDSP.h"
+     editor = root / "PluginEditor.cpp"
+     processor = root / "PluginProcessor.cpp"
+ 
+-    for path in (real, kernel, modes, dsp, editor, processor):
++    for path in (real, kernel, bbox, modes, dsp, editor, processor):
+         if not path.is_file():
+             raise AssertionError(f"missing file: {path}")
+ 
++    tests = root.parent / "tests" / "DeliveryTests.cpp"
++
+     failures = []
+ 
+     def check(ok: bool, message: str) -> None:
+@@ -80,16 +90,22 @@
+     present(text, "class FilterCoreLegacy", "MnmKernel.hpp: резервный FilterCoreLegacy сохранён")
+     absent(text, "std::clamp(attack,0,127)", "MnmKernel.hpp: std::clamp(float,0,127) исправлен")
+ 
+-    # 3. cascade/dual/raw удалены
+-    check(not removed.is_file(),
+-          "dsp/mnm/MnmFilterModes.hpp удалён из сборки (переименован в *.bak-v5)")
+-    def without_comments(t: str) -> str:
+-        return "\n".join(line for line in t.splitlines() if not line.lstrip().startswith("//"))
++    # 3. Мусорные режимы удалены
++    check(not removed.is_file(), "dsp/mnm/MnmFilterModes.hpp удалён из сборки (*.bak-v5)")
++    for name in ("MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp"):
++        check(not (root / "dsp" / "mnm" / name).is_file(),
++              f"dsp/mnm/{name} удалён из сборки (*.bak-v6)")
+ 
++    live = [p for p in (dsp, modes, processor, editor, real, kernel, bbox) ]
+     for word in ("MnmFilterModes.hpp", "SvfCascadeFilter", "DualSectionFilter", "TruthfulRawFilter",
+                  "cascadeFilter", "dualFilter", "rawFilter", "rawBlockCounter",
+-                 "dspModeCascade", "dspModeDual", "dspModeRaw", "filt_detail"):
+-        hits = [p.name for p in (dsp, modes, processor, editor, real, kernel) if word in without_comments(read(p))]
++                 "dspModeCascade", "dspModeDual", "dspModeRaw", "filt_detail",
++                 "MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp",
++                 "Dist2Core", "FMPlusBlock2", "Bbox2Core",
++                 "dspModeDist2", "dspModeFm2", "dspModeBbox2",
++                 "fm2Core", "bbox2Core", "dist2Core",
++                 "dspModeIsDistOnly", "dspModeIsSyntOnly"):
++        hits = [p.name for p in live if word in without_comments(read(p))]
+         if hits:
+             check(False, f"{word} остался в коде: " + ", ".join(hits))
+         else:
+@@ -97,34 +113,28 @@
+ 
+     # 4. Реестр режимов
+     text = read(modes)
+-    present(text, '"mnm|old|dist2|fm2|bbox2"', "DspModes.hpp: список из 5 режимов")
+-    check(re.search(r"dspModeMnm\s*=\s*0\b", text) is not None, "dspModeMnm = 0")
+-    check(re.search(r"dspModeOld\s*=\s*1\b", text) is not None, "dspModeOld = 1")
+-    check(re.search(r"dspModeDist2\s*=\s*2\b", text) is not None, "dspModeDist2 = 2")
+-    check(re.search(r"dspModeFm2\s*=\s*3\b", text) is not None, "dspModeFm2 = 3")
+-    check(re.search(r"dspModeBbox2\s*=\s*4\b", text) is not None, "dspModeBbox2 = 4")
+-    check(re.search(r"dspModeCount\s*=\s*5\b", text) is not None, "dspModeCount = 5")
++    present(text, '"mnm|old"', "DspModes.hpp: список режимов = mnm|old (всего два)")
++    check(re.search(r"dspModeMnm\s*=\s*0\b", text) is not None, "dspModeMnm = 0 (основной)")
++    check(re.search(r"dspModeOld\s*=\s*1\b", text) is not None, "dspModeOld = 1 (резерв)")
++    check(re.search(r"dspModeCount\s*=\s*2\b", text) is not None, "dspModeCount = 2")
+     present(text, "dspSectionModeChoices", "DspModes.hpp: список режимов на каждый раздел")
+     present(text, "dspModeAllowedForSection", "DspModes.hpp: правило допустимости режима")
+     present(text, "dspModeLegacyIndexToCurrent", "DspModes.hpp: перевод старой нумерации режимов")
+-    present(text, "kDspModeSchemaVersion = 9", "DspModes.hpp: версия схемы состояния = 9")
++    present(text, "kDspModeSchemaVersion = 10", "DspModes.hpp: версия схемы состояния = 10")
+     present(text, "kShowBackupModes", "DspModes.hpp: резервные режимы скрываются флагом")
+     table = re.search(r"dspSectionModeChoices\(int section\)\s*\{(.*?)\n\}", text, re.S)
+     check(table is not None, "DspModes.hpp: найдена таблица режимов по разделам")
+     body = table.group(1) if table else ""
+-    synt = re.search(r"case DspSynt:\s+return \"([^\"]+)\"", body)
+-    filt = re.search(r"case DspFilter:\s+return \"([^\"]+)\"", body)
+-    dist = re.search(r"case DspDist:\s+return \"([^\"]+)\"", body)
+-    route = re.search(r"case DspRouting:\s+return \"([^\"]+)\"", body)
+-    check(bool(synt) and "fm2" in synt.group(1) and "bbox2" in synt.group(1) and "dist2" not in synt.group(1),
+-          "DspModes.hpp: в SYNT только синтовые резервы (fm2/bbox2)")
+-    check(bool(filt) and filt.group(1) == "mnm|old",
+-          "DspModes.hpp: у FILT основной mnm и резерв old")
+-    check(bool(dist) and "dist2" in dist.group(1),
+-          "DspModes.hpp: в DIST есть свой резерв dist2")
+-    check(bool(route) and "|" not in route.group(1), "DspModes.hpp: у ROUTE альтернатив нет")
++    for section, expect in (("DspSynt", "mnm|old"), ("DspAmp", "mnm|old"), ("DspFilter", "mnm|old"),
++                            ("DspDist", "mnm|old"), ("DspDelay", "mnm|old"),
++                            ("DspRouting", "mnm"), ("DspChorus", "mnm")):
++        m = re.search(r"case %s:\s+return \"([^\"]+)\"" % section, body)
++        check(bool(m) and m.group(1) == expect,
++              f"DspModes.hpp: {section} -> {expect}")
++    present(text, "case DspFilter: return \"FILT: mnm=РЕАЛЬНЫЙ фильтр",
++            "DspModes.hpp: у FILT основной режим описан как реальный фильтр прошивки")
+ 
+-    # 5. Диспетчер фильтра
++    # 5. Диспетчер
+     text = read(dsp)
+     present(text, "MnmRealFilter.hpp", "NovaDSP.h: подключён основной фильтр")
+     call = re.search(r"mnmFilter\.setParameters\(([^;]*)\)", text)
+@@ -136,32 +146,64 @@
+         check(args == "fltBase,fltWidth,fltHpq,fltLpq,fltAtk,fltDec,fltBofs,fltWofs",
+               "NovaDSP.h: порядок аргументов fltBase..fltWofs")
+     present(text, "filter.processStereo(l,r,l,r", "NovaDSP.h: резервный режим old (MonomachineFilter) на месте")
++    present(text, "bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false)",
++            "NovaDSP.h: BBOX получает ручки как в 1.6.0 (PTCH,ST/RT,START-позиция,SLOT,RND)")
++    present(text, "bbox.setChromatic(b(6)>0)", "NovaDSP.h: хроматический режим BBOX на месте")
++    present(text, "if(id!=15){const float g=p[7]/64.0f;",
++            "NovaDSP.h: INP для FX -- линейный, как в 1.6.0 (без квадратичного «FIXED»)")
++    present(text, "const float wet=norm(p[3]);l[i]=dl*(1-wet)+wl*wet;",
++            "NovaDSP.h: хорус микшируется dry->wet по MIX (как в 1.6.0, без домешивания x1.5)")
++    for word in ("inpGainQuad", "chorusMakeup", "reverbMakeup", "FIXED"):
++        absent(without_comments(text), word, f"NovaDSP.h: нет остатков приёма «{word}»")
++
++    # 6. BBOX
++    text = read(bbox)
++    check(balanced(text), "monomachine_bbox.hpp: скобки сбалансированы")
++    present(text, "float retrigMs = 5.0f + ((127.0f - static_cast<float>(rtim)) / 127.0f) * 250.0f;",
++            "BBOX: старый закон RTIM (5...255 мс) с инверсией")
++    absent(text, "255.0f * std::pow((127.0f-static_cast<float>(rtim))/126.0f,2.0f)",
++           "BBOX: прежняя формула с интервалом 0 мс удалена")
++    present(text, "static constexpr size_t kDeclickSamples = 16;",
++            "BBOX: сглаживание задано в сэмплах (kDeclickSamples)")
++    present(text, "samplesToRestart", "BBOX: спад доходит до нуля к перезапуску (деклик)")
++    present(text, "static const bool modernVoice[24]=", "BBOX: таблица голосов нового кита")
++    present(text, "*0.125", "BBOX: STRT ограничен 1/8 активной длины (короткие удары целее)")
++    present(text, "void generateLegacyKit()", "BBOX: полностью старый кит оставлен рядом")
+ 
+-    # 6. Аудио-поток
++    # 7. Аудио-поток
+     text = read(processor)
+     present(text, "dspModeAllowedForSection(i,idx)",
+             "PluginProcessor.cpp: режим проверяется списком своего раздела")
+     absent(text, "dspModeIsFilterOnly(idx)", "PluginProcessor.cpp: ad-hoc правил больше нет")
+     present(text, "dspModeLegacyIndexToCurrent", "PluginProcessor.cpp: старая нумерация переводится")
+     present(text, "state.setProperty(\"schema\",monomachine::kDspModeSchemaVersion,nullptr)",
+-            "PluginProcessor.cpp: схема состояния обновлена до 9")
++            "PluginProcessor.cpp: схема состояния обновлена")
++    present(text, "if(schema<10)", "PluginProcessor.cpp: миграция состояний до схемы 10")
+     present(text, "static_cast<float>(monomachine::dspModeOld),nullptr",
+             "PluginProcessor.cpp: старые состояния без режимов заполняются old (как в DeliveryTests)")
+ 
+-    # 7. Меню
++    # 8. Меню
+     text = read(editor)
+     bounds = re.search(r"dspModeButton\.setBounds\(([^)]*)\)", text)
+     check(bounds is not None, "PluginEditor.cpp: dspModeButton позиционируется")
+     if bounds:
+         values = [int(v) for v in re.findall(r"-?\d+", bounds.group(1))]
+-        x, y, w = values[0], values[1], values[2]
+-        check(y != 58 or x >= 1014,
+-              f"PluginEditor.cpp: dspModeButton в ({x},{y}) не залезает на строку ARP")
+-        check(x >= 1014 or y != 58, "PluginEditor.cpp: dspModeButton вынесена из строки ARP")
++        x, y = values[0], values[1]
++        check(y != 58 or x >= 1014, "PluginEditor.cpp: dspModeButton не залезает на строку ARP")
+     present(text, "dspModePrimaryForSection", "PluginEditor.cpp: в меню основной режим идёт первым")
+     present(text, "dspModeAllowedForSection", "PluginEditor.cpp: меню предлагает только режимы раздела")
+     present(text, "РЕЗЕРВ", "PluginEditor.cpp: резервные режимы помечены отдельной группой")
+ 
++    # 9. Тесты
++    if tests.is_file():
++        text = read(tests)
++        present(text, "RTIM 127 must be about 5 ms, not zero",
++                "DeliveryTests.cpp: ожидание нового закона RTIM")
++        present(text, "new snare/toms missing from the working kit",
++                "DeliveryTests.cpp: ожидание рабочего кита (старый + снейр/томы)")
++    else:
++        print("..   tests/DeliveryTests.cpp не найден рядом с проектом -- проверки тестов пропущены")
++
+     if failures:
+         print(f"\nFAIL: {len(failures)} check(s) failed", file=sys.stderr)
+         return 1
