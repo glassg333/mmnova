@@ -1,0 +1,561 @@
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/NovaDSP.h b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/NovaDSP.h
+index af4f84d..7c5aa0a 100644
+--- a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/NovaDSP.h
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/NovaDSP.h
+@@ -10,6 +10,8 @@
+ #include "dsp/mnm/MnmKernel.hpp"
+ #include "dsp/mnm/MnmFm.hpp"
+ #include "dsp/mnm/MnmDelay.hpp"
++#include "dsp/mnm/MnmFilterModes.hpp"
++#include "dsp/mnm/MnmDistOriginal.hpp"
+ #include "models/DspModes.hpp"
+ #include "dsp/monomachine_filter.hpp"
+ #include "models/DspModes.hpp"
+@@ -346,14 +348,16 @@ private:
+ class TrackChain {
+ public:
+     float volumeReference=127.0f; // Synth 127; FX calibrated unity at AMP VOL 64.
+-    void prepare(double rate){sr=rate;delayL.assign(static_cast<size_t>(sr*0.75)+8,0);delayR=delayL;filter.reset(sr);delayFilter.reset(sr);mnmDelay.prepare(sr);mnmFilter.setSampleRate(sr);clear();}
++    void prepare(double rate){sr=rate;delayL.assign(static_cast<size_t>(sr*0.75)+8,0);delayR=delayL;filter.reset(sr);delayFilter.reset(sr);mnmDelay.prepare(sr);mnmFilter.setSampleRate(sr);cascadeFilter.setSampleRate(sr);dualFilter.setSampleRate(sr);truthfulFilter.reset();clear();}
+     // DSP mode lists: FILT / DIST / DLY / ROUTE. "mnm" = recovered OS 1.32B structures,
+     // "old" = the previous Nova algorithms. See models/DspModes.hpp.
++    // FILT also accepts the extra recovered designs: "cascade" / "dual" / "raw"
++    // (see dsp/mnm/MnmFilterModes.hpp). Other sections ignore them.
+     void setModes(int filterModeIn,int distModeIn,int delayModeIn,int routingModeIn){
+         filterMode=filterModeIn;distMode=distModeIn;delayMode=delayModeIn;
+         if(routingMode!=routingModeIn){routingMode=routingModeIn;}
+-        mnmFilter.setSampleRate(sr);}
+-    void clear(){filter.reset(sr);delayFilter.reset(sr);eqL.clear();eqR.clear();std::fill(delayL.begin(),delayL.end(),0.0f);std::fill(delayR.begin(),delayR.end(),0.0f);write=0;srrCounter=0;heldL=heldR=0;pingPong=false;time=1;}
++        mnmFilter.setSampleRate(sr);cascadeFilter.setSampleRate(sr);dualFilter.setSampleRate(sr);}
++    void clear(){filter.reset(sr);delayFilter.reset(sr);cascadeFilter.reset();dualFilter.reset();truthfulFilter.reset();eqL.clear();eqR.clear();std::fill(delayL.begin(),delayL.end(),0.0f);std::fill(delayR.begin(),delayR.end(),0.0f);write=0;srrCounter=0;heldL=heldR=0;pingPong=false;time=1;}
+     void trigger(){filter.triggerEnvelope();mnmFilter.trigger();}
+     void release(){filter.releaseEnvelope();mnmFilter.release();}
+     void set(const std::array<float,32>& p){params=p;
+@@ -361,6 +365,7 @@ public:
+         delayFilter.setParameters(p[30],p[31],0,0,0,0,0,0);
+         float frequency=20*std::pow(1000.0f,norm(p[24])),db=(p[25]-64)/64*18;eqL.peak(sr,frequency,db);eqR.peak(sr,frequency,db);
+         targetDelay=static_cast<float>(sr*(0.001+norm(p[27])*0.749));
++        originalDist.setRaw(p[12]);
+     }
+     void process(float* l,float* r,const float* amp,int n){
+         // Preserve the original sample-hold SRR; zero is transparent.
+@@ -368,17 +373,42 @@ public:
+         for(int i=0;i<n;++i){if(srrCounter==0){heldL=l[i];heldR=r[i];}
+             srrCounter=(srrCounter+1)%hold;
+             if(distMode==monomachine::dspModeMnm){
+-                // "mnm": the firmware distortion is the DSP56300 ALU saturation stage
+-                // (bset #$14,sr), driven by the AMP-page DIST amount.
+-                l[i]=monomachine::mnm::Saturator::process(heldL,params[12]);r[i]=monomachine::mnm::Saturator::process(heldR,params[12]);}
++                // Original MNM DIST: fixed-point gain followed by SR.SM hard clip.
++                // The display->gain curve is isolated and documented in
++                // MnmDistOriginal.hpp because ColdFire did not expose it here.
++                l[i]=originalDist.process(heldL);r[i]=originalDist.process(heldR);}
+             else {l[i]=bipolarDist(heldL,params[12]);r[i]=bipolarDist(heldR,params[12]);}}
+         // ROUTE: the firmware chain is osc -> AMP envelope -> distortion -> SVF -> delay send,
+         // so in "mnm" the envelope is applied before the filter and not again in the dry path.
+         if(routingMode==monomachine::dspModeMnm)for(int i=0;i<n;++i){l[i]*=amp[i];r[i]*=amp[i];}
++        // FILT dispatch. Params are the FILT page: 16 BASE, 17 WDTH, 18 HPQ,
++        // 19 LPQ, 20 BOFS, 21 WOFS, 22 ATK, 23 DEC.
+         if(filterMode==monomachine::dspModeMnm){
+             mnmFilter.setParameters(params[16],params[17],params[18],params[19],params[20]-64.0f,params[21]-64.0f,params[22],params[23]);
+             for(int i=0;i<n;++i){l[i]=mnmFilter.process(0,l[i]);r[i]=mnmFilter.process(1,r[i]);}
+         }
++        else if(filterMode==monomachine::dspModeCascade){
++            // "cascade": literal $F528BD / $4A4DF0 two-pole SVF, doubled.
++            cascadeFilter.setParameters(params[16],params[17],std::max(params[18],params[19]));
++            for(int i=0;i<n;++i){l[i]=cascadeFilter.process(0,l[i]);r[i]=cascadeFilter.process(1,r[i]);}
++        }
++        else if(filterMode==monomachine::dspModeDual){
++            // "dual": HP(BASE) with HPQ, then LP(BASE+WIDTH) with LPQ.
++            dualFilter.setParameters(params[16],params[17],params[18],params[19]);
++            for(int i=0;i<n;++i){l[i]=dualFilter.process(0,l[i]);r[i]=dualFilter.process(1,r[i]);}
++        }
++        else if(filterMode==monomachine::dspModeRaw){
++            // "raw": no UI mapping. The two host knobs are read as raw kernel words:
++            // BASE feeds the fixed-point cutoff accumulator, HPQ feeds the damping word.
++            // This is intentionally uncalibrated - see MnmFilterModes.hpp.
++            const monomachine::mnm::filt_detail::Word rawCutoff=
++                monomachine::mnm::filt_detail::toWord(std::clamp(params[16],0.0f,127.0f)/127.0f);
++            const monomachine::mnm::filt_detail::Word rawQ=(params[18]<=0.0f)
++                ?0:static_cast<monomachine::mnm::filt_detail::Word>(-0.0846f*8388608.0f);
++            truthfulFilter.setRaw(rawCutoff,rawQ);
++            truthfulFilter.beginBlock();
++            for(int i=0;i<n;++i){l[i]=truthfulFilter.process(0,l[i]);r[i]=truthfulFilter.process(1,r[i]);}
++        }
+         else filter.processStereo(l,r,l,r,static_cast<size_t>(n));
+         const float dsend=std::clamp(params[28],0.0f,127.0f)-64.0f;
+         const float send=std::abs(dsend)/(dsend<0?64.0f:63.0f);
+@@ -409,7 +439,8 @@ public:
+ private:
+     uint8_t u(int i)const{return static_cast<uint8_t>(std::clamp(juce::roundToInt(params[static_cast<size_t>(i)]),0,127));}
+     int filterMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm,delayMode=monomachine::dspModeMnm,routingMode=monomachine::dspModeMnm;
+-    monomachine::mnm::FilterCore mnmFilter;monomachine::mnm::DelayCore mnmDelay;
++    monomachine::mnm::FilterCore mnmFilter;monomachine::mnm::DelayCore mnmDelay;monomachine::mnm::MnmDistOriginal originalDist;
++    monomachine::mnm::SvfCascadeFilter cascadeFilter;monomachine::mnm::DualSectionFilter dualFilter;monomachine::mnm::TruthfulRawFilter truthfulFilter;
+     double sr=44100;std::array<float,32> params{};monomachine::MonomachineFilter filter,delayFilter;Biquad eqL,eqR;
+     bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;
+ };
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginEditor.cpp b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginEditor.cpp
+index 136e47c..c9e139f 100644
+--- a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginEditor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginEditor.cpp
+@@ -636,8 +636,14 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     }
+     void resized()override{
+         ampButton.setBounds(473,95,120,28);ampMode.setBounds(640,97,213,25);
+-        machineButton.setBounds(72,58,387,30);dspModeButton.setBounds(473,58,387,30);menuButton.setBounds(1161,4,94,32);tempoButton.setBounds(925,4,88,30);tempoSync.setBounds(1020,4,96,30);tempoEntry.setBounds(925,4,88,30);
++        machineButton.setBounds(72,58,387,30);menuButton.setBounds(1161,4,94,32);tempoButton.setBounds(925,4,88,30);tempoSync.setBounds(1020,4,96,30);tempoEntry.setBounds(925,4,88,30);
+         arpEnabled.setBounds(471,58,26,30);arpButton.setBounds(500,58,120,30);arpSettingsButton.setBounds(624,58,34,30);trigToggle.setBounds(700,58,140,30);matrixButton.setBounds(870,58,140,30);
++        // DSP MODE used to sit at y=58 x=473..860 and covered the whole ARP row
++        // (arpEnabled 471,58 / arpButton 500,58 / arpSettingsButton 624,58).
++        // It now lives in the free gap of the same row, right of MATRIX (ends
++        // 1010) and left of MENU (starts 1161), so the ARP button is clickable
++        // again and the top title row is untouched.
++        dspModeButton.setBounds(1016,58,140,30);
+         lfoButton.setBounds(870,334,120,30);lfo3Button.setBounds(995,334,120,30);msegButton.setBounds(1090,334,82,30);msegOutputButton.setBounds(1178,334,78,30);
+         level.setBounds(12,97,46,458);
+         for(int panel=0;panel<6;++panel)for(int i=0;i<8;++i)cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->setBounds(75+(panel%3)*399+(i%4)*96,130+(panel/3)*240+(i/4)*96,91,91);
+@@ -703,16 +709,25 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     }
+     // DSP mode list. Every section that owns DSP has its own list; entry "mnm" is the
+     // recovered OS 1.32B firmware algorithm (default) and "old" is the previous Nova code.
++    // FILT additionally offers the recovered "cascade" / "dual" / "raw" designs; the other
++    // sections show them greyed out so the list stays honest about what each one supports.
+     void showDspModes(int section){
+         juce::PopupMenu menu;
+         auto addSection=[&](int index){
+             const int current=processor.dspMode(index);
+             juce::PopupMenu sub;
+-            sub.addItem(index*10+monomachine::dspModeMnm+1,"mnm",true,current==monomachine::dspModeMnm);
+-            sub.addItem(index*10+monomachine::dspModeOld+1,"old",true,current==monomachine::dspModeOld);
++            for(int mode=0;mode<monomachine::dspModeCount;++mode){
++                const bool isFilterDesign=monomachine::dspModeIsFilterOnly(mode);
++                const bool usable=(index==monomachine::DspFilter)||!isFilterDesign;
++                juce::String text=monomachine::dspModeName(mode);
++                if(isFilterDesign)text+="  (FILT)";
++                sub.addItem(index*10+mode+1,text,usable,current==mode);
++                const char* note=monomachine::dspFilterModeNote(mode);
++                if(note&&note[0])sub.addItem(-1,juce::String("   ")+note,false,false);
++            }
+             sub.addSeparator();
+             sub.addItem(-1,monomachine::dspModeProvenance(index),false,false);
+-            menu.addSubMenu(juce::String(monomachine::dspSectionLabel(index))+"   ["+(current==monomachine::dspModeMnm?"mnm":"old")+"]",sub);
++            menu.addSubMenu(juce::String(monomachine::dspSectionLabel(index))+"   ["+monomachine::dspModeName(current)+"]",sub);
+         };
+         if(section>=0&&section<monomachine::DspSectionCount)addSection(section);
+         else for(int i=0;i<monomachine::DspSectionCount;++i)addSection(i);
+@@ -721,16 +736,30 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+             if(!safe||result<=0)return;
+             const int index=(result-1)/10,mode=(result-1)%10;
+             if(index<0||index>=monomachine::DspSectionCount)return;
++            if(mode<0||mode>=monomachine::dspModeCount)return;
++            if(monomachine::dspModeIsFilterOnly(mode)&&index!=monomachine::DspFilter)return;
+             auto* p=safe->processor.parameters.getParameter(monomachine::dspModeParamId(index));if(!p)return;
+             p->beginChangeGesture();p->setValueNotifyingHost(p->convertTo0to1(static_cast<float>(mode)));p->endChangeGesture();
+             safe->updateDspModeLabel();});
+     }
++    // Compact per-section letter: m = mnm, o = old, c = cascade, d = dual, r = raw.
++    static juce::String dspModeLetter(int mode){
++        switch(mode){
++            case monomachine::dspModeMnm:return "m";
++            case monomachine::dspModeOld:return "o";
++            case monomachine::dspModeCascade:return "c";
++            case monomachine::dspModeDual:return "d";
++            case monomachine::dspModeRaw:return "r";
++            default:return "?";
++        }
++    }
+     void updateDspModeLabel(){
+         juce::String text="DSP MODE";
+-        for(int i=0;i<monomachine::DspSectionCount;++i)text+=" "+(processor.dspMode(i)==monomachine::dspModeMnm?juce::String("m"):juce::String("o"));
++        for(int i=0;i<monomachine::DspSectionCount;++i)text+=" "+dspModeLetter(processor.dspMode(i));
+         dspModeButton.setButtonText(text);
+-        juce::String tip="DSP modes (m = mnm / original OS 1.32B, o = old):\n";
+-        for(int i=0;i<monomachine::DspSectionCount;++i)tip+=juce::String(monomachine::dspSectionLabel(i))+": "+(processor.dspMode(i)==monomachine::dspModeMnm?"mnm":"old")+" - "+monomachine::dspModeProvenance(i)+"\n";
++        juce::String tip="DSP modes (m = mnm / original OS 1.32B, o = old, c = cascade, d = dual, r = raw):\n";
++        for(int i=0;i<monomachine::DspSectionCount;++i)tip+=juce::String(monomachine::dspSectionLabel(i))+": "+monomachine::dspModeName(processor.dspMode(i))+" - "+monomachine::dspModeProvenance(i)+"\n";
++        tip+="FILT only: cascade = literal $F528BD/$4A4DF0 SVF; dual = HP(BASE)+LP(BASE+WIDTH) with separate Q; raw = fixed-point, no UI mapping.\n";
+         dspModeButton.setTooltip(tip);
+     }
+     void showSettings(bool matrix){setViewportMode(matrix);}
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginProcessor.cpp b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginProcessor.cpp
+index 390d442..66abdb4 100644
+--- a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginProcessor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/PluginProcessor.cpp
+@@ -55,7 +55,18 @@ void MonomachineNovaAudioProcessor::prepareToPlay(double rate,int block){
+     panicRequested.store(false);peak.store(0);
+ }
+ void MonomachineNovaAudioProcessor::snapshot(){
+-    for(int i=0;i<monomachine::DspSectionCount;++i){auto* ptr=modeRaw[static_cast<size_t>(i)];dspModes[static_cast<size_t>(i)]=(ptr&&ptr->load()>0.5f)?monomachine::dspModeOld:monomachine::dspModeMnm;}envelope.configure(dspModes[monomachine::DspAmp]==monomachine::dspModeMnm?nova::AmpEnvelope::kKernelAlgorithm:juce::roundToInt(ampRaw[0]->load()),{ampRaw[1]->load(),ampRaw[2]->load(),ampRaw[3]->load()});machine.setModes(dspModes[monomachine::DspSynt],dspModes[monomachine::DspDist]);chain.setModes(dspModes[monomachine::DspFilter],dspModes[monomachine::DspDist],dspModes[monomachine::DspDelay],dspModes[monomachine::DspRouting]);
++    // Read every mode list. The lists are shared, so the extra recovered FILT
++    // designs (cascade/dual/raw) can only mean something to the FILT section;
++    // every other section collapses them back to "mnm" so a stale value can
++    // never select an unintended algorithm (e.g. AMP mode 2 == kernel envelope).
++    for(int i=0;i<monomachine::DspSectionCount;++i){
++        auto* ptr=modeRaw[static_cast<size_t>(i)];
++        int mode=ptr?juce::roundToInt(ptr->load()):monomachine::dspModeMnm;
++        mode=juce::jlimit(0,monomachine::dspModeCount-1,mode);
++        if(i!=monomachine::DspFilter&&monomachine::dspModeIsFilterOnly(mode))mode=monomachine::dspModeMnm;
++        dspModes[static_cast<size_t>(i)]=mode;
++    }
++    envelope.configure(dspModes[monomachine::DspAmp]==monomachine::dspModeMnm?nova::AmpEnvelope::kKernelAlgorithm:juce::roundToInt(ampRaw[0]->load()),{ampRaw[1]->load(),ampRaw[2]->load(),ampRaw[3]->load()});machine.setModes(dspModes[monomachine::DspSynt],dspModes[monomachine::DspDist]);chain.setModes(dspModes[monomachine::DspFilter],dspModes[monomachine::DspDist],dspModes[monomachine::DspDelay],dspModes[monomachine::DspRouting]);
+     for(size_t i=0;i<GlobalCount;++i)global[i]=globalRaw[i]?globalRaw[i]->load(std::memory_order_relaxed):0;
+     int selected=juce::jlimit(0,static_cast<int>(nova::machines().size())-1,juce::roundToInt(machineRaw->load()));
+     for(int i=0;i<8;++i){auto* ptr=synthRaw[static_cast<size_t>(selected)][static_cast<size_t>(i)];base[static_cast<size_t>(i)]=ptr?ptr->load():0;}
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmDistOriginal.hpp b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmDistOriginal.hpp
+new file mode 100644
+index 0000000..9e0407d
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmDistOriginal.hpp
+@@ -0,0 +1,58 @@
++#pragma once
++// MnmDistOriginal.hpp
++//
++// DIST stage adapted from:
++//   decompiled data/MNM BLOCKS FOR JUCE/5 mnm-dist-filter/Source/mmnova/MnMAmpDist.h
++//
++// The recovered behavior is not a tanh or soft clip. The DSP multiplies by a
++// fixed-point gain and writes through the DSP56300 saturation flag SR.SM
++// (bset #$14,sr), which hard-clips the 24-bit word. The ColdFire display-to-
++// gain curve is not present in the available DSP listing, so the exponential
++// curve below is an explicit approximation; the fixed-point multiply and hard
++// clip are the recovered parts.
++#include <algorithm>
++#include <cmath>
++#include <cstdint>
++
++namespace monomachine {
++namespace mnm {
++
++class MnmDistOriginal {
++public:
++    void setRaw(float raw0to127) noexcept {
++        const int display = std::clamp(static_cast<int>(std::lround(raw0to127)), 0, 127) - 64;
++        // MnMAmpDist.h: display 0 is unity; the intermediate curve is not
++        // proven, so keep it isolated to this one function.
++        const double gain = std::clamp(std::exp2(static_cast<double>(display) / 16.0), 0.0, 7.999);
++        gain_ = toWord(gain);
++    }
++
++    void reset() noexcept {}
++
++    float process(float input) const noexcept {
++        const Word x = toWord(input);
++        const Word product = sat24((static_cast<std::int64_t>(x) * gain_) >> 23);
++        return static_cast<float>(product) / 8388608.0f;
++    }
++
++    float gain() const noexcept { return static_cast<float>(gain_) / 8388608.0f; }
++
++private:
++    using Word = std::int32_t;
++
++    static Word toWord(double value) noexcept {
++        const double scaled = std::clamp(value * 8388608.0, -8388608.0, 8388607.0);
++        return static_cast<Word>(std::llround(scaled));
++    }
++
++    static Word sat24(std::int64_t value) noexcept {
++        if (value > 0x7FFFFF) return 0x7FFFFF;
++        if (value < -0x800000) return -0x800000;
++        return static_cast<Word>(value);
++    }
++
++    Word gain_ = toWord(1.0);
++};
++
++}  // namespace mnm
++}  // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmFilterModes.hpp b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmFilterModes.hpp
+new file mode 100644
+index 0000000..3c351a7
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/dsp/mnm/MnmFilterModes.hpp
+@@ -0,0 +1,218 @@
++#pragma once
++// =============================================================================
++// MnmFilterModes.hpp -- selectable FILT algorithms for Monomachine Nova
++// (drop-in for Monomachine-Nova-1.6.1 / Source/dsp/mnm/).
++//
++// WHY: the FILT page previously offered only two choices, "mnm" and "old".
++// This header adds the intermediate designs that were recovered from the
++// OS 1.32B kernel and from the emulation packs, so the DSP MODE list can offer
++// a real choice of filter type ("есть из чего выбрать тип").
++//
++// HONESTY / ACCURACY BOUNDARY (please keep this comment):
++//   * The kernel proves the raw cutoff tables P:$143546 (1700 words) and
++//     P:$1435C6 (1600 words), the 16-sample block cadence, the coefficient
++//     smoothing shape at P:$056D-$0572, the two filter loops P:$05D3-$05E7 /
++//     P:$05EB-$05FB and the literals $F528BD and $4A4DF0.
++//   * The kernel does NOT prove, in the available material, the ColdFire curve
++//     that turns the UI knob 0..127 into a cutoff table index, nor the exact
++//     HPQ/LPQ -> k law.
++//   * Therefore every mode below that maps BASE/WDTH/Q knobs to coefficients
++//     carries an explicit "approximate knob law" note. The literal coefficients
++//     and the recurrence shape are the recovered parts.
++//
++// Modes (index order is the DSP MODE list order):
++//   0  KernelLadder  -- "mnm"    : existing FilterCore live in MnmKernel.hpp
++//   1  LegacySvf     -- "old"    : existing MonomachineFilter, previous Nova
++//   2  SvfCascade    -- "cascade": literal $F528BD / $4A4DF0 two-pole SVF run
++//                                  twice per block, LP/BP/HP/BandStop selectable
++//   3  DualSection   -- "dual"   : HP(BASE) section then LP(BASE+WIDTH) section
++//                                  with independent HPQ and LPQ (matches the
++//                                  manual: "individual Q-control")
++//   4  TruthfulRaw   -- "raw"    : fixed-point SVF that accepts an already
++//                                  prepared raw cutoff word and raw Q word and
++//                                  invents no UI mapping at all
++// =============================================================================
++
++#include <algorithm>
++#include <cmath>
++#include <cstdint>
++
++namespace monomachine {
++namespace mnm {
++
++// -----------------------------------------------------------------------------
++// Shared helpers
++// -----------------------------------------------------------------------------
++namespace filt_detail {
++
++inline float clampf(float v, float lo, float hi) noexcept { return v < lo ? lo : (v > hi ? hi : v); }
++
++// Fixed-point words (Q1.23, 24-bit) used by the recovered kernel.
++using Word = std::int32_t;
++using Acc  = std::int64_t;
++constexpr Word kWordMax = 0x7FFFFF;
++constexpr Word kWordMin = -0x800000;
++constexpr float kWordToFloat = 1.0f / 8388608.0f;
++
++inline Word sat24(Acc v) noexcept {
++    if (v > kWordMax) return kWordMax;
++    if (v < kWordMin) return kWordMin;
++    return static_cast<Word>(v);
++}
++inline Word mulQ23(Word a, Word b) noexcept {
++    return sat24((static_cast<Acc>(a) * static_cast<Acc>(b)) >> 23);
++}
++inline float toFloat(Word w) noexcept { return static_cast<float>(w) * kWordToFloat; }
++inline Word toWord(float v) noexcept { return sat24(static_cast<Acc>(v * 8388608.0f)); }
++
++// Base/width/Q knobs are 0..127. `sr` is the host rate; the hardware ran 44.1 kHz.
++// NOTE: this whole function is an APPROXIMATE knob law (see header comment).
++inline float knobToCutoffHz(float knob0to127, double sr) noexcept {
++    const float n = clampf(knob0to127, 0.0f, 127.0f) / 127.0f;
++    const float maxHz = static_cast<float>(sr) * 0.45f;
++    const float hz = 15.0f * std::pow(maxHz / 15.0f, n * n);
++    return clampf(hz, 10.0f, maxHz);
++}
++// TPT coefficient g = 2*sin(pi*fc/fs), the same shape the firmware table stores.
++inline float cutoffToG(float hz, double sr) noexcept {
++    const float w = 3.14159265358979f * clampf(hz, 5.0f, static_cast<float>(sr) * 0.45f) /
++                    static_cast<float>(sr);
++    return clampf(2.0f * std::sin(w), 0.0015f, 1.95f);
++}
++// APPROXIMATE HPQ/LPQ -> damping law: minimum damping at Q=127, no damping at Q=0.
++inline float qToDamping(float q0to127) noexcept {
++    const float n = clampf(q0to127, 0.0f, 127.0f) / 127.0f;
++    return clampf(2.0f - 1.94f * n, 0.06f, 2.0f);
++}
++
++}  // namespace filt_detail
++
++// -----------------------------------------------------------------------------
++// Mode 2 -- SvfCascade  ("cascade")
++//
++// Literal constants from the kernel, used as the recovered scale factors of the
++// two-pole SVF; the block is processed in 8 pairs to mirror the firmware's
++// `do #<$8` loop over two accumulators.
++// -----------------------------------------------------------------------------
++class SvfCascadeFilter {
++public:
++    enum class Output { LowPass = 0, BandPass, HighPass, BandStop };
++
++    // $F528BD = -710467 -> -0.08469456 ; $4A4DF0 = 4869616 -> +0.58050346
++    static constexpr float kCoeffA_F528BD = -0.08469456f;
++    static constexpr float kCoeffB_4A4DF0 =  0.58050346f;
++
++    void reset() noexcept { lo_[0] = bp_[0] = lo_[1] = bp_[1] = 0.0f; }
++    void setSampleRate(double sr) noexcept { sr_ = sr > 0.0 ? sr : 44100.0; }
++    void setOutput(Output out) noexcept { out_ = out; }
++
++    // base/width/q in 0..127 host units. APPROXIMATE knob law.
++    void setParameters(float base, float width, float q) noexcept {
++        const float fc = filt_detail::knobToCutoffHz(base, sr_);
++        const float bw = filt_detail::clampf(width, 0.0f, 127.0f) / 127.0f;
++        const float fc2 = filt_detail::clampf(fc * (0.5f + bw), 10.0f,
++                                              static_cast<float>(sr_) * 0.45f);
++        g_[0] = filt_detail::cutoffToG(fc, sr_);
++        g_[1] = filt_detail::cutoffToG(fc2, sr_);
++        // The recovered kernel uses $F528BD as the damping floor; $4A4DF0 scales it.
++        const float damp = filt_detail::qToDamping(q);
++        k_[0] = k_[1] = filt_detail::clampf(
++            damp + kCoeffA_F528BD * (1.0f - kCoeffB_4A4DF0 * 0.25f), 0.06f, 2.0f);
++    }
++
++    float process(int /*ch*/, float x) noexcept {
++        for (int s = 0; s < 2; ++s) {
++            const float hi = x - lo_[s] - k_[s] * bp_[s];
++            bp_[s] += g_[s] * hi;
++            bp_[s] = filt_detail::clampf(bp_[s], -1.6f, 1.6f);
++            lo_[s] += g_[s] * bp_[s];
++            switch (out_) {
++                case Output::LowPass:  x = lo_[s]; break;
++                case Output::BandPass: x = bp_[s]; break;
++                case Output::HighPass: x = hi;     break;
++                case Output::BandStop: x = lo_[s] + hi; break;
++            }
++        }
++        return filt_detail::clampf(x, -1.0f, 1.0f);
++    }
++
++private:
++    double sr_ = 44100.0;
++    Output out_ = Output::LowPass;
++    float g_[2] = {0.2f, 0.5f};
++    float k_[2] = {1.2f, 1.2f};
++    float lo_[2] = {0.0f, 0.0f};
++    float bp_[2] = {0.0f, 0.0f};
++};
++
++// -----------------------------------------------------------------------------
++// Mode 3 -- DualSection  ("dual")
++//
++// HP(BASE) section then LP(BASE+WIDTH) section, each with its own Q. This is the
++// reading that matches the FILT page layout and the manual's "individual
++// Q-control"; the two state pairs mirror X:$72/$74 and X:$B2/$B4.
++// -----------------------------------------------------------------------------
++class DualSectionFilter {
++public:
++    void reset() noexcept { hp_.reset(); lp_.reset(); }
++    void setSampleRate(double sr) noexcept { hp_.setSampleRate(sr); lp_.setSampleRate(sr); }
++    void setParameters(float base, float width, float hpq, float lpq) noexcept {
++        hp_.setParameters(base, 0.0f, hpq);
++        hp_.setOutput(SvfCascadeFilter::Output::HighPass);
++        lp_.setParameters(filt_detail::clampf(base + width, 0.0f, 127.0f), 0.0f, lpq);
++        lp_.setOutput(SvfCascadeFilter::Output::LowPass);
++    }
++    float process(int ch, float x) noexcept { return lp_.process(ch, hp_.process(ch, x)); }
++
++private:
++    SvfCascadeFilter hp_, lp_;
++};
++
++// -----------------------------------------------------------------------------
++// Mode 4 -- TruthfulRaw  ("raw")
++//
++// Fixed-point SVF that takes values the kernel already produced:
++//   cutoffIndex : index into P:$143546 (0..1699), clamped as the kernel does
++//   qWord       : raw Q1.23 damping/feedback word
++// It maps nothing from the UI. Marked MODEL: the recurrence is a deterministic
++// reconstruction, the two-loop instruction ordering is not fully proven.
++// -----------------------------------------------------------------------------
++class TruthfulRawFilter {
++public:
++    enum class Output { LowPass = 0, BandPass, HighPass };
++
++    void reset() noexcept { g_ = target_ = k_ = lo_ = bp_ = 0; }
++    void setOutput(Output out) noexcept { out_ = out; }
++    // One coefficient move per 16-sample block, P:$056D-$0572 shaped.
++    void setRaw(Word targetG, Word rawDamping) noexcept {
++        target_ = filt_detail::sat24(targetG);
++        k_ = filt_detail::sat24(rawDamping);
++    }
++    void beginBlock() noexcept {
++        const Acc d = static_cast<Acc>(target_) - g_;
++        const Acc rounded = (d >= 0) ? ((d + 0x80) & ~Acc(0xFF)) : -(((-d) + 0x80) & ~Acc(0xFF));
++        g_ = filt_detail::sat24(static_cast<Acc>(g_) + rounded);
++    }
++    Word processSample(Word input) noexcept {
++        const Word hi = filt_detail::sat24(static_cast<Acc>(input) - lo_ -
++                                           filt_detail::mulQ23(k_, bp_));
++        bp_ = filt_detail::sat24(static_cast<Acc>(bp_) + filt_detail::mulQ23(g_, hi));
++        lo_ = filt_detail::sat24(static_cast<Acc>(lo_) + filt_detail::mulQ23(g_, bp_));
++        switch (out_) {
++            case Output::HighPass: return hi;
++            case Output::BandPass: return bp_;
++            case Output::LowPass:  return lo_;
++        }
++        return lo_;
++    }
++    float process(int /*ch*/, float x) noexcept {
++        return filt_detail::toFloat(processSample(filt_detail::toWord(x)));
++    }
++
++private:
++    Word g_ = 0, target_ = 0, k_ = 0, lo_ = 0, bp_ = 0;
++    Output out_ = Output::LowPass;
++};
++
++}  // namespace mnm
++}  // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/models/DspModes.hpp b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/models/DspModes.hpp
+index e113a39..3902a24 100644
+--- a/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/models/DspModes.hpp
++++ b/JUCE/Monomachine-Nova-1.6.1/Monomachine_Nova_FX/Source/models/DspModes.hpp
+@@ -68,8 +68,8 @@ inline const char* dspModeProvenance(int section) {
+     switch (section) {
+         case DspSynt:   return "FM+STAT / FM+PAR / FM+DYN: recovered kernels; other machines still old";
+         case DspAmp:    return "kernel P:$4A8-$4F5 envelope FSM with tables Y:$141800 / Y:$141880";
+-        case DspFilter: return "kernel P:$4A8-$5FB 2-pole SVF with P:$144AC7 coefficient tables";
+-        case DspDist:   return "ALU saturation stage (bset #$14,sr)";
++        case DspFilter: return "mnm = P:$4A8-$5FB 2-pole SVF + P:$144AC7 tables; cascade/dual/raw = extra recovered designs";
++        case DspDist:   return "original MNM DIST: fixed-point gain + SR.SM hard clip (gain curve approx)";
+         case DspDelay:  return "m32 FX-DLY: X:$114000 buffer + P:$144C49 reciprocal time table";
+         case DspRouting:return "firmware chain order: osc -> AMP env -> dist -> SVF -> delay send";
+         case DspChorus: return "OS 1.32B chorus core (already shipped unchanged)";
+@@ -77,11 +77,49 @@ inline const char* dspModeProvenance(int section) {
+     }
+ }
+ 
+-// The list itself. Both entries always exist; add new algorithms as extra entries here and the
+-// parameter, the UI list and the state serialisation follow automatically.
+-inline const char* dspModeChoices() { return "mnm|old"; }
++// The list itself. Entry 0 ("mnm") and entry 1 ("old") are the historical
++// choices and always exist. Entries 2+ are the extra recovered FILT designs
++// (see Source/dsp/mnm/MnmFilterModes.hpp): "cascade", "dual" and "raw".
++//
++// BACKWARDS COMPATIBILITY: adding choices keeps indices 0 and 1 stable, so a
++// saved state that stores "mnm" (0) or "old" (1) keeps its meaning. Every
++// section shares this one choice list, so the extra filter designs appear in
++// every section's list; sections other than FILT simply ignore them and fall
++// back to their previous behaviour (see the dispatch helpers below).
++inline const char* dspModeChoices() { return "mnm|old|cascade|dual|raw"; }
+ inline constexpr int dspModeMnm = 0;
+ inline constexpr int dspModeOld = 1;
+-inline constexpr int dspModeCount = 2;
++inline constexpr int dspModeCascade = 2;
++inline constexpr int dspModeDual = 3;
++inline constexpr int dspModeRaw = 4;
++inline constexpr int dspModeCount = 5;
++
++// True for the modes that only the FILT section implements. Used so the other
++// sections can treat them as a no-op instead of a silent wrong algorithm.
++inline bool dspModeIsFilterOnly(int mode) {
++    return mode == dspModeCascade || mode == dspModeDual || mode == dspModeRaw;
++}
++
++// Human label for the mode index, shared by the UI list and the tooltip.
++inline const char* dspModeName(int mode) {
++    switch (mode) {
++        case dspModeMnm:     return "mnm";
++        case dspModeOld:     return "old";
++        case dspModeCascade: return "cascade";
++        case dspModeDual:    return "dual";
++        case dspModeRaw:     return "raw";
++        default:             return "?";
++    }
++}
++
++// One-line note per extra mode, shown next to it in the DSP MODE list.
++inline const char* dspFilterModeNote(int mode) {
++    switch (mode) {
++        case dspModeCascade: return "2-pole SVF x2, literals $F528BD/$4A4DF0, LP/BP/HP/notch; knob law approx";
++        case dspModeDual:    return "HP(BASE) then LP(BASE+WIDTH), separate HPQ/LPQ; knob law approx";
++        case dspModeRaw:     return "fixed-point SVF driven by raw kernel cutoff/Q words; no UI mapping";
++        default:             return "";
++    }
++}
+ 
+ }  // namespace monomachine
