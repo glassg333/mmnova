@@ -1,0 +1,200 @@
+{
+ "iteration": 5,
+ "date": "2026-09-19",
+ "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+ "key_findings": [
+  "Адреса P:$123EF5/$133191/$11B451 из аудита — ФАНТОМЫ (константы данных, ошибочно принятые за адреса)",
+  "Реальные DEC/DAMP таблицы FXREV: P:$14562C (DEC) и P:$1457B2 (DAMP), 128×3 слов, в firmware",
+  "Зазор P:$1134C4-$13FFFF = 100% нули в firmware: слоты 18-63 вейвтейблов DPRO (user/runtime)",
+  "DPRO wavetables: P:$101D7B + WAVE×$1000, 64 слота × 4096 слов; factory ~18 слотов в blk3",
+  "SID wavetable P:$140800: factory-данные (884 nz слов) УЖЕ в прошивке (blk3 record#2)",
+  "Маппинг параметров: param[i] -> V+$4+i (верифицировано TONE=V+$A в FM-STAT)",
+  "blk4 = 1 048 448 Б заводских паттернов (блоки $574 Б)"
+ ],
+ "tables": [
+  {
+   "file": "fxrev_tables/FXREV_DEC_table.bin",
+   "bank": "P",
+   "addr": "0x14562C",
+   "size": 384,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "FXREV DEC (param0, V+$4): 128×3 коэффициента, индекс param>>17"
+  },
+  {
+   "file": "fxrev_tables/FXREV_DAMP_table.bin",
+   "bank": "P",
+   "addr": "0x1457B2",
+   "size": 384,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "FXREV DAMP (param1, V+$5): 128×3 коэффициента, индекс param>>17"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_00_P101D7B.bin",
+   "bank": "P",
+   "addr": "0x101D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 0"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_01_P102D7B.bin",
+   "bank": "P",
+   "addr": "0x102D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 1"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_02_P103D7B.bin",
+   "bank": "P",
+   "addr": "0x103D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 2"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_03_P104D7B.bin",
+   "bank": "P",
+   "addr": "0x104D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 3"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_04_P105D7B.bin",
+   "bank": "P",
+   "addr": "0x105D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 4"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_05_P106D7B.bin",
+   "bank": "P",
+   "addr": "0x106D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 5"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_06_P107D7B.bin",
+   "bank": "P",
+   "addr": "0x107D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 6"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_07_P108D7B.bin",
+   "bank": "P",
+   "addr": "0x108D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 7"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_08_P109D7B.bin",
+   "bank": "P",
+   "addr": "0x109D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 8"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_09_P10AD7B.bin",
+   "bank": "P",
+   "addr": "0x10AD7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 9"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_10_P10BD7B.bin",
+   "bank": "P",
+   "addr": "0x10BD7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 10"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_11_P10CD7B.bin",
+   "bank": "P",
+   "addr": "0x10CD7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 11"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_12_P10DD7B.bin",
+   "bank": "P",
+   "addr": "0x10DD7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 12"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_13_P10ED7B.bin",
+   "bank": "P",
+   "addr": "0x10ED7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 13"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_14_P10FD7B.bin",
+   "bank": "P",
+   "addr": "0x10FD7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 14"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_15_P110D7B.bin",
+   "bank": "P",
+   "addr": "0x110D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 15"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_16_P111D7B.bin",
+   "bank": "P",
+   "addr": "0x111D7B",
+   "size": 4096,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE factory wavetable slot 16"
+  },
+  {
+   "file": "dpro_wavetables/dpro_wave_17_partial_P112D7B.bin",
+   "bank": "P",
+   "addr": "0x112D7B",
+   "size": 1865,
+   "status": "VERIFIED-IN-FIRMWARE (blk3)",
+   "role": "DPRO-WAVE slot 17 (частично)"
+  },
+  {
+   "file": "sid_wavetable/SID_wavetable_area_140800_factory.bin",
+   "bank": "P",
+   "addr": "0x140800",
+   "size": 2048,
+   "status": "VERIFIED-IN-FIRMWARE (439 nz слов)",
+   "role": "SID/X: адресация алиасится; factory-данные из blk3 record#2"
+  },
+  {
+   "file": "sid_wavetable/SID_wavetable_area_141000_factory.bin",
+   "bank": "P",
+   "addr": "0x141000",
+   "size": 2048,
+   "status": "VERIFIED-IN-FIRMWARE (445 nz слов)",
+   "role": "SID/X: адресация алиасится; factory-данные из blk3 record#2"
+  },
+  {
+   "file": "blk4_patterns/blk4_factory_patterns.bin",
+   "bank": "BIN",
+   "addr": "0x79BB2(stream)",
+   "size": 1048448,
+   "status": "DEPACKED-100%",
+   "role": "Заводские паттерны (блоки $574 Б, имя в начале)"
+  }
+ ]
+}
