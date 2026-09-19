@@ -1,0 +1,62 @@
+{
+ "size": 425858,
+ "strings_total": 4640,
+ "version_hits": [
+  {
+   "off": 336539,
+   "text": "WRITE POS FROM"
+  },
+  {
+   "off": 337423,
+   "text": "CHECKSUM"
+  },
+  {
+   "off": 337432,
+   "text": "POS OUT"
+  },
+  {
+   "off": 340762,
+   "text": "1.31"
+  },
+  {
+   "off": 340767,
+   "text": "1.32"
+  },
+  {
+   "off": 340772,
+   "text": "1.34"
+  },
+  {
+   "off": 340777,
+   "text": "1.35"
+  },
+  {
+   "off": 340782,
+   "text": "1.37"
+  },
+  {
+   "off": 340787,
+   "text": "1.39"
+  },
+  {
+   "off": 341247,
+   "text": "1.30"
+  },
+  {
+   "off": 341252,
+   "text": "1.33"
+  },
+  {
+   "off": 352244,
+   "text": "E: DSP CHECKSUM"
+  },
+  {
+   "off": 352261,
+   "text": "E: DSP2 CHECKSUM"
+  },
+  {
+   "off": 352497,
+   "text": "E: OS CHECKSUM"
+  }
+ ]
+}

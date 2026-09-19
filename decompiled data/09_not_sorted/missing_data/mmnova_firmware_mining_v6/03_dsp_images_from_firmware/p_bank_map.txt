@@ -1,0 +1,165 @@
+# Карта P-банка DSP (из HI08-потока секции 3, common для DSP1/DSP2;
+#  плюс секции 1/2 для DSP-специфичных записей). 24-бит слова DSP56303.
+# Адреса см. также 04_tables/TABLES_MANIFEST.json и 03_listings репозитория.
+
+== Секция 3 (common, 133 записей, 111912 слов, все P) ==
+P 0x140000    2048 слов  SID wavetable 0 / pitch wavetable 2048 [X_140000_pitch_wavetable_2048]
+P 0x140800    4096 слов  SID wavetable 1 (краевые маркеры) [P_140800_SID_wavetable_1]
+P 0x141800     128 слов  SID helper m32 [Y_141800_LFO_speed_table]
+P 0x141880     128 слов  
+P 0x141900     128 слов  PHASER stage0 [P_141900_PHASER_stage0_table]
+P 0x141980     128 слов  P_141980_PHASER_stage1_table
+P 0x141a00     128 слов  PHASER stage2 / LFO mult [Y_141A00_LFO_mult_table]
+P 0x141a80      24 слов  
+P 0x141a98   11822 слов  
+P 0x1448c6     256 слов  
+P 0x1449c6     128 слов  kernel curve table [Y_1449c6_kernel_curve_table]
+P 0x144a46     129 слов  
+P 0x144ac7     258 слов  LP filter coeffs [P_144ac7_LP_filter_coeffs]
+P 0x144bc9     256 слов  
+P 0x144cc9     209 слов  
+P 0x144d9a     231 слов  
+P 0x144e81     437 слов  
+P 0x145036     213 слов  
+P 0x14510b      53 слов  
+P 0x145140     590 слов  
+P 0x14538e     670 слов  
+P 0x14562c     384 слов  FX-CHORUS области
+P 0x1457ac       6 слов  
+P 0x1457b2     384 слов  
+P 0x145932     387 слов  
+P 0x145ab5     537 слов  
+P 0x145cce      68 слов  
+P 0x145d12     439 слов  
+P 0x145ec9     724 слов  
+P 0x14619d     466 слов  
+P 0x14636f     397 слов  
+P 0x1464fc    3352 слов  FX-REV области
+P 0x147214     398 слов  
+P 0x1473a2     327 слов  
+P 0x1474e9     354 слов  
+P 0x14764b      22 слов  
+P 0x147661     381 слов  
+P 0x1477de     192 слов  
+P 0x14789e     648 слов  
+P 0x147b26      18 слов  
+P 0x147b38     457 слов  
+P 0x147d01     204 слов  
+P 0x147dcd     397 слов  
+P 0x147f5a     213 слов  
+P 0x14802f      53 слов  
+P 0x100000     465 слов  ядро/диспетчер машин (см. dsp1_dispatch.txt)
+P 0x1001d1    1568 слов  VO-6 dispatch table [P_1001d1_VO6_dispatch_table]
+P 0x1007f1    1568 слов  VO-6 table2 [P_1007f1_VO6_table2]
+P 0x100e11    1568 слов  
+P 0x101431    1568 слов  
+P 0x101a51      42 слов  
+P 0x101a7b     768 слов  SWAVE wavetable main [P_101a7b_SWAVE_wavetable_main]
+P 0x101d7b     256 слов  DPRO wavetable #00 (волны 00..2F по 256 слов шаг 0x1000) [P_101d7b_DPRO_wavetable_ref]
+P 0x101e7b     256 слов  
+P 0x101f7b     256 слов  
+P 0x10207b     256 слов  
+P 0x10217b     256 слов  
+P 0x10227b     256 слов  
+P 0x10237b     256 слов  
+P 0x10247b     256 слов  
+P 0x10257b     256 слов  
+P 0x10267b     256 слов  
+P 0x10277b     256 слов  
+P 0x10287b     256 слов  
+P 0x10297b     256 слов  
+P 0x102a7b     256 слов  
+P 0x102b7b     256 слов  
+P 0x102c7b     256 слов  
+P 0x102d7b     256 слов  
+P 0x102e7b     256 слов  
+P 0x102f7b     256 слов  
+P 0x10307b     256 слов  
+P 0x10317b     256 слов  
+P 0x10327b     256 слов  
+P 0x10337b     256 слов  
+P 0x10347b     256 слов  
+P 0x10357b     256 слов  
+P 0x10367b     256 слов  
+P 0x10377b     256 слов  
+P 0x10387b     256 слов  
+P 0x10397b     256 слов  
+P 0x103a7b     256 слов  
+P 0x103b7b     256 слов  
+P 0x103c7b     256 слов  
+P 0x103d7b     256 слов  
+P 0x103e7b     917 слов  
+P 0x104210       1 слов  
+P 0x104211    1058 слов  
+P 0x104633       1 слов  
+P 0x104634    4950 слов  
+P 0x10598a       1 слов  
+P 0x10598b    4032 слов  
+P 0x10694b       1 слов  
+P 0x10694c    3007 слов  
+P 0x10750b       1 слов  
+P 0x10750c    2048 слов  DPRO BBOX table1 [P_10750c_DPRO_BBOX_table1]
+P 0x107d0c       1 слов  
+P 0x107d0d    1024 слов  
+P 0x10810d       1 слов  
+P 0x10810e    1434 слов  
+P 0x1086a8       1 слов  
+P 0x1086a9    1024 слов  
+P 0x108aa9       1 слов  
+P 0x108aaa    5000 слов  
+P 0x109e32       1 слов  
+P 0x109e33    5000 слов  
+P 0x10b1bb       1 слов  
+P 0x10b1bc    8174 слов  GND/NOIS table + DPRO BBOX table2 [P_10b1bc_DPRO_BBOX_table2]
+P 0x10d1aa       1 слов  
+P 0x10d1ab    1599 слов  
+P 0x10d7ea       1 слов  
+P 0x10d7eb    2049 слов  
+P 0x10dfec       1 слов  
+P 0x10dfed    4018 слов  
+P 0x10ef9f       1 слов  
+P 0x10efa0    2048 слов  
+P 0x10f7a0       1 слов  
+P 0x10f7a1    6001 слов  DPRO BBOX table3 [P_10f7a1_DPRO_BBOX_table3]
+P 0x110f12       1 слов  
+P 0x110f13     987 слов  
+P 0x1112ee       1 слов  
+P 0x1112ef     714 слов  
+P 0x1115b9       1 слов  
+P 0x1115ba    1792 слов  
+P 0x111cba       1 слов  
+P 0x111cbb    1926 слов  
+P 0x112441       1 слов  
+P 0x112442    2049 слов  
+P 0x112c43       1 слов  
+P 0x112c44    1482 слов  
+P 0x11320e       1 слов  
+P 0x11320f     692 слов  DPRO BBOX table4 [P_11320f_DPRO_BBOX_table4]
+P 0x1134c3       1 слов  
+
+== Секция 1 (DSP1-специфичные) ==
+P 0x000000     102 слов  
+P 0x000066     698 слов  
+P 0x000340     360 слов  
+P 0x0004a8    1701 слов  
+X 0x0002c0       5 слов  X_0002c0_audio_buffer_bases
+X 0x000394      32 слов  X_000394_pitch_table_1
+X 0x0003f4      32 слов  X_0003f4_pitch_table_2
+Y 0x000120       3 слов  
+Y 0x000130       2 слов  
+Y 0x000132     514 слов  Y_000132_sine_table_FM
+Y 0x000334     256 слов  Y_000334_LFO_wave_triangle
+
+== Секция 2 (DSP2-специфичные) ==
+P 0x000000     102 слов  
+P 0x000066     625 слов  
+P 0x000340     360 слов  
+P 0x0004a8    1701 слов  
+X 0x000240       6 слов  
+X 0x000394      32 слов  X_000394_pitch_table_1
+X 0x0003f4      32 слов  X_0003f4_pitch_table_2
+Y 0x000120       3 слов  
+Y 0x000130       2 слов  
+Y 0x000132     514 слов  Y_000132_sine_table_FM
+Y 0x000334     256 слов  Y_000334_LFO_wave_triangle
+Y 0x0004fe       1 слов  
