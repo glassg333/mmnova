@@ -1,0 +1,946 @@
+{
+  "sections": {
+    "1": [
+      {
+        "bank": "P",
+        "addr": "0x000000",
+        "count": 102,
+        "first_word": "0x0AF080"
+      },
+      {
+        "bank": "P",
+        "addr": "0x000066",
+        "count": 698,
+        "first_word": "0x0003F8"
+      },
+      {
+        "bank": "P",
+        "addr": "0x000340",
+        "count": 360,
+        "first_word": "0x44D800"
+      },
+      {
+        "bank": "P",
+        "addr": "0x0004A8",
+        "count": 1701,
+        "first_word": "0x5EF000"
+      },
+      {
+        "bank": "X",
+        "addr": "0x0002C0",
+        "count": 5,
+        "first_word": "0x000160"
+      },
+      {
+        "bank": "X",
+        "addr": "0x000394",
+        "count": 32,
+        "first_word": "0xE60A20"
+      },
+      {
+        "bank": "X",
+        "addr": "0x0003F4",
+        "count": 32,
+        "first_word": "0xFFF398"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000120",
+        "count": 3,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000130",
+        "count": 2,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000132",
+        "count": 514,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000334",
+        "count": 256,
+        "first_word": "0x000A5A"
+      }
+    ],
+    "2": [
+      {
+        "bank": "P",
+        "addr": "0x000000",
+        "count": 102,
+        "first_word": "0x0AF080"
+      },
+      {
+        "bank": "P",
+        "addr": "0x000066",
+        "count": 625,
+        "first_word": "0x08F4BD"
+      },
+      {
+        "bank": "P",
+        "addr": "0x000340",
+        "count": 360,
+        "first_word": "0x44D800"
+      },
+      {
+        "bank": "P",
+        "addr": "0x0004A8",
+        "count": 1701,
+        "first_word": "0x5EF000"
+      },
+      {
+        "bank": "X",
+        "addr": "0x000240",
+        "count": 6,
+        "first_word": "0x000160"
+      },
+      {
+        "bank": "X",
+        "addr": "0x000394",
+        "count": 32,
+        "first_word": "0xE60A20"
+      },
+      {
+        "bank": "X",
+        "addr": "0x0003F4",
+        "count": 32,
+        "first_word": "0xFFF398"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000120",
+        "count": 3,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000130",
+        "count": 2,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000132",
+        "count": 514,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x000334",
+        "count": 256,
+        "first_word": "0x000A5A"
+      },
+      {
+        "bank": "Y",
+        "addr": "0x0004FE",
+        "count": 1,
+        "first_word": "0x000000"
+      }
+    ],
+    "3": [
+      {
+        "bank": "P",
+        "addr": "0x140000",
+        "count": 2048,
+        "first_word": "0x3FFFFF"
+      },
+      {
+        "bank": "P",
+        "addr": "0x140800",
+        "count": 4096,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141800",
+        "count": 128,
+        "first_word": "0x400000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141880",
+        "count": 128,
+        "first_word": "0x8D1897"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141900",
+        "count": 128,
+        "first_word": "0x000001"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141980",
+        "count": 128,
+        "first_word": "0x3FCCF3"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141A00",
+        "count": 128,
+        "first_word": "0x020000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141A80",
+        "count": 24,
+        "first_word": "0x004000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x141A98",
+        "count": 11822,
+        "first_word": "0x7FFFFF"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1448C6",
+        "count": 256,
+        "first_word": "0x400000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1449C6",
+        "count": 128,
+        "first_word": "0xFEDCBB"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144A46",
+        "count": 129,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144AC7",
+        "count": 258,
+        "first_word": "0x004876"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144BC9",
+        "count": 256,
+        "first_word": "0x008000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144CC9",
+        "count": 209,
+        "first_word": "0x44F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144D9A",
+        "count": 231,
+        "first_word": "0x44F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x144E81",
+        "count": 437,
+        "first_word": "0x50F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145036",
+        "count": 213,
+        "first_word": "0x248000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14510B",
+        "count": 53,
+        "first_word": "0x45DA61"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145140",
+        "count": 590,
+        "first_word": "0x00000C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14538E",
+        "count": 670,
+        "first_word": "0x041663"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14562C",
+        "count": 384,
+        "first_word": "0x1FE6A6"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1457AC",
+        "count": 6,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1457B2",
+        "count": 384,
+        "first_word": "0x7FF599"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145932",
+        "count": 387,
+        "first_word": "0x3E5800"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145AB5",
+        "count": 537,
+        "first_word": "0x3E5800"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145CCE",
+        "count": 68,
+        "first_word": "0x66F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145D12",
+        "count": 439,
+        "first_word": "0x040E10"
+      },
+      {
+        "bank": "P",
+        "addr": "0x145EC9",
+        "count": 724,
+        "first_word": "0x040E10"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14619D",
+        "count": 466,
+        "first_word": "0x040E10"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14636F",
+        "count": 397,
+        "first_word": "0x260000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1464FC",
+        "count": 3352,
+        "first_word": "0x240000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147214",
+        "count": 398,
+        "first_word": "0x22D000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1473A2",
+        "count": 327,
+        "first_word": "0x240000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1474E9",
+        "count": 354,
+        "first_word": "0x240000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14764B",
+        "count": 22,
+        "first_word": "0x00000C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147661",
+        "count": 381,
+        "first_word": "0x50F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1477DE",
+        "count": 192,
+        "first_word": "0x44F400"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14789E",
+        "count": 648,
+        "first_word": "0x023EA4"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147B26",
+        "count": 18,
+        "first_word": "0x00000C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147B38",
+        "count": 457,
+        "first_word": "0x200013"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147D01",
+        "count": 204,
+        "first_word": "0x200013"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147DCD",
+        "count": 397,
+        "first_word": "0x200013"
+      },
+      {
+        "bank": "P",
+        "addr": "0x147F5A",
+        "count": 213,
+        "first_word": "0x248000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x14802F",
+        "count": 53,
+        "first_word": "0x45DA61"
+      },
+      {
+        "bank": "P",
+        "addr": "0x100000",
+        "count": 465,
+        "first_word": "0x607000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1001D1",
+        "count": 1568,
+        "first_word": "0x0013C0"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1007F1",
+        "count": 1568,
+        "first_word": "0x002419"
+      },
+      {
+        "bank": "P",
+        "addr": "0x100E11",
+        "count": 1568,
+        "first_word": "0x00376A"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101431",
+        "count": 1568,
+        "first_word": "0x00655A"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101A51",
+        "count": 42,
+        "first_word": "0x146577"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101A7B",
+        "count": 768,
+        "first_word": "0x400000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101D7B",
+        "count": 256,
+        "first_word": "0x00D008"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101E7B",
+        "count": 256,
+        "first_word": "0x05D109"
+      },
+      {
+        "bank": "P",
+        "addr": "0x101F7B",
+        "count": 256,
+        "first_word": "0x001FFA"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10207B",
+        "count": 256,
+        "first_word": "0xFE906B"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10217B",
+        "count": 256,
+        "first_word": "0x035088"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10227B",
+        "count": 256,
+        "first_word": "0x01604F"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10237B",
+        "count": 256,
+        "first_word": "0xF950D4"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10247B",
+        "count": 256,
+        "first_word": "0xFE0FDC"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10257B",
+        "count": 256,
+        "first_word": "0x04E0F2"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10267B",
+        "count": 256,
+        "first_word": "0x025F55"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10277B",
+        "count": 256,
+        "first_word": "0x00200E"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10287B",
+        "count": 256,
+        "first_word": "0xFB2FFC"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10297B",
+        "count": 256,
+        "first_word": "0x00B02F"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102A7B",
+        "count": 256,
+        "first_word": "0x0340E3"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102B7B",
+        "count": 256,
+        "first_word": "0x00204C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102C7B",
+        "count": 256,
+        "first_word": "0x0540B6"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102D7B",
+        "count": 256,
+        "first_word": "0x044074"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102E7B",
+        "count": 256,
+        "first_word": "0x014022"
+      },
+      {
+        "bank": "P",
+        "addr": "0x102F7B",
+        "count": 256,
+        "first_word": "0x00E009"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10307B",
+        "count": 256,
+        "first_word": "0x02706F"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10317B",
+        "count": 256,
+        "first_word": "0xFFB648"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10327B",
+        "count": 256,
+        "first_word": "0xFEA040"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10337B",
+        "count": 256,
+        "first_word": "0x7FF7FF"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10347B",
+        "count": 256,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10357B",
+        "count": 256,
+        "first_word": "0x02E146"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10367B",
+        "count": 256,
+        "first_word": "0x40E5DF"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10377B",
+        "count": 256,
+        "first_word": "0x359441"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10387B",
+        "count": 256,
+        "first_word": "0x37D4B9"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10397B",
+        "count": 256,
+        "first_word": "0xE1DDE0"
+      },
+      {
+        "bank": "P",
+        "addr": "0x103A7B",
+        "count": 256,
+        "first_word": "0x2AD41A"
+      },
+      {
+        "bank": "P",
+        "addr": "0x103B7B",
+        "count": 256,
+        "first_word": "0x0FF140"
+      },
+      {
+        "bank": "P",
+        "addr": "0x103C7B",
+        "count": 256,
+        "first_word": "0x22B2F0"
+      },
+      {
+        "bank": "P",
+        "addr": "0x103D7B",
+        "count": 256,
+        "first_word": "0xFFF00C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x103E7B",
+        "count": 917,
+        "first_word": "0xFF6086"
+      },
+      {
+        "bank": "P",
+        "addr": "0x104210",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x104211",
+        "count": 1058,
+        "first_word": "0xFFFF5D"
+      },
+      {
+        "bank": "P",
+        "addr": "0x104633",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x104634",
+        "count": 4950,
+        "first_word": "0x04300F"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10598A",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10598B",
+        "count": 4032,
+        "first_word": "0xFB9FD1"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10694B",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10694C",
+        "count": 3007,
+        "first_word": "0x00D00D"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10750B",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10750C",
+        "count": 2048,
+        "first_word": "0xFD7FD1"
+      },
+      {
+        "bank": "P",
+        "addr": "0x107D0C",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x107D0D",
+        "count": 1024,
+        "first_word": "0xFD606A"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10810D",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10810E",
+        "count": 1434,
+        "first_word": "0x011FE6"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1086A8",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1086A9",
+        "count": 1024,
+        "first_word": "0x013F58"
+      },
+      {
+        "bank": "P",
+        "addr": "0x108AA9",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x108AAA",
+        "count": 5000,
+        "first_word": "0xFEB0B2"
+      },
+      {
+        "bank": "P",
+        "addr": "0x109E32",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x109E33",
+        "count": 5000,
+        "first_word": "0x01DFB5"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10B1BB",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10B1BC",
+        "count": 8174,
+        "first_word": "0x000001"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10D1AA",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10D1AB",
+        "count": 1599,
+        "first_word": "0x000002"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10D7EA",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10D7EB",
+        "count": 2049,
+        "first_word": "0x01B055"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10DFEC",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10DFED",
+        "count": 4018,
+        "first_word": "0x00900C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10EF9F",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10EFA0",
+        "count": 2048,
+        "first_word": "0xFCE03C"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10F7A0",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x10F7A1",
+        "count": 6001,
+        "first_word": "0xFF9FFF"
+      },
+      {
+        "bank": "P",
+        "addr": "0x110F12",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x110F13",
+        "count": 987,
+        "first_word": "0x000FF0"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1112EE",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1112EF",
+        "count": 714,
+        "first_word": "0x002010"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1115B9",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1115BA",
+        "count": 1792,
+        "first_word": "0x01CFE0"
+      },
+      {
+        "bank": "P",
+        "addr": "0x111CBA",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x111CBB",
+        "count": 1926,
+        "first_word": "0x024F5D"
+      },
+      {
+        "bank": "P",
+        "addr": "0x112441",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x112442",
+        "count": 2049,
+        "first_word": "0xFEC01D"
+      },
+      {
+        "bank": "P",
+        "addr": "0x112C43",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x112C44",
+        "count": 1482,
+        "first_word": "0xFFBFF3"
+      },
+      {
+        "bank": "P",
+        "addr": "0x11320E",
+        "count": 1,
+        "first_word": "0x000000"
+      },
+      {
+        "bank": "P",
+        "addr": "0x11320F",
+        "count": 692,
+        "first_word": "0xFF7FF3"
+      },
+      {
+        "bank": "P",
+        "addr": "0x1134C3",
+        "count": 1,
+        "first_word": "0x000000"
+      }
+    ]
+  }
+}

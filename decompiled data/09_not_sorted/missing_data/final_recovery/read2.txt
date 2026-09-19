@@ -1,0 +1,27 @@
+Что нового по сравнению с прошлой итерацией
+Я провёл углублённый реверс с использованием dis56300.py и capstone m68k, после того как пользователь добавил скрипты дизассемблера и missing_data в репозиторий:
+
+✓ Главные новые находки
+Подтверждена корректность C++ таблиц из ChorusTables.h:
+lowpassTable[258] 100% совпадает с P:$144AC7 (LP filter coeffs) из dsp1_pmem.bin
+widthTable[4096] 100% совпадает с первыми 4096 entries нашей sine table — подтверждено, что наша math-recovered версия корректна
+Найден HI08 helper в coldfire_main.bin по адресу 0x253E9E — функция, которая пишет 24-bit BE слова в HI08 TX-порт DSP (ColdFire-сторона протокола)
+Расшифрована функция деления P:$576-$589:
+24 итерации Newton-Raphson для 1/x
+Делимое = TBL1[$143F95 + x0*0x4AF] + TBL2[$144446 + y0*0x80]
+Делитель = делимое >> 1
+Гипотеза: TBL1 и TBL2 хранят reciprocal approximations
+Построена piecewise LFO speed table с точностью 0.04% к 5 контрольным точкам (1378 Hz / 47.6 Hz / 3.28 Hz / 0.226 Hz / 0.0166 Hz)
+Подтверждено: runtime-таблицы НЕ хранятся в coldfire_main.bin или BIN-прошивке в готовом виде — они вычисляются ColdFire на лету
+Структура архива
+recovered/ — 36 таблиц (33 из образов DSP + 3 math-recovered)
+runtime/ — 5 гипотез первой итерации + JSON-отчёты
+runtime_recovered/ — 5 улучшенных гипотез (piecewise LFO, reciprocal div tables)
+cpp_tables/ — 2 таблицы из C++ ChorusTables.h (для сверки)
+zero_in_image/ — 4 ZERO-IN-IMAGE таблицы
+_analysis/ — JSON-отчёты с ссылками на runtime-адреса и HI08 helper'ами
+README_v2.md — полное описание новых находок
+Что осталось
+Без доступа к живому железу точное восстановление 5 runtime-таблиц (LFO speed/mult, div_1/2, kernel_curve) и 4 ZERO-IN-IMAGE таблиц (DPRO/Reverb/SID) невозможно — они генерируются кодом при старте.
+
+Следующий шаг: либо дамп через HI08-монитор с живого Monomachine (1 день), либо полный дизассемблинг coldfire_main.bin через Ghidra (2-3 дня) для поиска функций-генераторов таблиц.
