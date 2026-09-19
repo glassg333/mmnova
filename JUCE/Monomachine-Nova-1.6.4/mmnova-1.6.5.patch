@@ -1,0 +1,2358 @@
+diff --git a/JUCE/Monomachine-Nova-1.6.4/FIXES_APPLIED_v3.md b/JUCE/Monomachine-Nova-1.6.4/FIXES_APPLIED_v3.md
+new file mode 100644
+index 0000000..4036fc4
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.4/FIXES_APPLIED_v3.md
+@@ -0,0 +1,112 @@
++# Monomachine Nova 1.6.5 — правки по жалобам на 1.6.4
++
++Дата: 2026-09-19. Обе копии (Synth и FX) идентичны кроме `Source/NovaConfig.h`.
++
++## 1. Крякозябры в меню/тултипах (скрин пользователя)
++
++Причина на вашей машине: MSVC без флага `/utf-8` читает UTF-8 исходники как
++локальную кодовую страницу и портит русские литералы ещё в бинарнике.
++Лечение в 1.6.5:
++
++* `*.jucer`: в конфигурациях VisualStudio2022 добавлен `extraCompilerFlags="/utf-8"`
++  (Debug и Release). **Пересохраните проект в Projucer**, чтобы флаги попали в
++  solution.
++* `CMakeLists.txt`: для MSVC добавлен `add_compile_options(/utf-8)`.
++* Тексты меню/тултипов переписаны начисто (см. ниже), файлы сохранены в UTF-8.
++  Заменяйте файлы целиком, а не патчем через сторонние скрипты — прежние
++  крякозябры были двойной перекодировкой при таком переносе.
++
++## 2. Категории отладочных DSP перепутаны / описания не там / подчёркивания
++
++`models/DspModes.hpp` переписан:
++
++* У каждого раздела появилась **папка-категория** (`dspSectionCategory`):
++  МАШИНЫ (OSC) / АМПЛИТУДА / ФИЛЬТР / ДИСТОРШН+SRR / ДИЛЕЙ / ХОРУС / ЦЕПЬ.
++  В меню DSP MODE подменю называются «КАТЕГОРИЯ / РАЗДЕЛ [режим]», первой
++  строкой внутри — «ПАПКА: …», чтобы было видно, к чему относится раздел.
++* Каждая строка описания теперь начинается с имени СВОЕГО раздела
++  (SYNT/AMP/FILT/DIST/DLY/CHOR) — перепутаться категории больше не могут.
++* Убраны лишние подчёркивания и «--» в пользовательских строках.
++
++## 3. Подробное описание роутинга при наведении
++
++* `dspRouteDescription()` — человекочитаемое описание цепочки: что делает
++  каждый блок (DIST, SRR, FILT+EQ, ENV, DSND), почему порядок именно такой и
++  почему при ручках по умолчанию FX не меняет источник (unity).
++* Тултип кнопки **DSP MODE** (наведение) теперь группируется по папкам и
++  заканчивается этим описанием.
++* В меню DSP MODE добавлено подменю «ЦЕПЬ / ROUTE [fixed]» со справкой построчно.
++
++## 4. ROUTE (mnm роутинг) удалён как переключаемый режим
++
++Переключатель ничего не менял на слух (цепочка в коде одна, проверенная),
++поэтому по вашему разрешению («если так можно просто удалить mnm роутинг»):
++
++* `dspSectionVisibleInMenu(DspRouting)=false` — раздела больше нет в меню и в
++  тултипе; параметр `mode_route` оставлен в состоянии только для совместимости.
++* Справка по цепочке — в тултипе и подменю «ЦЕПЬ / ROUTE».
++
++## 5. FX больше не громчит в thru / mnm роутинг тише до unity
++
++Найден корень: mnm-ядро дилея отдавало `out = dry*(1-mix)+wet*mix`, а цепочка
++добавляла dry ещё раз — при DSND=0 сухой сигнал удваивлялся (+6 дБ). Теперь
++`DelayCore` пишет в линию `вход*send` и отдаёт **чистый wet**; сухой добавлен
++ровно один раз. При DSND=0 выход = вход (проверка в MnmCoreTests:
++«DLY send=0 wet is silent (unity thru)»).
++
++## 6. Дилей: DSND в mnm починен, клики на DTIM 80–127 убраны, добавлен REPITCH
++
++* DSND в mnm теперь работает как в old: 0 = нет посыла, влево = пинг-понг,
++  вправо = стерео (общая логика send/pingPong не менялась, но из-за пункта 5
++  ручка наконец слышна предсказуемо).
++* Клики при прокрутке DTIM 80–127 были скачком указателя чтения по дискретной
++  таблице 1/(n+1). Добавлен slewing длины линии: `dly_repitch`
++  (MENU → страница GLOBAL, «DLY REPITCH (debug)»: OFF|FAST|MED|SLOW,
++  по умолчанию MED). Плавная смена длины = повторы репитчатся при прокрутке
++  времени (ленточный характер), кликов нет; OFF возвращает старое поведение
++  для сравнения. Проверки в MnmCoreTests: «teleports the read pointer (click)»
++  и «repitch slew keeps the read pointer continuous».
++
++## 7. FM машины: разделены по файлам, fm stat old удалён, fm par old починен
++
++* `dsp/monomachine_fm_stat_par.hpp` разделён:
++  `monomachine_fm_par.hpp` (FM+PAR + таблица ratios), `monomachine_fm_stat.hpp`
++  (справка), `monomachine_fm_dynamic.hpp` (без изменений). Старый совмещённый
++  файл оставлен как `.bak-v7`. Теперь fm stat можно удалять/править, не трогая
++  остальные две FM-машины.
++* **FM+STAT old удалён** (вы разрешили): машина 8 при любом mode_synt идёт
++  через mnm-ядро; в меню SYNT об этом написано честно.
++* **FM+PAR old починен**: раньше индекс модулятора жил ~20 мс (декей 0.02 с),
++  поэтому 1ENV давал только призвук, а 1FRQ ничем не проявлялся. Теперь у
++  огибающих декей 0.25/0.45/0.65 с и устойчивый пол 45% глубины: ENV = глубина
++  модуляции (слышна всю ноту), FRQ меняет тембр в любой момент.
++
++## 8. GUI: LFO 1/2/3 одинаковые кнопки, MSEG переехал, модуляция «прицелом»
++
++* Внизу справа три одинаковые кнопки **LFO1 / LFO2 / LFO3** (активная в
++  квадратных скобках) — выбирают, какой LFO показан в правой нижней панели.
++* Верхняя правая панель (раньше LFO1) теперь **MSEG**: заголовок MSEG, кнопки
++  MSEG и MSEG OUT переехали в её шапку, в ячейках быстрые ручки
++  RATE / SYNC / LOOP (они не цели модуляции).
++* **Модуляция перетаскиванием**: зажмите LFO1/2/3, дотащите до любой ручки и
++  отпустите — маршрут назначится сразу (без второго клика, в отличие от
++  матрицы). Все ячейки показывают прицел, под курсором — вспышка. Повторное
++  перетаскивание на ту же цель перезаписывает существующий маршрут, а не
++  плодит новые. Обычный клик по кнопке — просто переключает панель LFO.
++
++## 9. Версии и маркеры
++
++* Версия 1.6.5 в `.jucer`, CMake, надпись «BUILD 1.6.5 / Synth|FX / mnm modes»,
++  ABOUT, маркер в `Check-Build.ps1` теперь ищет `BUILD 1.6.5 …`.
++
++## Проверено (без компиляции плагина, как вы просили)
++
++* `tests/MnmCoreTests.cpp` собран обычным g++ и пройден полностью
++  (включая новые проверки unity-дилея и repitch-slew).
++* `verify_dsp_mode_patch.py` пройден по обеим папкам Source.
++* `g++ -fsyntax-only` по `models/DspModes.hpp`, `dsp/monomachine_fm_par.hpp`,
++  `dsp/monomachine_fm_stat.hpp` — чисто.
++* Полный бинарь плагина НЕ собирался (нет JUCE в песочнице + ваш запрет):
++  правки UI (PluginEditor.cpp) проверены только чтением/статикой. Если после
++  пересохранения Projucer и сборки что-то в раскладке не понравится — скажите,
++  поправлю координаты.
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/CMakeLists.txt b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/CMakeLists.txt
+index 6cd7fce..b19ae48 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/CMakeLists.txt
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/CMakeLists.txt
+@@ -1,8 +1,13 @@
+ cmake_minimum_required(VERSION 3.22)
+-project(MonomachineNovaUnifiedFX VERSION 1.6.0 LANGUAGES C CXX)
++project(MonomachineNovaUnifiedFX VERSION 1.6.5 LANGUAGES C CXX)
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++if(MSVC)
++    # 1.6.5: Russian UI strings are UTF-8 in the sources; /utf-8 keeps MSVC from
++    # mangling them into mojibake (source+execution charset UTF-8).
++    add_compile_options(/utf-8)
++endif()
+ set(JUCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/JUCE" CACHE PATH "Path to JUCE 8 source checkout")
+ if(NOT TARGET juce::juce_audio_utils)
+     if(NOT EXISTS "${JUCE_DIR}/CMakeLists.txt")
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Check-Build.ps1 b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Check-Build.ps1
+index 6078896..2f143e9 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Check-Build.ps1
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Check-Build.ps1
+@@ -1,7 +1,7 @@
+ param([string]$Vst3Path = "")
+ $ErrorActionPreference = 'Stop'
+ $root = $PSScriptRoot
+-Write-Host 'Monomachine Nova source audit / expected BUILD 1.5.0 DSP1'
++Write-Host 'Monomachine Nova source audit / expected BUILD 1.6.5'
+ $projects = @(Get-ChildItem -LiteralPath $root -Filter '*.jucer' -File)
+ if ($projects.Count -ne 1) { throw 'Expected exactly one .jucer in this folder. Do not mix old and new projects.' }
+ [xml]$project = Get-Content -LiteralPath $projects[0].FullName -Raw
+@@ -30,7 +30,7 @@ if ($binaries.Count -eq 0) { throw 'No VST3 binary found at the supplied path.'
+ foreach ($binary in $binaries) {
+     $bytes = [System.IO.File]::ReadAllBytes($binary.FullName)
+     $text = [System.Text.Encoding]::ASCII.GetString($bytes)
+-    $found = $text.Contains('BUILD 1.5.0 / FX / DSP1')
++    $found = $text.Contains('BUILD 1.6.5 / FX / mnm modes')
+     Write-Host ('Binary: ' + $binary.FullName)
+     Write-Host ('Last write: ' + $binary.LastWriteTime.ToString('s'))
+     Write-Host ('SHA256: ' + (Get-FileHash -LiteralPath $binary.FullName -Algorithm SHA256).Hash)
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Monomachine Nova FX.jucer b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Monomachine Nova FX.jucer
+index d7ae48d..8fd1226 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Monomachine Nova FX.jucer	
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Monomachine Nova FX.jucer	
+@@ -1,5 +1,5 @@
+ <?xml version='1.0' encoding='utf-8'?>
+-<JUCERPROJECT id="NovaUniF" name="Monomachine Nova FX" projectType="audioplug" version="1.6.0" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.unified.fx" pluginName="Monomachine Nova FX" pluginDesc="Monomachine Nova FX" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="NvFx" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut" pluginVST3Category="Fx" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
++<JUCERPROJECT id="NovaUniF" name="Monomachine Nova FX" projectType="audioplug" version="1.6.5" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.unified.fx" pluginName="Monomachine Nova FX" pluginDesc="Monomachine Nova FX" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="NvFx" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut" pluginVST3Category="Fx" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+   <MAINGROUP id="NovaMain" name="Monomachine Nova FX">
+     <GROUP id="g1" name="Source">
+       <FILE id="f2" name="NovaConfig.h" compile="0" resource="0" file="Source/NovaConfig.h" />
+@@ -42,8 +42,8 @@
+   <EXPORTFORMATS>
+     <VS2022 targetFolder="Builds/VisualStudio2022">
+       <CONFIGURATIONS>
+-        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova FX" optimisation="1" winArchitecture="x64" />
+-        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova FX" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" />
++        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova FX" optimisation="1" winArchitecture="x64" extraCompilerFlags="/utf-8" />
++        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova FX" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" extraCompilerFlags="/utf-8" />
+       </CONFIGURATIONS>
+       <MODULEPATHS>
+         <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaDSP.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaDSP.h
+index 0488801..f0f59a9 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaDSP.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaDSP.h
+@@ -1,7 +1,8 @@
+ #pragma once
+ #include <JuceHeader.h>
+ #include "dsp/monomachine_fm_dynamic.hpp"
+-#include "dsp/monomachine_fm_stat_par.hpp"
++#include "dsp/monomachine_fm_par.hpp"
++#include "dsp/monomachine_fm_stat.hpp" // 1.6.5: old-движок FM+STAT удалён, файл -- справка
+ #include "dsp/monomachine_bbox.hpp"
+ #include "dsp/AudioAdapter.h"
+ #include "dsp/NoiseContour.h"
+@@ -135,7 +136,7 @@ public:
+     std::unique_ptr<AudioAdapter> chorus=std::make_unique<AudioAdapter>();std::array<int,8> chorusParams{64,64,64,127,0,0,127,64};int chorusLatency=0;
+     int fxLatency() const noexcept {return id==15?chorusLatency:0;}
+     void prepare(double rate) {
+-        sr=rate;noiseContour.prepare(sr);dyn.reset(sr);stat.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
++        sr=rate;noiseContour.prepare(sr);dyn.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
+         chorusLatency=chorus->prepare(rate);chorus->reset(chorusParams);
+         mnmFm.reset(sr);
+         reverb.setSampleRate(sr);clear();
+@@ -143,7 +144,7 @@ public:
+     void setModes(int syntModeIn,int distModeIn){if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);}distMode=distModeIn;}
+     void clear() {
+         phases.fill(0);age=0;noiseContour.clear();toneState=0;colourL=colourR=0;compressorEnv=compressorPower=0;gateCounter=0;noiseCounter=0;
+-        dyn.reset(sr);stat.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
++        dyn.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
+         rvHpInL=rvHpOutL=rvHpInR=rvHpOutR=rvLpL=rvLpR=0;
+         for(auto& f:formant)f.clear();
+     }
+@@ -151,7 +152,7 @@ public:
+         id=machine;p=values;
+         auto b=[&](int i){return static_cast<uint8_t>(std::clamp(juce::roundToInt(p[static_cast<size_t>(i)]),0,127));};
+         if(id==10) dyn.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+-        if(id==8) stat.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
++        // 1.6.5: old-движок FM+STAT удалён -- машина 8 всегда идёт через mnm-ядро.
+         if(id==9) par.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==7){bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);bbox.setChromatic(b(6)>0);}
+         if(id==15) {for(int i=0;i<8;++i)chorusParams[static_cast<size_t>(i)]=b(i);auto coreParams=chorusParams;coreParams[3]=127;coreParams[7]=64;chorus->setParameters(coreParams);}
+@@ -165,19 +166,21 @@ public:
+         if(id==11){float sweep=norm(p[2])*300*std::sin(static_cast<float>(age/sr)*5);formant[0].band(sr,200+norm(p[0])*1200+sweep,4);formant[1].band(sr,700+norm(p[1])*2700,6);formant[2].band(sr,2400+norm(p[3])*1800,8);}
+     }
+     void on(int midi) {
+-        baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));stat.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
++        baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
+         mnmFm.setPitchMod(0.0f);mnmFm.noteOn(static_cast<float>(midi),1.0f);
+         if((id==3 && p[2]>63)||(id==5 && p[6]>63)||(id==6 && p[3]>63))phases.fill(0);
+     }
+     void setPitch(float absoluteNote,float modulation) {
+         pitch=absoluteNote;pitchMod=modulation;
+-        float bend=absoluteNote-baseNote+modulation;dyn.setPitchBend(bend);stat.setPitchBend(bend);par.setPitchBend(bend);bbox.setPitchBend(bend);
++        float bend=absoluteNote-baseNote+modulation;dyn.setPitchBend(bend);par.setPitchBend(bend);bbox.setPitchBend(bend);
+         mnmFm.setPitchMod(bend);
+     }
+     void render(float* l,float* r,int n,bool synth) {
+         if(!synth){renderFX(l,r,n);return;}
+         // SYNT: mnm (0) = recovered firmware FM+ (FM+STAT / FM+PAR / FM+DYN), old (1) = прежний Nova FM.
+-        if(syntMode==monomachine::dspModeMnm&&(id==8||id==9||id==10)){
++        // 1.6.5: у FM+STAT (id 8) резервный old-движок удалён по просьбе пользователя,
++        // поэтому машина 8 рендерится mnm-ядром при любом значении mode_synt.
++        if((syntMode==monomachine::dspModeMnm||id==8)&&(id==8||id==9||id==10)){
+             const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
+             std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
+             mnmFm.setParameters(kind,values);
+@@ -188,7 +191,7 @@ public:
+             return;
+         }
+         if(id==10){dyn.processStereo(l,r,static_cast<size_t>(n));return;}
+-        if(id==8||id==9){if(id==8)stat.processStereo(l,r,static_cast<size_t>(n));else par.processStereo(l,r,static_cast<size_t>(n));
++        if(id==9){par.processStereo(l,r,static_cast<size_t>(n));
+             float a=1-std::exp(-2*pi*(100+19000*norm(p[6])*norm(p[6]))/static_cast<float>(sr));for(int i=0;i<n;++i){toneState+=a*(l[i]-toneState);l[i]=r[i]=toneState;}return;}
+         if(id==7){bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;}
+         const float frequency=std::min(hz(pitch+pitchMod+(p[7]-64)/64*12),static_cast<float>(sr*0.45));
+@@ -320,7 +323,7 @@ private:
+     int id=4,baseNote=60;double sr=44100,age=0;float pitch=60,pitchMod=0,toneState=0,waveMix=0.5f;
+     std::array<float,8> p{};std::array<double,8> phases{};std::array<Biquad,3> formant{};
+     uint32_t rng=0x12345678;int noiseCounter=0,gateCounter=0;float heldNoiseL=0,heldNoiseR=0,colourL=0,colourR=0,compressorEnv=0,compressorPower=0;
+-    monomachine::MonomachineFmDynamic dyn;monomachine::MonomachineFmStatic stat;monomachine::MonomachineFmParallel par;
++    monomachine::MonomachineFmDynamic dyn;monomachine::MonomachineFmParallel par; // 1.6.5: MonomachineFmStatic удалён
+     monomachine::MonomachinePhaser phaser;monomachine::MonomachineFlanger flanger;monomachine::MonomachineRingMod ring;
+     int syntMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm;
+     monomachine::mnm::FmCore mnmFm;
+@@ -347,6 +350,18 @@ public:
+         if(routingMode!=routingModeIn){routingMode=routingModeIn;}
+         mnmFilter.setSampleRate(sr);
+     }
++    // 1.6.5: отладочная настройка «DLY REPITCH» (MENU -> страница GLOBAL):
++    // скорость, с которой длина линии mnm-дилея следует за ручкой DTIM.
++    // 0=OFF (мгновенно, прежнее поведение), 1=FAST, 2=MED, 3=SLOW.
++    // Плавное изменение длины = repitch повторов без кликов при прокрутке DTIM.
++    void setRepitch(int raw){
++        switch(juce::jlimit(0,3,raw)){
++            case 1: repitchSlew=0.006f; break;
++            case 2: repitchSlew=0.030f; break;
++            case 3: repitchSlew=0.090f; break;
++            default: repitchSlew=0.0f; break;
++        }
++    }
+     void clear(){
+         filter.reset(sr);
+         delayFilter.reset(sr);
+@@ -429,8 +444,10 @@ public:
+             float dryL=l[i]*volume*(1-std::max(0.0f,pan));
+             float dryR=r[i]*volume*(1+std::min(0.0f,pan));
+             if(delayMode==monomachine::dspModeMnm){
++                // 1.6.5: ядро отдаёт чистый wet, сухой добавлен один раз ->
++                // при DSND=0 цепочка прозрачна (thru больше не громче).
+                 float wetL=0.0f,wetR=0.0f;
+-                mnmDelay.process(params[27],feedback,send,pingPong,0.0f,0.0f,dryL,dryR,wetL,wetR);
++                mnmDelay.process(params[27],feedback,send,pingPong,repitchSlew,dryL,dryR,wetL,wetR);
+                 l[i]=dryL+wetL;r[i]=dryR+wetR;continue;
+             }
+             time+=static_cast<float>(1-std::exp(-1/(sr*0.03)))*(targetDelay-time);
+@@ -448,6 +465,6 @@ private:
+     monomachine::mnm::FilterCore mnmFilter;
+     monomachine::mnm::DelayCore mnmDelay;
+     double sr=44100;std::array<float,32> params{};monomachine::MonomachineFilter filter,delayFilter;Biquad eqL,eqR;
+-    bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;
++    bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;float repitchSlew=0.030f;
+ };
+ }
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaData.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaData.h
+index e74ae82..5c63f51 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaData.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/NovaData.h
+@@ -118,6 +118,9 @@ inline const std::vector<Spec>& specs() {
+         s.push_back({"mseg_rate","MSEG rate",0.05f,20.0f,1.0f,0.01f,{}});
+         s.push_back({"mseg_sync","MSEG host sync",0,1,1,1,"OFF|ON"});
+         s.push_back({"mseg_loop","MSEG loop",0,1,1,1,"OFF|ON"});
++        // 1.6.5 debug: скорость, с которой mnm-дилей следует за ручкой DTIM
++        // (repitch повторов при прокрутке времени, убирает клики на 80..127).
++        s.push_back({"dly_repitch","DLY REPITCH (debug)",0,3,2,1,"OFF|FAST|MED|SLOW"});
+         juce::String targets;
+         for(int i=0;i<56;++i) {if(i) targets+="|";targets+=i<8?"SYN "+juce::String(i+1):juce::String(sections[(i-8)/8])+" "+pageLabel((i-8)/8,(i-8)%8);}
+         for(int row=0;row<16;++row) {
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginEditor.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginEditor.cpp
+index a276f2a..165c937 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginEditor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginEditor.cpp
+@@ -88,6 +88,24 @@ public:
+     void mouseDown(const juce::MouseEvent& e) override { PixelButton::mouseDown(e); if (e.mods.isLeftButtonDown()) if (auto* d = juce::DragAndDropContainer::findParentDragContainerFor(this)) d->startDragging("MSEG", this, juce::ScaledImage(), true); }
+ };
+ 
++// 1.6.5: одинаковые кнопки LFO1/LFO2/LFO3. Клик (без движения) выбирает,
++// какой LFO показан в нижней правой панели; пресс-и-тащи в любую ручку и
++// отпусти -- назначит маршрут модуляции на эту цель («прицел» как в матрице,
++// но без второго клика: отпустил там, где хочешь модулировать).
++class ModSourceButton final : public PixelButton {
++public:
++    explicit ModSourceButton(const juce::String& s):PixelButton(s){}
++    std::function<void()> beginDrag;
++    std::function<void(juce::Point<int>)> dragMove;
++    std::function<void(juce::Point<int>,bool)> endDrag;
++    void mouseDown(const juce::MouseEvent& e) override { PixelButton::mouseDown(e); dragged=false; if(beginDrag) beginDrag(); }
++    void mouseDrag(const juce::MouseEvent& e) override { dragged=true; if(dragMove) dragMove(e.getScreenPosition()); }
++    void mouseUp(const juce::MouseEvent& e) override { juce::TextButton::mouseUp(e); if(endDrag) endDrag(e.getScreenPosition(),dragged); dragged=false; }
++    void clicked() override {} // клик обрабатывается в endDrag(dragged==false)
++private:
++    bool dragged=false;
++};
++
+ // Host-value helpers shared by the list cells: every parameter in this plugin is an
+ // AudioParameterChoice or integer-scaled AudioParameterFloat, so stepping by
+ // convertTo0to1/convertFrom0to1 pairs lands exactly on legal values without touching
+@@ -128,8 +146,11 @@ public:
+         slider.setScrollWheelEnabled(true);addAndMakeVisible(slider);startTimerHz(20);
+     }
+     std::function<void()> openSamples;std::function<void(int)> openEnvelope;std::function<void(int)> openModes;std::function<void(uint8_t)> addMsegModulation;std::function<void(uint8_t)> pickTarget;
+-    void setPickMode(bool enabled){pickMode=enabled;slider.setVisible(parameter&&!isChoice&&!enabled);repaint();}
++    void setPickMode(bool enabled){pickMode=enabled&&modTarget;slider.setVisible(parameter&&!isChoice&&!pickMode);repaint();}
+     bool isTarget(uint8_t target) const noexcept { return modulationTarget() == target; }
++    // 1.6.5: ячейки быстрых настроек MSEG не являются целями модуляции.
++    bool canBeTarget() const noexcept { return modTarget && parameter != nullptr; }
++    uint8_t targetId() const noexcept { return modulationTarget(); }
+     void flashPick(){flashTicks=18;repaint();}
+     std::function<void(uint8_t)> pickHover;
+     bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& details) override { return details.description.toString() == "MSEG" && parameter != nullptr && !isChoice; }
+@@ -146,8 +167,8 @@ public:
+             return targetName(processor,(page-1)*8+juce::jlimit(0,7,value));}
+         const auto names=parameter->getAllValueStrings();return names.size()>value?names[value]:parameter->getText(hostFor(*parameter,value),32);
+     }
+-    void bind(const juce::String& parameterId,const juce::String& name,int page=-1,int index=-1,int engine=-1){
+-        attachment.reset();id=parameterId;label=name;pageIndex=page;knob=index;machine=engine;
++    void bind(const juce::String& parameterId,const juce::String& name,int page=-1,int index=-1,int engine=-1,bool modTargetEnabled=true){
++        attachment.reset();id=parameterId;label=name;pageIndex=page;knob=index;machine=engine;modTarget=modTargetEnabled;
+         parameter=id.isEmpty()?nullptr:processor.parameters.getParameter(id);
+         slider.curveMenu={};if(pageIndex==0&&(knob==0||knob==2||knob==3))slider.curveMenu=[this]{if(openEnvelope)openEnvelope(knob);};
+         // RMB elsewhere opens the DSP mode list of the section this knob belongs to
+@@ -209,7 +230,7 @@ public:
+     // Press-drag is the primary way to swap lists (8 px per entry); a plain click
+     // still opens the popup list as a bonus.
+     void mouseDown(const juce::MouseEvent&e)override{
+-        if(pickMode&&parameter){if(pickTarget)pickTarget(modulationTarget());return;}
++        if(pickMode&&parameter&&modTarget){if(pickTarget)pickTarget(modulationTarget());return;}
+         if(pageIndex==0&&(knob==0||knob==2||knob==3)&&e.mods.isPopupMenu()){popupHandled=true;if(openEnvelope)openEnvelope(knob);return;}
+         if(machine==7&&knob==2&&e.mods.isPopupMenu()){popupHandled=true;if(openSamples)openSamples();return;}
+         if(!parameter)return;
+@@ -239,7 +260,7 @@ private:
+         return 0;
+     }
+     void timerCallback()override{if(flashTicks>0)--flashTicks;repaint();}
+-    MonomachineNovaAudioProcessor& processor;juce::String id,label;int pageIndex=-1,knob=-1,machine=-1,flashTicks=0;bool isChoice=false;
++    MonomachineNovaAudioProcessor& processor;juce::String id,label;int pageIndex=-1,knob=-1,machine=-1,flashTicks=0;bool isChoice=false,modTarget=true;
+     int dragOriginY=0,dragBaseIndex=0;bool dragMoved=false,gestureOpen=false,popupHandled=false,pickMode=false;
+     juce::RangedAudioParameter* parameter=nullptr;CurveSlider slider;
+     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
+@@ -258,7 +279,7 @@ class SettingsPage final : public juce::Component {
+ public:
+     SettingsPage(MonomachineNovaAudioProcessor& p,bool matrix):processor(p){
+         if(matrix)return; // the matrix has its own page below
+-        std::vector<juce::String> ids={"arp_on","arp_hold","host_sync","arp_range","arp_sync","arp_play","arp_grid","arp_length","arp_wrap","arp_velocity_mode","arp_step","arp_step_velocity","arp_step_transpose","arp_step_hold","arp_time","bpm","mseg_sync","mseg_loop","mseg_rate","macro_x","macro_y"};
++        std::vector<juce::String> ids={"arp_on","arp_hold","host_sync","arp_range","arp_sync","arp_play","arp_grid","arp_length","arp_wrap","arp_velocity_mode","arp_step","arp_step_velocity","arp_step_transpose","arp_step_hold","arp_time","bpm","mseg_sync","mseg_loop","mseg_rate","dly_repitch","macro_x","macro_y"};
+         if(!p.isSynthVersion){ids.push_back("fx_mix");ids.push_back("gate");}
+         for(const auto& id:ids){auto* parameter=p.parameters.getParameter(id);if(!parameter)continue;
+             auto row=std::make_unique<Row>();row->label.setText(parameter->getName(128),juce::dontSendNotification);row->label.setColour(juce::Label::textColourId,ink);
+@@ -563,10 +584,21 @@ public:
+ }
+ 
+ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, public juce::DragAndDropContainer {
+-    explicit Surface(MonomachineNovaAudioProcessor& p):processor(p),machineButton(""),menuButton("MENU"),tempoButton(""),arpButton("ARP"),arpSettingsButton("SET"),matrixButton("MATRIX"),lfoButton("LFO2"),lfo3Button("LFO3"),msegButton("MSEG"),msegOutputButton("MSEG OUT"),closeButton("BACK"),gateButton(""){
++    explicit Surface(MonomachineNovaAudioProcessor& p):processor(p),machineButton(""),menuButton("MENU"),tempoButton(""),arpButton("ARP"),arpSettingsButton("SET"),matrixButton("MATRIX"),lfo1Button("LFO1"),lfo2Button("LFO2"),lfo3Button("LFO3"),msegButton("MSEG"),msegOutputButton("MSEG OUT"),closeButton("BACK"),gateButton(""){
+         setLookAndFeel(&theme);
+         for(auto& panel:cells)for(auto& cell:panel){cell=std::make_unique<Cell>(p);cell->openSamples=[this]{showSamples();};cell->openEnvelope=[this](int knob){showEnvelope(knob);};cell->openModes=[this](int section){showDspModes(section);};cell->addMsegModulation=[this](uint8_t target){processor.addMsegRoute(target);};cell->pickTarget=[this](uint8_t target){completeTargetPick(target);};cell->pickHover=[this](uint8_t target){pickHoverTarget=target;};addAndMakeVisible(*cell);}
+-        for(auto* button:{&machineButton,&menuButton,&tempoButton,&arpButton,&arpSettingsButton,&matrixButton,&lfoButton,&lfo3Button,&msegButton})addAndMakeVisible(*button);addAndMakeVisible(msegOutputButton);msegOutputButton.textHeight=12;msegOutputButton.setTooltip("Drag this external MSEG output point onto a Matrix target or parameter.");
++        for(auto* button:{&machineButton,&menuButton,&tempoButton,&arpButton,&arpSettingsButton,&matrixButton,&lfo1Button,&lfo2Button,&lfo3Button,&msegButton})addAndMakeVisible(*button);addAndMakeVisible(msegOutputButton);msegOutputButton.textHeight=12;msegOutputButton.setTooltip("Drag this external MSEG output point onto a Matrix target or parameter.");
++        // 1.6.5: три одинаковые кнопки LFO1/2/3. Клик -- показать LFO в правой
++        // нижней панели; пресс-и-тащи с отпусканием на ручке -- назначить
++        // маршрут модуляции без второго клика.
++        auto wireLfo=[this](ModSourceButton& b,int i){
++            b.textHeight=24;
++            b.beginDrag=[this,i]{beginModDrag(4+i);};
++            b.dragMove=[this](juce::Point<int> s){modDragMove(s);};
++            b.endDrag=[this,i](juce::Point<int> s,bool dragged){endModDrag(s,dragged,i);};
++            b.setTooltip("LFO"+juce::String(i+1)+": click = show this LFO panel; press, drag to any knob and release = assign LFO"+juce::String(i+1)+" modulation to that target.");
++        };
++        wireLfo(lfo1Button,0);wireLfo(lfo2Button,1);wireLfo(lfo3Button,2);
+         addAndMakeVisible(dspModeButton);dspModeButton.onClick=[this]{showDspModes(-1);};updateDspModeLabel();
+         addAndMakeVisible(ampButton);ampButton.setButtonText("AMP");ampButton.textHeight=28;ampButton.textAlign=1;ampButton.onClick=[this]{showEnvelope(-1);};
+         addAndMakeVisible(ampMode);ampMode.setScrollWheelEnabled(true);ampMode.addItem("LEGACY 1.4",1);ampMode.addItem("REFERENCE FIT",2);ampModeLink=std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(p.parameters,"amp_mode",ampMode);
+@@ -587,9 +619,9 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         arpButton.dragPixelsPerStep=2;arpButton.dragHandler=[this](int steps){const bool sync=processor.parameters.getRawParameterValue("arp_sync")->load()>0.5f;auto* par=processor.parameters.getParameter(sync?"arp_grid":"arp_time");float value=par->convertFrom0to1(par->getValue())+static_cast<float>(steps)*(sync?1.0f:10.0f);par->beginChangeGesture();par->setValueNotifyingHost(par->convertTo0to1(juce::jlimit(sync?0.0f:5.0f,sync?15.0f:2000.0f,value)));par->endChangeGesture();update();};
+         arpButton.textHeight=18;arpSettingsButton.textHeight=12;arpSettingsButton.setTooltip("Open the ARP step editor");arpSettingsButton.onClick=[this]{showSettings(false);};
+         matrixButton.textHeight=22;matrixButton.onClick=[this]{showSettings(true);};
+-        lfoButton.textHeight=28;
+-        lfoButton.onClick=[this]{showLfo3=false;bind();repaint();};lfo3Button.textHeight=24;lfo3Button.onClick=[this]{showLfo3=true;bind();repaint();};lfoButton.setTooltip("Click to switch between LFO2 and LFO3; all three run independently.");
+-        msegButton.textHeight=24;msegButton.onClick=[this]{showMseg();};msegButton.setTooltip("Open the multi-segment modulation editor. Drag OUTPUT to a parameter or a matrix target.");
++        // 1.6.5: кнопки MSEG переехали в освободившуюся верхнюю правую панель
++        // (ранее LFO1), рядом с быстрыми ручками RATE/SYNC/LOOP.
++        msegButton.textHeight=16;msegButton.onClick=[this]{showMseg();};msegButton.setTooltip("Open the multi-segment modulation editor. Drag OUTPUT to a parameter or a matrix target.");
+         closeButton.textHeight=20;closeButton.onClick=[this]{if(pickingTarget){for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(false);pickingTarget=false;}viewport.setViewedComponent(nullptr);settings.reset();matrixPage.reset();samplePage.reset();msegPage.reset();envelopePage.reset();viewport.setVisible(false);closeButton.setVisible(false);repaint();};
+         addChildComponent(viewport);addChildComponent(closeButton);
+         addAndMakeVisible(arpEnabled);arpEnabled.setTooltip("Enable arpeggiator");
+@@ -603,12 +635,34 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     void bind(){
+         boundMachine=processor.machineIndex();updateDspModeLabel();const auto& m=nova::machines()[static_cast<size_t>(boundMachine)];machineButton.setButtonText(m.name+"  >");machineButton.textHeight=28;
+         for(int i=0;i<8;++i){const auto& def=m.synthParams[static_cast<size_t>(i)];cells[0][static_cast<size_t>(i)]->bind(def.maxVal?nova::machineParam(m.id,i):juce::String(),def.name,-1,i,m.id);}
+-        const int pageForPanel[]={-1,0,3,1,2,showLfo3?5:4};
+-        for(int panel=1;panel<6;++panel)for(int i=0;i<8;++i){int page=pageForPanel[panel];cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->bind(nova::pageParam(page,i),nova::pageLabel(page,i),page,i);}
+-        lfoButton.setButtonText(showLfo3?"LFO2":"[LFO2]");lfo3Button.setButtonText(showLfo3?"[LFO3]":"LFO3");
++        // 1.6.5: верхняя правая панель -- быстрые настройки MSEG (не цели
++        // модуляции), правая нижняя -- выбранный LFO (LFO1/2/3 кнопками).
++        cells[2][0]->bind("mseg_rate","RATE",-1,0,-1,false);
++        cells[2][1]->bind("mseg_sync","SYNC",-1,1,-1,false);
++        cells[2][2]->bind("mseg_loop","LOOP",-1,2,-1,false);
++        for(int i=3;i<8;++i)cells[2][static_cast<size_t>(i)]->bind(juce::String(),"---",-1,i,-1,false);
++        const int pageForPanel[]={-1,0,-1,1,2,3+lfoPageSel};
++        for(int panel=1;panel<6;++panel){if(panel==2)continue;for(int i=0;i<8;++i){int page=pageForPanel[panel];cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->bind(nova::pageParam(page,i),nova::pageLabel(page,i),page,i);}}
++        lfo1Button.setButtonText(lfoPageSel==0?"[LFO1]":"LFO1");
++        lfo2Button.setButtonText(lfoPageSel==1?"[LFO2]":"LFO2");
++        lfo3Button.setButtonText(lfoPageSel==2?"[LFO3]":"LFO3");
+         if(!processor.isSynthVersion)updateGateLabel();
+         repaint();
+     }
++    // 1.6.5: модуляция «прицелом» перетаскиванием с кнопок LFO1/2/3:
++    // зажал кнопку, довёл до ручки, отпустил -- маршрут назначен (без второго
++    // клика, в отличие от матрицы).
++    void beginModDrag(int src){modDragSrc=src;modHover=nullptr;for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(true);}
++    void modDragMove(juce::Point<int> screen){auto* cell=cellAtScreen(screen);if(cell!=modHover){modHover=cell;if(cell)cell->flashPick();}}
++    void endModDrag(juce::Point<int> screen,bool dragged,int lfoIndex){
++        for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(false);
++        const int src=modDragSrc;modDragSrc=-1;modHover=nullptr;
++        if(src<0)return;
++        if(dragged){auto* cell=cellAtScreen(screen);if(cell&&cell->canBeTarget()){processor.addRouteFromSource(src,cell->targetId());cell->flashPick();}}
++        else{lfoPageSel=juce::jlimit(0,2,lfoIndex);bind();}
++        repaint();
++    }
++    Cell* cellAtScreen(juce::Point<int> screen){for(auto& column:cells)for(auto& cell:column)if(cell&&cell->getScreenBounds().contains(screen))return cell.get();return nullptr;}
+     void update(){
+         if(boundMachine!=processor.machineIndex())bind();
+         tempoButton.setButtonText(juce::String(processor.parameters.getRawParameterValue("host_sync")->load()>0.5f?processor.currentBpm():static_cast<double>(processor.parameters.getRawParameterValue("bpm")->load()),1));
+@@ -625,20 +679,22 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         pixel::text(g,processor.isSynthVersion?"MONOMACHINE NOVA SYNTH":"MONOMACHINE NOVA FX",{66,0,670,40},24);
+         pixel::text(g,"BPM",{855,4,68,30},22);pixel::text(g,"LEV",{7,56,58,32},28);
+         pixel::dotted(g,8,94,8,558);pixel::dotted(g,61,94,61,558);pixel::dotted(g,8,94,63,94);pixel::dotted(g,8,558,63,558);
+-        const char* names[]{"SYNT","","LFO1","FILT","EFFX",""};
++        const juce::String lfoPanelName="LFO"+juce::String(lfoPageSel+1); // 1.6.5
++        const juce::String names[]{"SYNT","","MSEG","FILT","EFFX",lfoPanelName};
+         for(int panel=0;panel<6;++panel){int x=72+(panel%3)*399,y=94+(panel/3)*240;
+             g.setColour(ink.withAlpha(0.35f));g.drawRect(x,y,387,236,1);g.setColour(ink);g.drawRect(x,y,387,30,2);pixel::text(g,names[panel],{x+5,y,377,30},28);
+             g.setColour(ink);for(int c=0;c<=4;++c)pixel::dotted(g,x+c*96,y+34,x+c*96,y+228);
+             pixel::dotted(g,x,y+34,x+388,y+34);pixel::dotted(g,x,y+130,x+388,y+130);pixel::dotted(g,x,y+228,x+388,y+228);}
+ 
+         g.setColour(ink.withAlpha(0.4f));g.drawRect(8,94,55,464,2);
+-        g.setColour(ink.withAlpha(0.65f));g.drawText(processor.isSynthVersion?"BUILD 1.6.0 / Synth / mnm modes":"BUILD 1.6.0 / FX / mnm modes",850,570,370,13,juce::Justification::right);
++        g.setColour(ink.withAlpha(0.65f));g.drawText(processor.isSynthVersion?"BUILD 1.6.5 / Synth / mnm modes":"BUILD 1.6.5 / FX / mnm modes",850,570,370,13,juce::Justification::right);
+     }
+     void resized()override{
+         ampButton.setBounds(473,95,120,28);ampMode.setBounds(640,97,213,25);
+         machineButton.setBounds(72,58,387,30);dspModeButton.setBounds(1014,58,140,30);menuButton.setBounds(1161,4,94,32);tempoButton.setBounds(925,4,88,30);tempoSync.setBounds(1020,4,96,30);tempoEntry.setBounds(925,4,88,30);
+         arpEnabled.setBounds(471,58,26,30);arpButton.setBounds(500,58,120,30);arpSettingsButton.setBounds(624,58,34,30);trigToggle.setBounds(700,58,140,30);matrixButton.setBounds(870,58,140,30);
+-        lfoButton.setBounds(870,334,120,30);lfo3Button.setBounds(995,334,120,30);msegButton.setBounds(1090,334,82,30);msegOutputButton.setBounds(1178,334,78,30);
++        lfo1Button.setBounds(995,334,80,30);lfo2Button.setBounds(1080,334,80,30);lfo3Button.setBounds(1165,334,80,30);
++        msegButton.setBounds(1000,97,90,24);msegOutputButton.setBounds(1096,97,110,24);
+         level.setBounds(12,97,46,458);
+         for(int panel=0;panel<6;++panel)for(int i=0;i<8;++i)cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->setBounds(75+(panel%3)*399+(i%4)*96,130+(panel/3)*240+(i/4)*96,91,91);
+         viewport.setBounds(65,88,1192,480);closeButton.setBounds(1070,51,145,32);gateButton.setVisible(false);
+@@ -701,16 +757,21 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&machineButton).withMinimumWidth(320),[safe](int result){if(!safe||result<=0)return;
+             auto* p=safe->processor.parameters.getParameter("machine");p->beginChangeGesture();p->setValueNotifyingHost(p->convertTo0to1(static_cast<float>(result-1)));p->endChangeGesture();safe->bind();});
+     }
+-    // DSP mode list - fixed: erase extra m letters, show all 8 modes with explanations
++    // DSP mode list, 1.6.5: разделы сгруппированы по папкам-категориям
++    // (dspSectionCategory), ROUTE убран (цепочка одна -- справка отдельным
++    // подменю), каждая строка начинается с имени своего раздела.
+     void showDspModes(int section){
+         juce::PopupMenu menu;
+         auto addSection=[&](int index){
++            if(!monomachine::dspSectionVisibleInMenu(index))return; // ROUTE: переключателя больше нет
+             const int current=processor.dspMode(index);
+             const int primary=monomachine::dspModePrimaryForSection(index);
+             juce::PopupMenu sub;
++            // папка/категория: к чему относится раздел (машины, ручки, страницы)
++            sub.addItem(-1,juce::String("ПАПКА: ")+monomachine::dspSectionCategory(index),false,false);
+             // 1) основной режим раздела -- всегда первым пунктом
+             sub.addItem(index*100+primary+1,
+-                        "mnm - ОСНОВНОЙ: "+juce::String(monomachine::dspModeProvenanceForMode(index,primary)),
++                        juce::String(monomachine::dspModeProvenanceForMode(index,primary)),
+                         true, current==primary);
+             // 2) резервные режимы -- только те, что имеют смысл в ЭТОМ разделе
+             if(monomachine::kShowBackupModes){
+@@ -722,22 +783,30 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+                 }
+                 if(backups.size()>0){
+                     sub.addSeparator();
+-                    sub.addItem(-1,"РЕЗЕРВ (бэкап, не основной):",false,false);
++                    sub.addItem(-1,"РЕЗЕРВ (не основной):",false,false);
+                     for(auto& name:backups){
+                         const int m=monomachine::dspModeIndexByName(name.toRawUTF8());
+                         if(m<0)continue;
+                         sub.addItem(index*100+m+1,
+-                                    "   "+name+" - "+juce::String(monomachine::dspModeProvenanceForMode(index,m)),
++                                    juce::String(monomachine::dspModeProvenanceForMode(index,m)),
+                                     true, current==m);
+                     }
+                 }
+             }
+             sub.addSeparator();
+             sub.addItem(-1, monomachine::dspModeProvenance(index), false, false);
+-            menu.addSubMenu(juce::String(monomachine::dspSectionLabel(index))+"   ["+juce::String(monomachine::dspModeLabel(current))+"]",sub);
++            menu.addSubMenu(juce::String(monomachine::dspSectionCategory(index))+" / "+juce::String(monomachine::dspSectionLabel(index))+"   ["+juce::String(monomachine::dspModeLabel(current))+"]",sub);
+         };
+         if(section>=0&&section<monomachine::DspSectionCount)addSection(section);
+         else for(int i=0;i<monomachine::DspSectionCount;++i)addSection(i);
++        // 1.6.5: справка по цепочке (ROUTE) -- описание при наведении, без переключения
++        if(section<0||section==monomachine::DspRouting){
++            juce::PopupMenu route;
++            route.addItem(-1,"ЦЕПЬ ОДНА (ПРОВЕРЕНА), ПЕРЕКЛЮЧАТЕЛЬ УБРАН В 1.6.5",false,false);
++            for(const auto& line:juce::StringArray::fromLines(juce::String(monomachine::dspRouteDescription())))
++                if(line.isNotEmpty())route.addItem(-1,line,false,false);
++            menu.addSubMenu("ЦЕПЬ / ROUTE   [fixed]",route);
++        }
+         juce::Component::SafePointer<Surface> safe(this);
+         menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&dspModeButton).withMinimumWidth(560),[safe](int result){
+             if(!safe||result<=0)return;
+@@ -750,15 +819,21 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+             safe->updateDspModeLabel();});
+     }
+     void updateDspModeLabel(){
+-        juce::String text="DSP MODE";
+-        dspModeButton.setButtonText(text);
+-        juce::String tip="DSP MODE -- в каждом разделе свой список, основной режим mnm:\n";
++        dspModeButton.setButtonText("DSP MODE");
++        // 1.6.5: тултип сгруппирован по папкам, строки начинаются с имени
++        // своего раздела; в конце -- подробное описание цепочки (ROUTE),
++        // как она влияет на звук и почему при дефолте FX не меняет источник.
++        juce::String tip="DSP MODE -- папки разделов, основной режим mnm:\n";
+         for(int i=0;i<monomachine::DspSectionCount;++i){
++            if(!monomachine::dspSectionVisibleInMenu(i))continue;
+             const int mode=processor.dspMode(i);
+-            tip+=juce::String(monomachine::dspSectionLabel(i))+": "+juce::String(monomachine::dspModeLabel(mode));
++            tip+=juce::String(monomachine::dspSectionCategory(i))+" / "+juce::String(monomachine::dspSectionLabel(i));
++            tip+=" ["+juce::String(monomachine::dspModeLabel(mode))+"]";
+             tip+= (mode==monomachine::dspModeMnm) ? " (основной)" : " (резерв)";
+             tip+=" - "+juce::String(monomachine::dspModeProvenanceForMode(i,mode))+"\n";
+         }
++        tip+="\n";
++        tip+=juce::String(monomachine::dspRouteDescription());
+         dspModeButton.setTooltip(tip);
+     }
+     void showSettings(bool matrix){setViewportMode(matrix);}
+@@ -769,7 +844,7 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+             if(result==1||result==2)safe->setViewportMode(result==2);if(result==8)safe->showMseg();
+             if(result==3)safe->processor.resetSamples();if(result==4)safe->processor.requestPanic();
+             if(result==5){safe->processor.requestPanic();for(auto* parameter:safe->processor.getParameters()){parameter->beginChangeGesture();parameter->setValueNotifyingHost(parameter->getDefaultValue());parameter->endChangeGesture();}safe->bind();}
+-            if(result==6)juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,"Monomachine Nova Synth / BUILD 1.6.0","Build 1.6.0 mnm modes: AMP editor, MIDI/LATCH, FX unity calibration.\nNative implementations; not an exact emulator.\nFX-CHORUS runs the translated OS 1.32B core (24-bit fixed point, DEL/DEP/SPD/MIX/FB/WID/LP/INP).\nINP is input gain everywhere, DIST/DSND are bipolar, DSND<0 pings across.\nFX: MIDI OFF = latch holds AMP open; MIDI ON = note envelope gate.\nAHD: HOLD=127 sustains. MENU contains arp and 8 modulation routes.\nBBOX: 24 native sample slots, CHRM keyboard map and embedded custom PCM. Factory ROM audio is not included.\nLFO/ARP use host BPM but are note-synchronised, not timeline-locked.\nNo oversampling or output limiter. Turn down LEV before testing.");
++            if(result==6)juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,"Monomachine Nova Synth / BUILD 1.6.5","Build 1.6.5: AMP editor, MIDI/LATCH, FX unity calibration.\nNative implementations; not an exact emulator.\nFX-CHORUS runs the translated OS 1.32B core (24-bit fixed point, DEL/DEP/SPD/MIX/FB/WID/LP/INP).\nINP is input gain everywhere, DIST/DSND are bipolar, DSND<0 pings across.\nFX: MIDI OFF = latch holds AMP open; MIDI ON = note envelope gate.\nAHD: HOLD=127 sustains. MENU contains arp and 8 modulation routes.\nBBOX: 24 native sample slots, CHRM keyboard map and embedded custom PCM. Factory ROM audio is not included.\nLFO/ARP use host BPM but are note-synchronised, not timeline-locked.\nNo oversampling or output limiter. Turn down LEV before testing.");
+             if(result==7)safe->showSamples();
+         });
+     }
+@@ -780,14 +855,14 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     }
+     MonomachineNovaAudioProcessor& processor;PixelTheme theme;
+     std::array<std::array<std::unique_ptr<Cell>,8>,6> cells;
+-    PixelButton machineButton,menuButton,tempoButton,arpButton,arpSettingsButton,matrixButton,lfoButton,lfo3Button,msegButton;MsegOutputButton msegOutputButton;PixelButton closeButton,gateButton;juce::Slider level;PixelButton dspModeButton{"DSP MODE"};
++    PixelButton machineButton,menuButton,tempoButton,arpButton,arpSettingsButton,matrixButton,msegButton;ModSourceButton lfo1Button,lfo2Button,lfo3Button;MsegOutputButton msegOutputButton;PixelButton closeButton,gateButton;juce::Slider level;PixelButton dspModeButton{"DSP MODE"};
+     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> levelLink;
+     juce::ToggleButton arpEnabled,trigToggle,tempoSync;juce::TextEditor tempoEntry;std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tempoSyncLink;
+     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> arpLink,trigLink;
+     PixelButton ampButton{"AMP"};juce::ComboBox ampMode;std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> ampModeLink;std::unique_ptr<EnvelopePage> envelopePage;
+     std::unique_ptr<SamplePage> samplePage;std::unique_ptr<MsegPage> msegPage;
+     std::unique_ptr<ArpPage> settings;std::unique_ptr<MatrixPage> matrixPage;FramedViewport viewport;std::unique_ptr<juce::FileChooser> chooser;
+-    juce::TooltipWindow tooltips{this,800};bool showLfo3=false;int boundMachine=-1;bool pickingTarget=false;int pickRoute=-1,pickHoverTarget=-1;
++    juce::TooltipWindow tooltips{this,800};int lfoPageSel=1;int modDragSrc=-1;Cell* modHover=nullptr;int boundMachine=-1;bool pickingTarget=false;int pickRoute=-1,pickHoverTarget=-1;
+ };
+ MonomachineNovaAudioProcessorEditor::MonomachineNovaAudioProcessorEditor(MonomachineNovaAudioProcessor& p):AudioProcessorEditor(&p),processor(p){
+     surface=std::make_unique<Surface>(p);addAndMakeVisible(*surface);
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.cpp
+index bb9df21..e3226de 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.cpp
+@@ -25,6 +25,7 @@ MonomachineNovaAudioProcessor::MonomachineNovaAudioProcessor():AudioProcessor(is
+     parameters(*this,nullptr,isSynthVersion?"NovaUnifiedSynth":"NovaUnifiedFX",createLayout()){
+     machineRaw=parameters.getRawParameterValue("machine");
+     const char* ampIds[]{"amp_mode","amp_curve_a","amp_curve_d","amp_curve_r"};for(size_t i=0;i<4;++i)ampRaw[i]=parameters.getRawParameterValue(ampIds[i]);
++    repitchRaw=parameters.getRawParameterValue("dly_repitch");
+     for(int i=0;i<monomachine::DspSectionCount;++i)modeRaw[static_cast<size_t>(i)]=parameters.getRawParameterValue(monomachine::dspModeParamId(i));
+     for(size_t m=0;m<nova::machines().size();++m)for(int i=0;i<8;++i)
+         if(nova::machines()[m].synthParams[static_cast<size_t>(i)].maxVal>0)synthRaw[m][static_cast<size_t>(i)]=parameters.getRawParameterValue(nova::machineParam(nova::machines()[m].id,i));
+@@ -72,6 +73,7 @@ void MonomachineNovaAudioProcessor::snapshot(){
+     envelope.configure(dspModes[monomachine::DspAmp]==monomachine::dspModeMnm?nova::AmpEnvelope::kKernelAlgorithm:juce::roundToInt(ampRaw[0]->load()),{ampRaw[1]->load(),ampRaw[2]->load(),ampRaw[3]->load()});
+     machine.setModes(dspModes[monomachine::DspSynt],dspModes[monomachine::DspDist]);
+     chain.setModes(dspModes[monomachine::DspFilter],dspModes[monomachine::DspDist],dspModes[monomachine::DspDelay],dspModes[monomachine::DspRouting]);
++    chain.setRepitch(repitchRaw?juce::roundToInt(repitchRaw->load()):2);
+     for(size_t i=0;i<GlobalCount;++i)global[i]=globalRaw[i]?globalRaw[i]->load(std::memory_order_relaxed):0;
+     int selected=juce::jlimit(0,static_cast<int>(nova::machines().size())-1,juce::roundToInt(machineRaw->load()));
+     for(int i=0;i<8;++i){auto* ptr=synthRaw[static_cast<size_t>(selected)][static_cast<size_t>(i)];base[static_cast<size_t>(i)]=ptr?ptr->load():0;}
+@@ -298,6 +300,28 @@ void MonomachineNovaAudioProcessor::addMsegRoute(uint8_t target){
+     set("r"+juce::String(slot)+"_mode",0.0f);
+     set("r"+juce::String(slot)+"_on",1.0f);
+ }
++void MonomachineNovaAudioProcessor::addRouteFromSource(int src, uint8_t target){
++    const int source=juce::jlimit(0,15,src);
++    const int destination=juce::jlimit(0,55,static_cast<int>(target));
++    // 1.6.5: если у этого источника уже есть маршрут на эту цель -- перезаписать
++    // его (повторное перетаскивание не плодит маршруты), иначе занять первый
++    // свободный слот, иначе слот 16.
++    int slot=-1;
++    for(int r=0;r<16;++r){
++        auto* on=parameters.getRawParameterValue("r"+juce::String(r)+"_on");
++        auto* dest=parameters.getRawParameterValue("r"+juce::String(r)+"_dest");
++        auto* srcPar=parameters.getRawParameterValue("r"+juce::String(r)+"_src");
++        if(on&&dest&&srcPar&&on->load()>0.5f&&juce::roundToInt(srcPar->load())==source&&juce::roundToInt(dest->load())==destination){slot=r;break;}
++    }
++    if(slot<0)for(int r=0;r<16;++r){auto* on=parameters.getRawParameterValue("r"+juce::String(r)+"_on");if(on&&on->load()<0.5f){slot=r;break;}}
++    if(slot<0)slot=15;
++    auto set=[this](const juce::String& id,float value){if(auto* p=parameters.getParameter(id)){p->beginChangeGesture();p->setValueNotifyingHost(p->convertTo0to1(value));p->endChangeGesture();}};
++    set("r"+juce::String(slot)+"_src",static_cast<float>(source));
++    set("r"+juce::String(slot)+"_dest",static_cast<float>(destination));
++    set("r"+juce::String(slot)+"_depth",32.0f);
++    set("r"+juce::String(slot)+"_mode",0.0f);
++    set("r"+juce::String(slot)+"_on",1.0f);
++}
+ void MonomachineNovaAudioProcessor::moveModRoute(int from,int to){
+     if(from<0||from>=16||to<0||to>=16||from==to)return;
+     const char* fields[]={"on","src","dest","depth","mode"};
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.h
+index 8323344..e89e76f 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/PluginProcessor.h
+@@ -51,6 +51,9 @@ public:
+     bool removeMsegPoint(int index) noexcept { return mseg.removePoint(index); }
+     void resetMseg() noexcept { mseg.reset(); }
+     void addMsegRoute(uint8_t target);
++    // 1.6.5: назначение модуляции «прицелом» перетаскиванием с кнопки источника
++    // (LFO1/2/3): создать/перезаписать маршрут src->target и включить его.
++    void addRouteFromSource(int src, uint8_t target);
+     void moveModRoute(int from, int to);
+     void sortModRoutes(int column, bool descending);
+     int dspMode(int section) const {return (section>=0&&section<monomachine::DspSectionCount)?dspModes[static_cast<size_t>(section)]:monomachine::dspModeMnm;}
+@@ -58,6 +61,7 @@ public:
+ private:
+     enum Global {Level,Bpm,HostSync,Mix,Gate,ArpMode,ArpPlay,ArpSpeed,ArpRange,ArpLength,MacroX,MacroY,ArpOn,ArpHold,ArpSync,ArpTime,ArpGrid,ArpWrap,ArpVelocityMode,ArpStep,ArpStepVelocity,ArpStepTranspose,ArpStepHold,ArpStepPage,ArpStepPageLimit,ArpStepRandom,MsegRate,MsegSync,MsegLoop,GlobalCount};
+     std::array<std::atomic<float>*,4> ampRaw{};
++    std::atomic<float>* repitchRaw=nullptr; // 1.6.5: dly_repitch (debug)
+     // DSP mode lists ("mnm" default, "old" selectable). See models/DspModes.hpp.
+     std::array<std::atomic<float>*,monomachine::DspSectionCount> modeRaw{};
+     std::array<int,monomachine::DspSectionCount> dspModes{};
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/mnm/MnmDelay.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/mnm/MnmDelay.hpp
+index d4eb24c..ed887c9 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/mnm/MnmDelay.hpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/mnm/MnmDelay.hpp
+@@ -1,24 +1,28 @@
+-// FX-DLY (machine 32) "mnm" core -- Monomachine Nova 1.6.0
++// FX-DLY (machine 32) "mnm" core -- Monomachine Nova 1.6.0 / revised 1.6.5
+ //
+ // Recovered geometry and parameter law from P:$147B38-$147D00
+ // (listings: memory_images/dsp1_machines_fx.txt):
+ //
+ //   * buffer: X:$114000, 2048 words per channel, second channel at +$800
+-//     (`move #>$114000,a0`, REPORT_verdict_and_fm_data.md part 1.3)
+ //   * delay time: DEL parameter is turned into a read rate through the reciprocal
+-//     table X:$144C49 (values 1/1, 1/2, 1/3 ... 1/64):
+-//     P:$147BA9-$147BBA  (`move x:(r0+$144c49),x0` / `move x:(r1+$144c49),x0`
+-//                          then two 1.23 multiplies with `asl #$b`)
+-//   * read pointer: fractional read with linear interpolation, the same
+-//     mpysu/dmac/asl pattern the chorus uses for its taps
+-//   * modulation: the read pointer is modulated through the X:$140000 pitch table
+-//     (P:$147BE5-$147C1A) -> the delay has the LFO-modulated "tape" character
++//     table X:$144C49 (values 1/1, 1/2, 1/3 ... 1/64)
++//   * read pointer: fractional read with linear interpolation
++//   * feedback topology: two independent loops with the optional cross feed
++//     used by the ping-pong setting
+ //
+-// What is exact here: buffer size, per-channel split, reciprocal time table,
+-// interpolated fractional read, feedback topology (two independent loops with the
+-// optional cross feed used by the ping-pong setting).
+-// What is approximate: the modulation depth/rate scaling and the exact wet/dry
+-// arithmetic (the listing mixes three read taps with channel-dependent gains).
++// ПРАВКИ 1.6.5 (жалобы пользователя):
++//   * «в mnm эта ручка сенда сломана» — раньше выход core был dry/wet-кроссфейдом
++//     (out = in*(1-mix)+read*mix), а TrackChain добавлял dry ЕЩЁ раз: при DSND=0
++//     сухой сигнал удваивался (+6 дБ), из-за чего «thru режим в fx vst делает
++//     звук громче». Теперь core пишет в линию ВХОД*send и отдаёт ЧИСТО МОКРЫЙ
++//     сигнал (out = read), сухой добавляется ровно один раз в TrackChain —
++//     при DSND=0 цепочка прозрачна (unity).
++//   * «на значениях от 80 до 127 при прокрутке тайм делея клики» — таблица
++//     времён дискретная (64 ступени 1/(n+1)), скачок указателя чтения давал
++//     щелчки. Теперь длина линии slewing-уется к цели с настраиваемой
++//     скоростью (параметр dly_repitch в MENU): плавное изменение длины =
++//     постепенный repitch повторов, как у ленточного дилея, кликов нет.
++//     OFF возвращает прежнее мгновенное поведение (для сравнения).
+ #pragma once
+ 
+ #include "MnmKernel.hpp"
+@@ -43,29 +47,43 @@ public:
+         size = frames;
+         write = 0;
+         maxSamples = static_cast<float>(frames - 2);
++        smoothSamples = -1.0f; // будет инициализирована первой целью
+     }
+     void reset() {
+         std::fill(left.begin(), left.end(), 0.0f);
+         std::fill(right.begin(), right.end(), 0.0f);
+         write = 0;
++        smoothSamples = -1.0f;
+     }
+ 
+-    // delayParam: DEL knob 0..127 -> reciprocal table index (0..63)
+-    // feedback:   0..1 ; mix: 0..1 ; pingPong: cross-feed
+-    // modDepth:   extra read-pointer modulation 0..1, modPhase advanced by modRate
+-    inline void process(float delParam, float feedback, float mix, bool pingPong,
+-                        float modDepth, float modRate, float inL, float inR,
++    // delayParam:   DEL/DTIM knob 0..127 -> reciprocal table index (0..63)
++    // feedback:     0..1
++    // send:         0..1 — how much of the input is written into the line
++    //               (DSND на hardware: 0 = посыла нет, цепочка прозрачна)
++    // pingPong:     cross-feed the two feedback loops
++    // slewSeconds:  0 = мгновенная смена длины (прежнее поведение, возможны
++    //               клики); >0 = время сглаживания длины линии: повторы при
++    //               прокрутке DTIM плавно репитчатся без щелчков.
++    // outL/outR:    ЧИСТО мокрый сигнал; сухой добавляет вызывающий код.
++    inline void process(float delParam, float feedback, float send, bool pingPong,
++                        float slewSeconds, float inL, float inR,
+                         float& outL, float& outR) {
+         // DTIM 0..127 -> 64-entry reciprocal table. The table itself is exact (P:$144C49);
+         // the knob direction is not verified yet, so DTIM 0 is the shortest setting:
+         // index 0 -> 1/64 of the line, index 63 -> the full line.
+         const int idx = std::clamp(static_cast<int>(delParam * 63.0f / 127.0f + 0.5f), 0, 63);
+-        const float delaySamples = std::clamp(maxSamples * kDelayRecip[static_cast<size_t>(63 - idx)],
+-                                              1.0f, maxSamples);
+-        modPhase = wrapf(modPhase + modRate * static_cast<float>(kDspRate / sr) / static_cast<float>(size));
+-        const float wobble = SineTable::instance().read(modPhase) * modDepth * 0.15f;
++        const float target = std::clamp(maxSamples * kDelayRecip[static_cast<size_t>(63 - idx)],
++                                        1.0f, maxSamples);
++        if (smoothSamples < 0.0f) smoothSamples = target;
++        if (slewSeconds > 0.0005f) {
++            const float alpha = 1.0f - std::exp(-1.0f / (static_cast<float>(sr) * slewSeconds));
++            smoothSamples += (target - smoothSamples) * alpha;
++            if (std::fabs(target - smoothSamples) < 0.01f) smoothSamples = target;
++        } else {
++            smoothSamples = target;
++        }
+ 
+-        const float pos = static_cast<float>(write) - delaySamples * (1.0f + wobble);
++        const float pos = static_cast<float>(write) - smoothSamples;
+         float readPos = pos;
+         while (readPos < 0.0f) readPos += static_cast<float>(size);
+         const int i0 = static_cast<int>(readPos) % size;
+@@ -76,22 +94,21 @@ public:
+ 
+         const float fbL = pingPong ? aR : aL;
+         const float fbR = pingPong ? aL : aR;
+-        left[static_cast<size_t>(write)] = inL + fbL * feedback;
+-        right[static_cast<size_t>(write)] = inR + fbR * feedback;
++        left[static_cast<size_t>(write)] = inL * send + fbL * feedback;
++        right[static_cast<size_t>(write)] = inR * send + fbR * feedback;
+         write = (write + 1) % static_cast<size_t>(size);
+ 
+-        outL = inL * (1.0f - mix) + aL * mix;
+-        outR = inR * (1.0f - mix) + aR * mix;
++        outL = aL;
++        outR = aR;
+     }
+ 
+ private:
+-    static float wrapf(float v) { return v - std::floor(v); }
+     std::vector<float> left, right;
+     size_t write = 0;
+     int size = 1024;
+     double sr = kDspRate;
+     float maxSamples = 1022.0f;
+-    float modPhase = 0.0f;
++    float smoothSamples = -1.0f;
+ };
+ 
+ }  // namespace mnm
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_par.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_par.hpp
+new file mode 100644
+index 0000000..33f1828
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_par.hpp
+@@ -0,0 +1,185 @@
++// Nova 1.6.5: FM+ PARALLEL (machine 9) выделен в отдельный файл, чтобы каждую
++// FM-машину можно было править/удалять независимо (просьба пользователя:
++// «раздели все машины… чтобы я мог удалять отдельно версию fm stat»).
++//
++// ИСПРАВЛЕНИЕ 1.6.5 (жалоба: «fm par OLD не работает, 1FRQ и 1ENV — маленький
++// призвук при 1ENV в максимум, частота никак не меняется»):
++//   * раньше индекс каждого модулятора умножался на огибающую с декаем ~20 мс,
++//     поэтому через 20 мс после ноты модуляция исчезала и смена 1FRQ/2FRQ/3FRQ
++//     была не слышна — оставался только короткий призвук в атаке;
++//   * теперь у огибающей есть УСТОЙЧИВЫЙ ПОЛ (45% глубины ручки ENV) и медленный
++//     декей 0.25/0.45/0.65 с: ручка ENV задаёт глубину модуляции, а ручка FRQ
++//     слышимо меняет тембр в любой момент ноты; атака остаётся чуть ярче (плик).
++#pragma once
++
++#include <cmath>
++#include <algorithm>
++#include <cstdint>
++#include <array>
++
++namespace monomachine {
++
++/** Listed fixed frequency ratios (FM+ STATIC / PARALLEL), disassembled from the
++    OS 1.32B frequency lookup tables: 1/64 … 12/1. */
++inline float getFmListedRatio(uint8_t index) {
++    static constexpr std::array<float, 32> kListedRatios = {{
++        0.015625f, // 1/64
++        0.03125f,  // 1/32
++        0.0625f,   // 1/16
++        0.09375f,  // 3/32
++        0.125f,    // 1/8
++        0.1875f,   // 3/16
++        0.25f,     // 1/4
++        0.3125f,   // 5/16
++        0.375f,    // 3/8
++        0.4375f,   // 7/16
++        0.5f,      // 1/2
++        0.625f,    // 5/8
++        0.75f,     // 3/4
++        0.875f,    // 7/8
++        1.0f,      // 1/1 (Fundamental)
++        1.25f,     // 5/4
++        1.333333f, // 4/3
++        1.5f,      // 3/2
++        1.666667f, // 5/3
++        1.75f,     // 7/4
++        2.0f,      // 2/1 (1 Octave up)
++        2.25f,     // 9/4
++        2.5f,      // 5/2
++        2.666667f, // 8/3
++        3.0f,      // 3/1
++        3.5f,      // 7/2
++        4.0f,      // 4/1 (2 Octaves up)
++        5.0f,      // 5/1
++        6.0f,      // 6/1
++        7.0f,      // 7/1
++        8.0f,      // 8/1 (3 Octaves up)
++        12.0f      // 12/1
++    }};
++    const size_t idx = std::min<size_t>(index, kListedRatios.size() - 1);
++    return kListedRatios[idx];
++}
++
++/** ELEKTRON MONOMACHINE FM+ PARALLEL (Machine 9 / 0x09), old ("old") engine.
++    3 parallel modulators into one carrier.
++    1FRQ/2FRQ/3FRQ: listed harmonic ratios; 1ENV/2ENV/3ENV: modulation depth
++    (sustained floor + decaying pluck); TONE handled by the integration; TUNE fine. */
++class MonomachineFmParallel {
++public:
++    MonomachineFmParallel() = default;
++
++    void reset(double sampleRate = 44100.0) {
++        m_sampleRate = sampleRate > 0.0 ? sampleRate : 44100.0;
++        m_phaseCarrier = 0.0f;
++        m_phaseMod1 = 0.0f;
++        m_phaseMod2 = 0.0f;
++        m_phaseMod3 = 0.0f;
++        m_env1 = 0.0f;
++        m_env2 = 0.0f;
++        m_env3 = 0.0f;
++    }
++
++    void setParameters(uint8_t frq1, uint8_t env1, uint8_t frq2, uint8_t env2,
++                       uint8_t frq3, uint8_t env3, uint8_t tone, uint8_t tune) {
++        m_ratioMod1 = getFmListedRatio(static_cast<uint8_t>(frq1 / 4));
++        m_index1 = (static_cast<float>(env1) / 127.0f) * 4.0f;
++
++        m_ratioMod2 = getFmListedRatio(static_cast<uint8_t>(frq2 / 4));
++        m_index2 = (static_cast<float>(env2) / 127.0f) * 4.0f;
++
++        m_ratioMod3 = getFmListedRatio(static_cast<uint8_t>(frq3 / 4));
++        m_index3 = (static_cast<float>(env3) / 127.0f) * 4.0f;
++
++        m_toneParam = tone;
++        m_tuneSemitones = (static_cast<float>(tune) - 64.0f) / 64.0f * 12.0f;
++        updateFrequencies();
++    }
++
++    void noteOn(uint8_t note, uint8_t velocity = 127) {
++        (void)velocity;
++        m_midiNote = note;
++        m_env1 = 1.0f;
++        m_env2 = 1.0f;
++        m_env3 = 1.0f;
++        updateFrequencies();
++    }
++
++    void noteOff() {}
++
++    void processStereo(float* outL, float* outR, size_t numFrames) {
++        constexpr float twoPi = 2.0f * 3.14159265358979323846f;
++        const float sampleRateInv = 1.0f / static_cast<float>(m_sampleRate);
++
++        // 1.6.5: медленные огибающие (0.25/0.45/0.65 с) вместо 20/40/60 мс.
++        const float decay1 = std::exp(-1.0f / (0.25f * static_cast<float>(m_sampleRate)));
++        const float decay2 = std::exp(-1.0f / (0.45f * static_cast<float>(m_sampleRate)));
++        const float decay3 = std::exp(-1.0f / (0.65f * static_cast<float>(m_sampleRate)));
++
++        for (size_t i = 0; i < numFrames; ++i) {
++            m_env1 *= decay1;
++            m_env2 *= decay2;
++            m_env3 *= decay3;
++
++            // Устойчивый пол 45% + атакующий плик до 100%: модуляция слышна
++            // всю ноту, поэтому 1FRQ/2FRQ/3FRQ меняют тембр, а не только атаку.
++            const float depth1 = m_index1 * (kSustain + (1.0f - kSustain) * m_env1);
++            const float depth2 = m_index2 * (kSustain + (1.0f - kSustain) * m_env2);
++            const float depth3 = m_index3 * (kSustain + (1.0f - kSustain) * m_env3);
++
++            const float mod1Out = std::sin(m_phaseMod1) * depth1;
++            const float mod2Out = std::sin(m_phaseMod2) * depth2;
++            const float mod3Out = std::sin(m_phaseMod3) * depth3;
++
++            m_phaseMod1 += twoPi * (m_carrierFreq * m_ratioMod1) * sampleRateInv;
++            m_phaseMod2 += twoPi * (m_carrierFreq * m_ratioMod2) * sampleRateInv;
++            m_phaseMod3 += twoPi * (m_carrierFreq * m_ratioMod3) * sampleRateInv;
++
++            m_phaseMod1 -= twoPi * std::floor(m_phaseMod1 / twoPi);
++            m_phaseMod2 -= twoPi * std::floor(m_phaseMod2 / twoPi);
++            m_phaseMod3 -= twoPi * std::floor(m_phaseMod3 / twoPi);
++
++            const float totalMod = mod1Out + mod2Out + mod3Out;
++            const float carrierOut = std::sin(m_phaseCarrier + totalMod);
++
++            m_phaseCarrier += twoPi * m_carrierFreq * sampleRateInv;
++            m_phaseCarrier -= twoPi * std::floor(m_phaseCarrier / twoPi);
++
++            const float outSample = std::tanh(carrierOut);
++            outL[i] = outSample;
++            outR[i] = outSample;
++        }
++    }
++
++    void setPitchBend(float semitones) { m_pitchBend = semitones; updateFrequencies(); }
++
++private:
++    static constexpr float kSustain = 0.45f;
++    float m_pitchBend = 0.0f;
++    void updateFrequencies() {
++        const float effectivePitch = static_cast<float>(m_midiNote) + m_tuneSemitones + m_pitchBend;
++        m_carrierFreq = 440.0f * std::pow(2.0f, (effectivePitch - 69.0f) / 12.0f);
++    }
++
++    double m_sampleRate = 44100.0;
++    uint8_t m_midiNote = 60;
++    float m_carrierFreq = 261.63f;
++    float m_tuneSemitones = 0.0f;
++
++    float m_ratioMod1 = 1.0f;
++    float m_index1 = 1.0f;
++    float m_ratioMod2 = 2.0f;
++    float m_index2 = 1.0f;
++    float m_ratioMod3 = 3.0f;
++    float m_index3 = 1.0f;
++    uint8_t m_toneParam = 64;
++
++    float m_phaseCarrier = 0.0f;
++    float m_phaseMod1 = 0.0f;
++    float m_phaseMod2 = 0.0f;
++    float m_phaseMod3 = 0.0f;
++    float m_env1 = 0.0f;
++    float m_env2 = 0.0f;
++    float m_env3 = 0.0f;
++};
++
++} // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat.hpp
+new file mode 100644
+index 0000000..c027f1b
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat.hpp
+@@ -0,0 +1,21 @@
++// Nova 1.6.5: FM+ STATIC (machine 8) выделен в собственный файл.
++//
++// ПОЛЬЗОВАТЕЛЬСКОЕ РЕШЕНИЕ 1.6.5: «fm stat в old можешь удалить» и
++// «раздели все машины… чтобы я мог удалять отдельно версию fm stat,
++// а не вмешиваться сразу в 3 FM машины».
++//
++// Поэтому прежний класс MonomachineFmStatic (old-движок) УДАЛЁН из сборки
++// (старый совмещённый файл оставлен рядом как monomachine_fm_stat_par.hpp.bak-v7).
++// Машина FM+ STAT (id 8) при этом НЕ удалена: в режиме old она теперь молча
++// использует основной mnm-кор (monomachine::mnm::FmCore, FmKind::Stat) — тот же,
++// что и в режиме mnm. Резервного old-варианта у FM+ STAT больше нет, о чём
++// честно написано в меню DSP MODE (раздел SYNT).
++//
++// FM+ PAR (id 9) лежит в monomachine_fm_par.hpp, FM+ DYN (id 10) — в
++// monomachine_fm_dynamic.hpp: три FM-машины больше не делят один файл.
++#pragma once
++
++namespace monomachine {
++// Намеренно пусто: old-движок FM+ STATIC удалён в 1.6.5 по просьбе пользователя.
++// Машина 8 работает через mnm-ядро (см. NovaDSP.h, MachineEngine::render).
++} // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat_par.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat_par.hpp.bak-v7
+similarity index 100%
+rename from JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat_par.hpp
+rename to JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/dsp/monomachine_fm_stat_par.hpp.bak-v7
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/models/DspModes.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/models/DspModes.hpp
+index 4d7a3d8..0b79519 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/models/DspModes.hpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/Source/models/DspModes.hpp
+@@ -1,5 +1,17 @@
+ #pragma once
+-// DSP mode registry -- Monomachine Nova 1.6.3 (ревизия v6)
++// DSP mode registry -- Monomachine Nova 1.6.5 (ревизия v7)
++//
++// ЧТО ИЗМЕНИЛОСЬ В v7 (по жалобам пользователя на 1.6.4):
++//   * Раздел ROUTE убран из меню DSP MODE: проверенная цепочка одна
++//     (synth->dist->srr->filt+eq->env->dsnd), переключатель ничего не менял
++//     на слух («если так можно просто удалить mnm роутинг»). Параметр mode_route
++//     оставлен в состоянии для совместимости, но в UI не показывается;
++//     вместо него -- подробное описание цепочки при наведении (dspRouteDescription).
++//   * У FM+STAT удалён резервный old-движок (пользователь разрешил): машина 8
++//     всегда использует mnm-ядро; FM-машины разведены по отдельным файлам
++//     (monomachine_fm_stat.hpp / monomachine_fm_par.hpp / monomachine_fm_dynamic.hpp).
++//   * Тексты меню/тултипов переписаны: категории не перепутаны, каждая строка
++//     начинается с имени своего раздела, без лишних подчёркиваний.
+ // -----------------------------------------------------------------------------
+ // ГЛАВНОЕ ПРАВИЛО: в каждом разделе свой короткий список режимов,
+ // первым всегда основной "mnm".
+@@ -164,18 +176,41 @@ inline constexpr int dspModePrimaryForSection(int) { return dspModeMnm; }
+ inline constexpr int dspModeFilter = DspFilter;
+ 
+ // -----------------------------------------------------------------------------
+-// Тексты (меню/тултипы). Константы резонанса -- реальные из прошивки:
+-// $F528BD = -0.084747577, $4A4DF0 = +0.581161499.
++// Категории (папки) меню DSP MODE: чтобы было видно, к чему относится каждый
++// раздел и какие машины/ручки он обслуживает (просьба пользователя:
++// «дсп должны быть отсортированы по папкам, чтобы понимать зависимость»).
++// -----------------------------------------------------------------------------
++inline const char* dspSectionCategory(int section) {
++    switch (section) {
++        case DspSynt:    return "МАШИНЫ (OSC)";   // FM+ STAT/PAR/DYN и остальные осцилляторы
++        case DspAmp:     return "АМПЛИТУДА";      // ручка DIST/VOL страницы AMP + огибающая
++        case DspFilter:  return "ФИЛЬТР";         // страница FILT: BASE/WDTH/HPQ/LPQ/ATK/DEC/BOFS/WOFS
++        case DspDist:    return "ДИСТОРШН/SRR";   // ручка DIST (страница AMP) + SRR (страница EFFX)
++        case DspDelay:   return "ДИЛЕЙ";          // страница EFFX: DTIM/DSND/DFB/DBAS/DWID
++        case DspRouting: return "ЦЕПЬ";           // порядок блоков (один, проверенный)
++        case DspChorus:  return "ХОРУС";          // машина FX-CHORUS (15)
++        default:         return "";
++    }
++}
++
++// 1.6.5: ROUTE больше не выбирается в меню -- цепочка одна и проверена.
++// Раздел остаётся в состоянии (mode_route) только для совместимости пресетов.
++inline bool dspSectionVisibleInMenu(int section) { return section != DspRouting; }
++
++// -----------------------------------------------------------------------------
++// Тексты (меню/тултипы). Каждая строка начинается с имени СВОЕГО раздела,
++// чтобы категории больше не могли «перепутаться». Константы резонанса --
++// реальные из прошивки: $F528BD = -0.084747577, $4A4DF0 = +0.581161499.
+ // -----------------------------------------------------------------------------
+ inline const char* dspModeProvenance(int section) {
+     switch (section) {
+-        case DspSynt:   return "SYNT: mnm=восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=прежний Nova FM";
+-        case DspAmp:    return "AMP: kernel P:$4A8-$4F5 ADSR FSM, таблицы Y:$141800/Y:$141880, LFO $791FD0=0.94628";
+-        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из дампа прошивки (kLP 258 коэффициентов P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD-огибающая BOFS/WOFS). Резерв: old=прежнее приближение";
+-        case DspDist:   return "DIST: mnm=ALU-сатурация прошивки bset #$14,sr (hardclip +-1.0). Резерв: old=прежний bipolarDist";
+-        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49. Резерв: old=линейная интерполяция";
+-        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsnd";
+-        case DspChorus: return "CHOR: mnm=нативное ядро OS1.32B 24-bit (как в 1.6.0), INP линейный, микс dry->wet по MIX";
++        case DspSynt:   return "SYNT: mnm = ядро FM+ из прошивки OS 1.32B (P:$4A8-$4F5, тон LP P:$144AC7). old = прежний Nova FM (у FM+STAT резерва нет, машина 8 всегда на mnm)";
++        case DspAmp:    return "AMP: mnm = огибающая-автомат из прошивки, таблицы Y:$141800 (атака) и Y:$141880 (декей/релиз). old = прежняя аппроксимация Nova с кривыми";
++        case DspFilter: return "FILT: mnm = настоящий фильтр из дампа прошивки (258 коэфф. P:$144AC7, SVF $F528BD/$4A4DF0, огибающая BOFS/WOFS, при дефолте прозрачен). old = прежний biquad";
++        case DspDist:   return "DIST: mnm = насыщение как в прошивке (жёсткий клип +-1.0, 64 = прозрачно). old = прежний tanh/bipolar";
++        case DspDelay:  return "DLY: mnm = линия m32 FX-DLY (буфер X:$114000, таблица времён P:$144C49), wet отдельным сигналом, DSND=0 прозрачно. old = линейная интерполяция, DSND влево = пинг-понг, вправо = стерео";
++        case DspRouting:return "ROUTE: цепочка одна и проверена: synth->dist->srr->filt+eq->env->dsnd. Переключатель убран из меню в 1.6.5";
++        case DspChorus: return "CHOR: mnm = нативное ядро OS 1.32B (24-bit), INP линейный, микс dry->wet по MIX";
+         default:        return "";
+     }
+ }
+@@ -183,18 +218,47 @@ inline const char* dspModeProvenance(int section) {
+ inline const char* dspModeProvenanceForMode(int section, int mode) {
+     if (mode == dspModeMnm) {
+         switch (section) {
+-            case DspSynt:   return "SYNT mnm (основной): восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7)";
+-            case DspAmp:    return "AMP mnm (основной): kernel ADSR FSM Y:$141800/Y:$141880";
+-            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 коэффициентов + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16, AD-огибающая BOFS/WOFS, при дефолте unity THRU";
+-            case DspDist:   return "DIST mnm (основной): ALU-сатурация прошивки bset #$14,sr";
+-            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + P:$144C49";
+-            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsnd (проверено)";
+-            case DspChorus: return "CHOR mnm (основной): нативное ядро OS1.32B 24-bit, линейный INP, микс dry->wet";
+-            default:        return "mnm (основной): восстановленная прошивка";
++            case DspSynt:    return "SYNT mnm (основной): ядро FM+ из прошивки OS 1.32B (P:$4A8-$4F5, тон LP P:$144AC7)";
++            case DspAmp:     return "AMP mnm (основной): огибающая-автомат прошивки, таблицы Y:$141800/Y:$141880";
++            case DspFilter:  return "FILT mnm (основной): настоящий дамп прошивки, 258 коэфф. + SVF $F528BD/$4A4DF0, Q 0.5..16, огибающая BOFS/WOFS, при дефолте прозрачен";
++            case DspDist:    return "DIST mnm (основной): насыщение прошивки bset #$14,sr (жёсткий клип +-1.0)";
++            case DspDelay:   return "DLY mnm (основной): линия m32 FX-DLY X:$114000 + P:$144C49, wet отдельно, при DSND=0 прозрачна";
++            case DspRouting: return "ROUTE (единственный): synth->dist->srr->filt+eq->env->dsnd (проверено)";
++            case DspChorus:  return "CHOR mnm (основной): нативное ядро OS 1.32B 24-bit, линейный INP, микс dry->wet";
++            default:         return "mnm (основной): восстановленная прошивка";
++        }
++    }
++    if (mode == dspModeOld) {
++        switch (section) {
++            case DspSynt:    return "SYNT old (резерв): прежний Nova FM. Внимание: у FM+STAT резерв удалён в 1.6.5, машина 8 остаётся на mnm";
++            case DspAmp:     return "AMP old (резерв): прежняя огибающая Nova с кривыми ATK/DEC/REL";
++            case DspFilter:  return "FILT old (резерв): прежний biquad-фильтр Nova";
++            case DspDist:    return "DIST old (резерв): прежний tanh/bipolar дист";
++            case DspDelay:   return "DLY old (резерв): линейная интерполяция; DSND влево = пинг-понг, вправо = стерео";
++            case DspChorus:  return "CHOR old (резерв): не используется, ядро одно";
++            default:         return "old (резерв): прежнее приближение Nova";
+         }
+     }
+-    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дист -- tanh/bipolar, дилей -- линейная интерполяция)";
+     return "?";
+ }
+ 
++// -----------------------------------------------------------------------------
++// 1.6.5: подробное описание цепочки для наведения на строчку роутинга
++// (тултип кнопки DSP MODE и справка в меню). Объясняет, КАК каждый блок
++// влияет на звук и почему при ручках «по умолчанию» FX не меняет источник.
++// -----------------------------------------------------------------------------
++inline const char* dspRouteDescription() {
++    return
++        "ЦЕПЬ (одна, проверена, как в прошивке OS 1.32B):\n"
++        "1) SYNTH/машина -> источник звука (FM+, SWAVE, SID, FX-машины...).\n"
++        "2) DIST: насыщение. Ручка DIST=64 полностью прозрачна, ниже 64 ослабляет драйв, выше добавляет перегруз.\n"
++        "3) SRR: понижение частоты дискретизации (ручка SRR=0 выключена) -> зернистость при повышении.\n"
++        "4) FILT+EQ: фильтр прошивки (BASE/WDTH/HPQ/LPQ + огибающая BOFS/WOFS), затем пик-EQ (EQF/EQG). При BASE=0/WDTH=127/Q=0 и EQG=0 прозрачен.\n"
++        "5) ENV: амплитудная огибающая (ATK/HOLD/DEC/REL). В FX-версии при LATCH держится открытой, при MIDI gate следует за нотами.\n"
++        "6) DSND: посыл в дилей ПОСЛЕ фильтра и огибающей. DSND=0 посыл выключен, выход = сухой сигнал без изменений.\n"
++        "Итог: при DIST=64, SRR=0, фильтре/EQ по умолчанию и DSND=0 цепочка unity, то есть не меняет громкость и тембр источника.\n"
++        "Порядок важен: дист до фильтра (перегруз режется фильтром), огибающая после фильтра (огибающая не модулирует срез), дилей в конце (повторы не проходят через дист).";
++}
++
+ }  // namespace monomachine
++
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/tests/MnmCoreTests.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/tests/MnmCoreTests.cpp
+index ac3c960..deba91b 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/tests/MnmCoreTests.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_FX/tests/MnmCoreTests.cpp
+@@ -106,24 +106,67 @@ int main() {
+         delay.prepare(44100.0);
+         float wl = 0.0f, wr = 0.0f;
+         // DTIM = 127 marks the longest setting: the full one-second line.
+-        delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 1.0f, 1.0f, wl, wr);
++        // 1.6.5 API: (delParam, feedback, send, pingPong, slewSeconds, inL, inR, outL, outR),
++        // выход -- чистый wet.
++        delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 1.0f, 1.0f, wl, wr);
+         int samples = 1;
+         for (; samples < 44100 * 2; ++samples) {
+-            delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, wl, wr);
++            delay.process(127.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, wl, wr);
+             if (std::fabs(wl) > 1.0e-5f) break;
+         }
+         check(true, "DLY longest setting echo time (ms)", samples / 44.1f, 1000.0f, 2.0f);
+ 
+         DelayCore shortDelay;
+         shortDelay.prepare(44100.0);
+-        shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 1.0f, 1.0f, wl, wr);
++        shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 1.0f, 1.0f, wl, wr);
+         samples = 1;
+         for (; samples < 44100; ++samples) {
+-            shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, wl, wr);
++            shortDelay.process(0.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, wl, wr);
+             if (std::fabs(wl) > 1.0e-5f) break;
+         }
+         // P:$144C49 index 63 = 1/64 of the line.
+         check(true, "DLY shortest setting echo time (ms)", samples / 44.1f, 1000.0f / 64.0f, 1.0f);
++
++        // 1.6.5: send=0 -> выход мокрого ядра нулевой (цепочка прозрачна,
++        // «thru больше не громче»: сухой добавляется ровно один раз снаружи).
++        DelayCore unity;
++        unity.prepare(44100.0);
++        float ul = 0.0f, ur = 0.0f;
++        for (int i = 0; i < 2048; ++i) unity.process(64.0f, 0.5f, 0.0f, false, 0.03f, 0.7f, -0.7f, ul, ur);
++        check(true, "DLY send=0 wet is silent (unity thru)", std::fabs(ul) + std::fabs(ur), 0.0f, 1.0e-6f);
++
++        // 1.6.5: slew>0 -> указатель чтения не телепортируется при смене DTIM
++        // (нет клика, повторы репитчатся). Линия заполнена рампой: значение на
++        // выходе = позиция чтения, поэтому скачок выхода = скачок указателя.
++        // треугольник по всей длине линии: непрерывен на кольцевом переходе,
++        // поэтому скачок выхода равен именно скачку указателя чтения.
++        auto fillRamp = [](DelayCore& d) {
++            float a = 0.0f, b = 0.0f;
++            for (int i = 0; i < 44104; ++i) {
++                const float v = static_cast<float>(i < 22052 ? i : 44104 - i);
++                d.process(127.0f, 0.0f, 1.0f, false, 0.0f, v, v, a, b);
++            }
++        };
++        DelayCore noslew;
++        noslew.prepare(44100.0);
++        fillRamp(noslew);
++        float nl = 0.0f, nr = 0.0f, noslewJump = 0.0f, nprev = 0.0f;
++        for (int i = 0; i < 64; ++i) { // резкая смена DTIM 127->40 без сглаживания
++            noslew.process(40.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, nl, nr);
++            noslewJump = std::max(noslewJump, std::fabs(nl - nprev));
++            nprev = nl;
++        }
++        DelayCore slewed;
++        slewed.prepare(44100.0);
++        fillRamp(slewed);
++        float sl = 0.0f, srOut = 0.0f, slewJump = 0.0f, prev = 0.0f;
++        for (int i = 0; i < 4410; ++i) { // та же смена, но slew=MED (0.03 с)
++            slewed.process(40.0f, 0.0f, 0.0f, false, 0.03f, 0.0f, 0.0f, sl, srOut);
++            slewJump = std::max(slewJump, std::fabs(sl - prev));
++            prev = sl;
++        }
++        checkTrue(noslewJump > 500.0f, "DLY without slew teleports the read pointer (click)");
++        checkTrue(slewJump < 200.0f, "DLY repitch slew keeps the read pointer continuous (no click)");
+     }
+ 
+     // ---------------------------------------------------------------- saturation (DIST)
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/CMakeLists.txt b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/CMakeLists.txt
+index c8eec68..09ed3b7 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/CMakeLists.txt
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/CMakeLists.txt
+@@ -1,8 +1,13 @@
+ cmake_minimum_required(VERSION 3.22)
+-project(MonomachineNovaUnifiedSynth VERSION 1.6.0 LANGUAGES C CXX)
++project(MonomachineNovaUnifiedSynth VERSION 1.6.5 LANGUAGES C CXX)
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++if(MSVC)
++    # 1.6.5: Russian UI strings are UTF-8 in the sources; /utf-8 keeps MSVC from
++    # mangling them into mojibake (source+execution charset UTF-8).
++    add_compile_options(/utf-8)
++endif()
+ set(JUCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/JUCE" CACHE PATH "Path to JUCE 8 source checkout")
+ if(NOT TARGET juce::juce_audio_utils)
+     if(NOT EXISTS "${JUCE_DIR}/CMakeLists.txt")
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Check-Build.ps1 b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Check-Build.ps1
+index 1502806..7a7498d 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Check-Build.ps1
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Check-Build.ps1
+@@ -1,7 +1,7 @@
+ param([string]$Vst3Path = "")
+ $ErrorActionPreference = 'Stop'
+ $root = $PSScriptRoot
+-Write-Host 'Monomachine Nova source audit / expected BUILD 1.5.0 DSP1'
++Write-Host 'Monomachine Nova source audit / expected BUILD 1.6.5'
+ $projects = @(Get-ChildItem -LiteralPath $root -Filter '*.jucer' -File)
+ if ($projects.Count -ne 1) { throw 'Expected exactly one .jucer in this folder. Do not mix old and new projects.' }
+ [xml]$project = Get-Content -LiteralPath $projects[0].FullName -Raw
+@@ -30,7 +30,7 @@ if ($binaries.Count -eq 0) { throw 'No VST3 binary found at the supplied path.'
+ foreach ($binary in $binaries) {
+     $bytes = [System.IO.File]::ReadAllBytes($binary.FullName)
+     $text = [System.Text.Encoding]::ASCII.GetString($bytes)
+-    $found = $text.Contains('BUILD 1.5.0 / Synth / DSP1')
++    $found = $text.Contains('BUILD 1.6.5 / Synth / mnm modes')
+     Write-Host ('Binary: ' + $binary.FullName)
+     Write-Host ('Last write: ' + $binary.LastWriteTime.ToString('s'))
+     Write-Host ('SHA256: ' + (Get-FileHash -LiteralPath $binary.FullName -Algorithm SHA256).Hash)
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Monomachine Nova Synth.jucer b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Monomachine Nova Synth.jucer
+index 97ca0e2..f8e8194 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Monomachine Nova Synth.jucer	
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Monomachine Nova Synth.jucer	
+@@ -1,5 +1,5 @@
+ ﻿<?xml version='1.0' encoding='utf-8'?>
+-<JUCERPROJECT id="NovaUniS" name="Monomachine Nova Synth" projectType="audioplug" version="1.6.0" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.unified.synth" pluginName="Monomachine Nova Synth" pluginDesc="Monomachine Nova Synth" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="NvSy" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn" pluginVST3Category="Instrument,Synth" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
++<JUCERPROJECT id="NovaUniS" name="Monomachine Nova Synth" projectType="audioplug" version="1.6.5" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.unified.synth" pluginName="Monomachine Nova Synth" pluginDesc="Monomachine Nova Synth" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="NvSy" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn" pluginVST3Category="Instrument,Synth" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+   <MAINGROUP id="NovaMain" name="Monomachine Nova Synth">
+     <GROUP id="g1" name="Source">
+       <FILE id="f2" name="NovaConfig.h" compile="0" resource="0" file="Source/NovaConfig.h" />
+@@ -42,8 +42,8 @@
+   <EXPORTFORMATS>
+     <VS2022 targetFolder="Builds/VisualStudio2022">
+       <CONFIGURATIONS>
+-        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova Synth" optimisation="1" winArchitecture="x64" />
+-        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova Synth" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" />
++        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova Synth" optimisation="1" winArchitecture="x64" extraCompilerFlags="/utf-8" />
++        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova Synth" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" extraCompilerFlags="/utf-8" />
+       </CONFIGURATIONS>
+       <MODULEPATHS>
+         <MODULEPATH id="juce_audio_processors" />
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaDSP.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaDSP.h
+index 0488801..f0f59a9 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaDSP.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaDSP.h
+@@ -1,7 +1,8 @@
+ #pragma once
+ #include <JuceHeader.h>
+ #include "dsp/monomachine_fm_dynamic.hpp"
+-#include "dsp/monomachine_fm_stat_par.hpp"
++#include "dsp/monomachine_fm_par.hpp"
++#include "dsp/monomachine_fm_stat.hpp" // 1.6.5: old-движок FM+STAT удалён, файл -- справка
+ #include "dsp/monomachine_bbox.hpp"
+ #include "dsp/AudioAdapter.h"
+ #include "dsp/NoiseContour.h"
+@@ -135,7 +136,7 @@ public:
+     std::unique_ptr<AudioAdapter> chorus=std::make_unique<AudioAdapter>();std::array<int,8> chorusParams{64,64,64,127,0,0,127,64};int chorusLatency=0;
+     int fxLatency() const noexcept {return id==15?chorusLatency:0;}
+     void prepare(double rate) {
+-        sr=rate;noiseContour.prepare(sr);dyn.reset(sr);stat.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
++        sr=rate;noiseContour.prepare(sr);dyn.reset(sr);par.reset(sr);phaser.reset(sr);flanger.reset(sr);ring.reset(sr);bbox.reset(sr);
+         chorusLatency=chorus->prepare(rate);chorus->reset(chorusParams);
+         mnmFm.reset(sr);
+         reverb.setSampleRate(sr);clear();
+@@ -143,7 +144,7 @@ public:
+     void setModes(int syntModeIn,int distModeIn){if(syntMode!=syntModeIn){syntMode=syntModeIn;mnmFm.reset(sr);}distMode=distModeIn;}
+     void clear() {
+         phases.fill(0);age=0;noiseContour.clear();toneState=0;colourL=colourR=0;compressorEnv=compressorPower=0;gateCounter=0;noiseCounter=0;
+-        dyn.reset(sr);stat.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
++        dyn.reset(sr);par.reset(sr);bbox.reset(sr);chorus->reset(chorusParams);phaser.reset(sr);flanger.clearBuffers();ring.reset(sr);reverb.reset();
+         rvHpInL=rvHpOutL=rvHpInR=rvHpOutR=rvLpL=rvLpR=0;
+         for(auto& f:formant)f.clear();
+     }
+@@ -151,7 +152,7 @@ public:
+         id=machine;p=values;
+         auto b=[&](int i){return static_cast<uint8_t>(std::clamp(juce::roundToInt(p[static_cast<size_t>(i)]),0,127));};
+         if(id==10) dyn.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+-        if(id==8) stat.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
++        // 1.6.5: old-движок FM+STAT удалён -- машина 8 всегда идёт через mnm-ядро.
+         if(id==9) par.setParameters(b(0),b(1),b(2),b(3),b(4),b(5),b(6),b(7));
+         if(id==7){bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false);bbox.setChromatic(b(6)>0);}
+         if(id==15) {for(int i=0;i<8;++i)chorusParams[static_cast<size_t>(i)]=b(i);auto coreParams=chorusParams;coreParams[3]=127;coreParams[7]=64;chorus->setParameters(coreParams);}
+@@ -165,19 +166,21 @@ public:
+         if(id==11){float sweep=norm(p[2])*300*std::sin(static_cast<float>(age/sr)*5);formant[0].band(sr,200+norm(p[0])*1200+sweep,4);formant[1].band(sr,700+norm(p[1])*2700,6);formant[2].band(sr,2400+norm(p[3])*1800,8);}
+     }
+     void on(int midi) {
+-        baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));stat.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
++        baseNote=midi;age=0;dyn.noteOn(static_cast<uint8_t>(midi));par.noteOn(static_cast<uint8_t>(midi));bbox.noteOn(static_cast<uint8_t>(midi));
+         mnmFm.setPitchMod(0.0f);mnmFm.noteOn(static_cast<float>(midi),1.0f);
+         if((id==3 && p[2]>63)||(id==5 && p[6]>63)||(id==6 && p[3]>63))phases.fill(0);
+     }
+     void setPitch(float absoluteNote,float modulation) {
+         pitch=absoluteNote;pitchMod=modulation;
+-        float bend=absoluteNote-baseNote+modulation;dyn.setPitchBend(bend);stat.setPitchBend(bend);par.setPitchBend(bend);bbox.setPitchBend(bend);
++        float bend=absoluteNote-baseNote+modulation;dyn.setPitchBend(bend);par.setPitchBend(bend);bbox.setPitchBend(bend);
+         mnmFm.setPitchMod(bend);
+     }
+     void render(float* l,float* r,int n,bool synth) {
+         if(!synth){renderFX(l,r,n);return;}
+         // SYNT: mnm (0) = recovered firmware FM+ (FM+STAT / FM+PAR / FM+DYN), old (1) = прежний Nova FM.
+-        if(syntMode==monomachine::dspModeMnm&&(id==8||id==9||id==10)){
++        // 1.6.5: у FM+STAT (id 8) резервный old-движок удалён по просьбе пользователя,
++        // поэтому машина 8 рендерится mnm-ядром при любом значении mode_synt.
++        if((syntMode==monomachine::dspModeMnm||id==8)&&(id==8||id==9||id==10)){
+             const auto kind=id==8?monomachine::mnm::FmKind::Stat:(id==9?monomachine::mnm::FmKind::Par:monomachine::mnm::FmKind::Dyn);
+             std::array<float,8> values{};for(int i=0;i<8;++i)values[static_cast<size_t>(i)]=p[static_cast<size_t>(i)];
+             mnmFm.setParameters(kind,values);
+@@ -188,7 +191,7 @@ public:
+             return;
+         }
+         if(id==10){dyn.processStereo(l,r,static_cast<size_t>(n));return;}
+-        if(id==8||id==9){if(id==8)stat.processStereo(l,r,static_cast<size_t>(n));else par.processStereo(l,r,static_cast<size_t>(n));
++        if(id==9){par.processStereo(l,r,static_cast<size_t>(n));
+             float a=1-std::exp(-2*pi*(100+19000*norm(p[6])*norm(p[6]))/static_cast<float>(sr));for(int i=0;i<n;++i){toneState+=a*(l[i]-toneState);l[i]=r[i]=toneState;}return;}
+         if(id==7){bbox.processStereo(l,r,static_cast<size_t>(n));for(int i=0;i<n;++i)l[i]=r[i]=l[i]*norm(p[7]);return;}
+         const float frequency=std::min(hz(pitch+pitchMod+(p[7]-64)/64*12),static_cast<float>(sr*0.45));
+@@ -320,7 +323,7 @@ private:
+     int id=4,baseNote=60;double sr=44100,age=0;float pitch=60,pitchMod=0,toneState=0,waveMix=0.5f;
+     std::array<float,8> p{};std::array<double,8> phases{};std::array<Biquad,3> formant{};
+     uint32_t rng=0x12345678;int noiseCounter=0,gateCounter=0;float heldNoiseL=0,heldNoiseR=0,colourL=0,colourR=0,compressorEnv=0,compressorPower=0;
+-    monomachine::MonomachineFmDynamic dyn;monomachine::MonomachineFmStatic stat;monomachine::MonomachineFmParallel par;
++    monomachine::MonomachineFmDynamic dyn;monomachine::MonomachineFmParallel par; // 1.6.5: MonomachineFmStatic удалён
+     monomachine::MonomachinePhaser phaser;monomachine::MonomachineFlanger flanger;monomachine::MonomachineRingMod ring;
+     int syntMode=monomachine::dspModeMnm,distMode=monomachine::dspModeMnm;
+     monomachine::mnm::FmCore mnmFm;
+@@ -347,6 +350,18 @@ public:
+         if(routingMode!=routingModeIn){routingMode=routingModeIn;}
+         mnmFilter.setSampleRate(sr);
+     }
++    // 1.6.5: отладочная настройка «DLY REPITCH» (MENU -> страница GLOBAL):
++    // скорость, с которой длина линии mnm-дилея следует за ручкой DTIM.
++    // 0=OFF (мгновенно, прежнее поведение), 1=FAST, 2=MED, 3=SLOW.
++    // Плавное изменение длины = repitch повторов без кликов при прокрутке DTIM.
++    void setRepitch(int raw){
++        switch(juce::jlimit(0,3,raw)){
++            case 1: repitchSlew=0.006f; break;
++            case 2: repitchSlew=0.030f; break;
++            case 3: repitchSlew=0.090f; break;
++            default: repitchSlew=0.0f; break;
++        }
++    }
+     void clear(){
+         filter.reset(sr);
+         delayFilter.reset(sr);
+@@ -429,8 +444,10 @@ public:
+             float dryL=l[i]*volume*(1-std::max(0.0f,pan));
+             float dryR=r[i]*volume*(1+std::min(0.0f,pan));
+             if(delayMode==monomachine::dspModeMnm){
++                // 1.6.5: ядро отдаёт чистый wet, сухой добавлен один раз ->
++                // при DSND=0 цепочка прозрачна (thru больше не громче).
+                 float wetL=0.0f,wetR=0.0f;
+-                mnmDelay.process(params[27],feedback,send,pingPong,0.0f,0.0f,dryL,dryR,wetL,wetR);
++                mnmDelay.process(params[27],feedback,send,pingPong,repitchSlew,dryL,dryR,wetL,wetR);
+                 l[i]=dryL+wetL;r[i]=dryR+wetR;continue;
+             }
+             time+=static_cast<float>(1-std::exp(-1/(sr*0.03)))*(targetDelay-time);
+@@ -448,6 +465,6 @@ private:
+     monomachine::mnm::FilterCore mnmFilter;
+     monomachine::mnm::DelayCore mnmDelay;
+     double sr=44100;std::array<float,32> params{};monomachine::MonomachineFilter filter,delayFilter;Biquad eqL,eqR;
+-    bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;
++    bool pingPong=false;std::vector<float> delayL,delayR;size_t write=0;int srrCounter=0;float heldL=0,heldR=0,time=1,targetDelay=1;float repitchSlew=0.030f;
+ };
+ }
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaData.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaData.h
+index e74ae82..5c63f51 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaData.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/NovaData.h
+@@ -118,6 +118,9 @@ inline const std::vector<Spec>& specs() {
+         s.push_back({"mseg_rate","MSEG rate",0.05f,20.0f,1.0f,0.01f,{}});
+         s.push_back({"mseg_sync","MSEG host sync",0,1,1,1,"OFF|ON"});
+         s.push_back({"mseg_loop","MSEG loop",0,1,1,1,"OFF|ON"});
++        // 1.6.5 debug: скорость, с которой mnm-дилей следует за ручкой DTIM
++        // (repitch повторов при прокрутке времени, убирает клики на 80..127).
++        s.push_back({"dly_repitch","DLY REPITCH (debug)",0,3,2,1,"OFF|FAST|MED|SLOW"});
+         juce::String targets;
+         for(int i=0;i<56;++i) {if(i) targets+="|";targets+=i<8?"SYN "+juce::String(i+1):juce::String(sections[(i-8)/8])+" "+pageLabel((i-8)/8,(i-8)%8);}
+         for(int row=0;row<16;++row) {
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginEditor.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginEditor.cpp
+index a276f2a..165c937 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginEditor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginEditor.cpp
+@@ -88,6 +88,24 @@ public:
+     void mouseDown(const juce::MouseEvent& e) override { PixelButton::mouseDown(e); if (e.mods.isLeftButtonDown()) if (auto* d = juce::DragAndDropContainer::findParentDragContainerFor(this)) d->startDragging("MSEG", this, juce::ScaledImage(), true); }
+ };
+ 
++// 1.6.5: одинаковые кнопки LFO1/LFO2/LFO3. Клик (без движения) выбирает,
++// какой LFO показан в нижней правой панели; пресс-и-тащи в любую ручку и
++// отпусти -- назначит маршрут модуляции на эту цель («прицел» как в матрице,
++// но без второго клика: отпустил там, где хочешь модулировать).
++class ModSourceButton final : public PixelButton {
++public:
++    explicit ModSourceButton(const juce::String& s):PixelButton(s){}
++    std::function<void()> beginDrag;
++    std::function<void(juce::Point<int>)> dragMove;
++    std::function<void(juce::Point<int>,bool)> endDrag;
++    void mouseDown(const juce::MouseEvent& e) override { PixelButton::mouseDown(e); dragged=false; if(beginDrag) beginDrag(); }
++    void mouseDrag(const juce::MouseEvent& e) override { dragged=true; if(dragMove) dragMove(e.getScreenPosition()); }
++    void mouseUp(const juce::MouseEvent& e) override { juce::TextButton::mouseUp(e); if(endDrag) endDrag(e.getScreenPosition(),dragged); dragged=false; }
++    void clicked() override {} // клик обрабатывается в endDrag(dragged==false)
++private:
++    bool dragged=false;
++};
++
+ // Host-value helpers shared by the list cells: every parameter in this plugin is an
+ // AudioParameterChoice or integer-scaled AudioParameterFloat, so stepping by
+ // convertTo0to1/convertFrom0to1 pairs lands exactly on legal values without touching
+@@ -128,8 +146,11 @@ public:
+         slider.setScrollWheelEnabled(true);addAndMakeVisible(slider);startTimerHz(20);
+     }
+     std::function<void()> openSamples;std::function<void(int)> openEnvelope;std::function<void(int)> openModes;std::function<void(uint8_t)> addMsegModulation;std::function<void(uint8_t)> pickTarget;
+-    void setPickMode(bool enabled){pickMode=enabled;slider.setVisible(parameter&&!isChoice&&!enabled);repaint();}
++    void setPickMode(bool enabled){pickMode=enabled&&modTarget;slider.setVisible(parameter&&!isChoice&&!pickMode);repaint();}
+     bool isTarget(uint8_t target) const noexcept { return modulationTarget() == target; }
++    // 1.6.5: ячейки быстрых настроек MSEG не являются целями модуляции.
++    bool canBeTarget() const noexcept { return modTarget && parameter != nullptr; }
++    uint8_t targetId() const noexcept { return modulationTarget(); }
+     void flashPick(){flashTicks=18;repaint();}
+     std::function<void(uint8_t)> pickHover;
+     bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails& details) override { return details.description.toString() == "MSEG" && parameter != nullptr && !isChoice; }
+@@ -146,8 +167,8 @@ public:
+             return targetName(processor,(page-1)*8+juce::jlimit(0,7,value));}
+         const auto names=parameter->getAllValueStrings();return names.size()>value?names[value]:parameter->getText(hostFor(*parameter,value),32);
+     }
+-    void bind(const juce::String& parameterId,const juce::String& name,int page=-1,int index=-1,int engine=-1){
+-        attachment.reset();id=parameterId;label=name;pageIndex=page;knob=index;machine=engine;
++    void bind(const juce::String& parameterId,const juce::String& name,int page=-1,int index=-1,int engine=-1,bool modTargetEnabled=true){
++        attachment.reset();id=parameterId;label=name;pageIndex=page;knob=index;machine=engine;modTarget=modTargetEnabled;
+         parameter=id.isEmpty()?nullptr:processor.parameters.getParameter(id);
+         slider.curveMenu={};if(pageIndex==0&&(knob==0||knob==2||knob==3))slider.curveMenu=[this]{if(openEnvelope)openEnvelope(knob);};
+         // RMB elsewhere opens the DSP mode list of the section this knob belongs to
+@@ -209,7 +230,7 @@ public:
+     // Press-drag is the primary way to swap lists (8 px per entry); a plain click
+     // still opens the popup list as a bonus.
+     void mouseDown(const juce::MouseEvent&e)override{
+-        if(pickMode&&parameter){if(pickTarget)pickTarget(modulationTarget());return;}
++        if(pickMode&&parameter&&modTarget){if(pickTarget)pickTarget(modulationTarget());return;}
+         if(pageIndex==0&&(knob==0||knob==2||knob==3)&&e.mods.isPopupMenu()){popupHandled=true;if(openEnvelope)openEnvelope(knob);return;}
+         if(machine==7&&knob==2&&e.mods.isPopupMenu()){popupHandled=true;if(openSamples)openSamples();return;}
+         if(!parameter)return;
+@@ -239,7 +260,7 @@ private:
+         return 0;
+     }
+     void timerCallback()override{if(flashTicks>0)--flashTicks;repaint();}
+-    MonomachineNovaAudioProcessor& processor;juce::String id,label;int pageIndex=-1,knob=-1,machine=-1,flashTicks=0;bool isChoice=false;
++    MonomachineNovaAudioProcessor& processor;juce::String id,label;int pageIndex=-1,knob=-1,machine=-1,flashTicks=0;bool isChoice=false,modTarget=true;
+     int dragOriginY=0,dragBaseIndex=0;bool dragMoved=false,gestureOpen=false,popupHandled=false,pickMode=false;
+     juce::RangedAudioParameter* parameter=nullptr;CurveSlider slider;
+     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
+@@ -258,7 +279,7 @@ class SettingsPage final : public juce::Component {
+ public:
+     SettingsPage(MonomachineNovaAudioProcessor& p,bool matrix):processor(p){
+         if(matrix)return; // the matrix has its own page below
+-        std::vector<juce::String> ids={"arp_on","arp_hold","host_sync","arp_range","arp_sync","arp_play","arp_grid","arp_length","arp_wrap","arp_velocity_mode","arp_step","arp_step_velocity","arp_step_transpose","arp_step_hold","arp_time","bpm","mseg_sync","mseg_loop","mseg_rate","macro_x","macro_y"};
++        std::vector<juce::String> ids={"arp_on","arp_hold","host_sync","arp_range","arp_sync","arp_play","arp_grid","arp_length","arp_wrap","arp_velocity_mode","arp_step","arp_step_velocity","arp_step_transpose","arp_step_hold","arp_time","bpm","mseg_sync","mseg_loop","mseg_rate","dly_repitch","macro_x","macro_y"};
+         if(!p.isSynthVersion){ids.push_back("fx_mix");ids.push_back("gate");}
+         for(const auto& id:ids){auto* parameter=p.parameters.getParameter(id);if(!parameter)continue;
+             auto row=std::make_unique<Row>();row->label.setText(parameter->getName(128),juce::dontSendNotification);row->label.setColour(juce::Label::textColourId,ink);
+@@ -563,10 +584,21 @@ public:
+ }
+ 
+ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, public juce::DragAndDropContainer {
+-    explicit Surface(MonomachineNovaAudioProcessor& p):processor(p),machineButton(""),menuButton("MENU"),tempoButton(""),arpButton("ARP"),arpSettingsButton("SET"),matrixButton("MATRIX"),lfoButton("LFO2"),lfo3Button("LFO3"),msegButton("MSEG"),msegOutputButton("MSEG OUT"),closeButton("BACK"),gateButton(""){
++    explicit Surface(MonomachineNovaAudioProcessor& p):processor(p),machineButton(""),menuButton("MENU"),tempoButton(""),arpButton("ARP"),arpSettingsButton("SET"),matrixButton("MATRIX"),lfo1Button("LFO1"),lfo2Button("LFO2"),lfo3Button("LFO3"),msegButton("MSEG"),msegOutputButton("MSEG OUT"),closeButton("BACK"),gateButton(""){
+         setLookAndFeel(&theme);
+         for(auto& panel:cells)for(auto& cell:panel){cell=std::make_unique<Cell>(p);cell->openSamples=[this]{showSamples();};cell->openEnvelope=[this](int knob){showEnvelope(knob);};cell->openModes=[this](int section){showDspModes(section);};cell->addMsegModulation=[this](uint8_t target){processor.addMsegRoute(target);};cell->pickTarget=[this](uint8_t target){completeTargetPick(target);};cell->pickHover=[this](uint8_t target){pickHoverTarget=target;};addAndMakeVisible(*cell);}
+-        for(auto* button:{&machineButton,&menuButton,&tempoButton,&arpButton,&arpSettingsButton,&matrixButton,&lfoButton,&lfo3Button,&msegButton})addAndMakeVisible(*button);addAndMakeVisible(msegOutputButton);msegOutputButton.textHeight=12;msegOutputButton.setTooltip("Drag this external MSEG output point onto a Matrix target or parameter.");
++        for(auto* button:{&machineButton,&menuButton,&tempoButton,&arpButton,&arpSettingsButton,&matrixButton,&lfo1Button,&lfo2Button,&lfo3Button,&msegButton})addAndMakeVisible(*button);addAndMakeVisible(msegOutputButton);msegOutputButton.textHeight=12;msegOutputButton.setTooltip("Drag this external MSEG output point onto a Matrix target or parameter.");
++        // 1.6.5: три одинаковые кнопки LFO1/2/3. Клик -- показать LFO в правой
++        // нижней панели; пресс-и-тащи с отпусканием на ручке -- назначить
++        // маршрут модуляции без второго клика.
++        auto wireLfo=[this](ModSourceButton& b,int i){
++            b.textHeight=24;
++            b.beginDrag=[this,i]{beginModDrag(4+i);};
++            b.dragMove=[this](juce::Point<int> s){modDragMove(s);};
++            b.endDrag=[this,i](juce::Point<int> s,bool dragged){endModDrag(s,dragged,i);};
++            b.setTooltip("LFO"+juce::String(i+1)+": click = show this LFO panel; press, drag to any knob and release = assign LFO"+juce::String(i+1)+" modulation to that target.");
++        };
++        wireLfo(lfo1Button,0);wireLfo(lfo2Button,1);wireLfo(lfo3Button,2);
+         addAndMakeVisible(dspModeButton);dspModeButton.onClick=[this]{showDspModes(-1);};updateDspModeLabel();
+         addAndMakeVisible(ampButton);ampButton.setButtonText("AMP");ampButton.textHeight=28;ampButton.textAlign=1;ampButton.onClick=[this]{showEnvelope(-1);};
+         addAndMakeVisible(ampMode);ampMode.setScrollWheelEnabled(true);ampMode.addItem("LEGACY 1.4",1);ampMode.addItem("REFERENCE FIT",2);ampModeLink=std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(p.parameters,"amp_mode",ampMode);
+@@ -587,9 +619,9 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         arpButton.dragPixelsPerStep=2;arpButton.dragHandler=[this](int steps){const bool sync=processor.parameters.getRawParameterValue("arp_sync")->load()>0.5f;auto* par=processor.parameters.getParameter(sync?"arp_grid":"arp_time");float value=par->convertFrom0to1(par->getValue())+static_cast<float>(steps)*(sync?1.0f:10.0f);par->beginChangeGesture();par->setValueNotifyingHost(par->convertTo0to1(juce::jlimit(sync?0.0f:5.0f,sync?15.0f:2000.0f,value)));par->endChangeGesture();update();};
+         arpButton.textHeight=18;arpSettingsButton.textHeight=12;arpSettingsButton.setTooltip("Open the ARP step editor");arpSettingsButton.onClick=[this]{showSettings(false);};
+         matrixButton.textHeight=22;matrixButton.onClick=[this]{showSettings(true);};
+-        lfoButton.textHeight=28;
+-        lfoButton.onClick=[this]{showLfo3=false;bind();repaint();};lfo3Button.textHeight=24;lfo3Button.onClick=[this]{showLfo3=true;bind();repaint();};lfoButton.setTooltip("Click to switch between LFO2 and LFO3; all three run independently.");
+-        msegButton.textHeight=24;msegButton.onClick=[this]{showMseg();};msegButton.setTooltip("Open the multi-segment modulation editor. Drag OUTPUT to a parameter or a matrix target.");
++        // 1.6.5: кнопки MSEG переехали в освободившуюся верхнюю правую панель
++        // (ранее LFO1), рядом с быстрыми ручками RATE/SYNC/LOOP.
++        msegButton.textHeight=16;msegButton.onClick=[this]{showMseg();};msegButton.setTooltip("Open the multi-segment modulation editor. Drag OUTPUT to a parameter or a matrix target.");
+         closeButton.textHeight=20;closeButton.onClick=[this]{if(pickingTarget){for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(false);pickingTarget=false;}viewport.setViewedComponent(nullptr);settings.reset();matrixPage.reset();samplePage.reset();msegPage.reset();envelopePage.reset();viewport.setVisible(false);closeButton.setVisible(false);repaint();};
+         addChildComponent(viewport);addChildComponent(closeButton);
+         addAndMakeVisible(arpEnabled);arpEnabled.setTooltip("Enable arpeggiator");
+@@ -603,12 +635,34 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     void bind(){
+         boundMachine=processor.machineIndex();updateDspModeLabel();const auto& m=nova::machines()[static_cast<size_t>(boundMachine)];machineButton.setButtonText(m.name+"  >");machineButton.textHeight=28;
+         for(int i=0;i<8;++i){const auto& def=m.synthParams[static_cast<size_t>(i)];cells[0][static_cast<size_t>(i)]->bind(def.maxVal?nova::machineParam(m.id,i):juce::String(),def.name,-1,i,m.id);}
+-        const int pageForPanel[]={-1,0,3,1,2,showLfo3?5:4};
+-        for(int panel=1;panel<6;++panel)for(int i=0;i<8;++i){int page=pageForPanel[panel];cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->bind(nova::pageParam(page,i),nova::pageLabel(page,i),page,i);}
+-        lfoButton.setButtonText(showLfo3?"LFO2":"[LFO2]");lfo3Button.setButtonText(showLfo3?"[LFO3]":"LFO3");
++        // 1.6.5: верхняя правая панель -- быстрые настройки MSEG (не цели
++        // модуляции), правая нижняя -- выбранный LFO (LFO1/2/3 кнопками).
++        cells[2][0]->bind("mseg_rate","RATE",-1,0,-1,false);
++        cells[2][1]->bind("mseg_sync","SYNC",-1,1,-1,false);
++        cells[2][2]->bind("mseg_loop","LOOP",-1,2,-1,false);
++        for(int i=3;i<8;++i)cells[2][static_cast<size_t>(i)]->bind(juce::String(),"---",-1,i,-1,false);
++        const int pageForPanel[]={-1,0,-1,1,2,3+lfoPageSel};
++        for(int panel=1;panel<6;++panel){if(panel==2)continue;for(int i=0;i<8;++i){int page=pageForPanel[panel];cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->bind(nova::pageParam(page,i),nova::pageLabel(page,i),page,i);}}
++        lfo1Button.setButtonText(lfoPageSel==0?"[LFO1]":"LFO1");
++        lfo2Button.setButtonText(lfoPageSel==1?"[LFO2]":"LFO2");
++        lfo3Button.setButtonText(lfoPageSel==2?"[LFO3]":"LFO3");
+         if(!processor.isSynthVersion)updateGateLabel();
+         repaint();
+     }
++    // 1.6.5: модуляция «прицелом» перетаскиванием с кнопок LFO1/2/3:
++    // зажал кнопку, довёл до ручки, отпустил -- маршрут назначен (без второго
++    // клика, в отличие от матрицы).
++    void beginModDrag(int src){modDragSrc=src;modHover=nullptr;for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(true);}
++    void modDragMove(juce::Point<int> screen){auto* cell=cellAtScreen(screen);if(cell!=modHover){modHover=cell;if(cell)cell->flashPick();}}
++    void endModDrag(juce::Point<int> screen,bool dragged,int lfoIndex){
++        for(auto& column:cells)for(auto& cell:column)if(cell)cell->setPickMode(false);
++        const int src=modDragSrc;modDragSrc=-1;modHover=nullptr;
++        if(src<0)return;
++        if(dragged){auto* cell=cellAtScreen(screen);if(cell&&cell->canBeTarget()){processor.addRouteFromSource(src,cell->targetId());cell->flashPick();}}
++        else{lfoPageSel=juce::jlimit(0,2,lfoIndex);bind();}
++        repaint();
++    }
++    Cell* cellAtScreen(juce::Point<int> screen){for(auto& column:cells)for(auto& cell:column)if(cell&&cell->getScreenBounds().contains(screen))return cell.get();return nullptr;}
+     void update(){
+         if(boundMachine!=processor.machineIndex())bind();
+         tempoButton.setButtonText(juce::String(processor.parameters.getRawParameterValue("host_sync")->load()>0.5f?processor.currentBpm():static_cast<double>(processor.parameters.getRawParameterValue("bpm")->load()),1));
+@@ -625,20 +679,22 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         pixel::text(g,processor.isSynthVersion?"MONOMACHINE NOVA SYNTH":"MONOMACHINE NOVA FX",{66,0,670,40},24);
+         pixel::text(g,"BPM",{855,4,68,30},22);pixel::text(g,"LEV",{7,56,58,32},28);
+         pixel::dotted(g,8,94,8,558);pixel::dotted(g,61,94,61,558);pixel::dotted(g,8,94,63,94);pixel::dotted(g,8,558,63,558);
+-        const char* names[]{"SYNT","","LFO1","FILT","EFFX",""};
++        const juce::String lfoPanelName="LFO"+juce::String(lfoPageSel+1); // 1.6.5
++        const juce::String names[]{"SYNT","","MSEG","FILT","EFFX",lfoPanelName};
+         for(int panel=0;panel<6;++panel){int x=72+(panel%3)*399,y=94+(panel/3)*240;
+             g.setColour(ink.withAlpha(0.35f));g.drawRect(x,y,387,236,1);g.setColour(ink);g.drawRect(x,y,387,30,2);pixel::text(g,names[panel],{x+5,y,377,30},28);
+             g.setColour(ink);for(int c=0;c<=4;++c)pixel::dotted(g,x+c*96,y+34,x+c*96,y+228);
+             pixel::dotted(g,x,y+34,x+388,y+34);pixel::dotted(g,x,y+130,x+388,y+130);pixel::dotted(g,x,y+228,x+388,y+228);}
+ 
+         g.setColour(ink.withAlpha(0.4f));g.drawRect(8,94,55,464,2);
+-        g.setColour(ink.withAlpha(0.65f));g.drawText(processor.isSynthVersion?"BUILD 1.6.0 / Synth / mnm modes":"BUILD 1.6.0 / FX / mnm modes",850,570,370,13,juce::Justification::right);
++        g.setColour(ink.withAlpha(0.65f));g.drawText(processor.isSynthVersion?"BUILD 1.6.5 / Synth / mnm modes":"BUILD 1.6.5 / FX / mnm modes",850,570,370,13,juce::Justification::right);
+     }
+     void resized()override{
+         ampButton.setBounds(473,95,120,28);ampMode.setBounds(640,97,213,25);
+         machineButton.setBounds(72,58,387,30);dspModeButton.setBounds(1014,58,140,30);menuButton.setBounds(1161,4,94,32);tempoButton.setBounds(925,4,88,30);tempoSync.setBounds(1020,4,96,30);tempoEntry.setBounds(925,4,88,30);
+         arpEnabled.setBounds(471,58,26,30);arpButton.setBounds(500,58,120,30);arpSettingsButton.setBounds(624,58,34,30);trigToggle.setBounds(700,58,140,30);matrixButton.setBounds(870,58,140,30);
+-        lfoButton.setBounds(870,334,120,30);lfo3Button.setBounds(995,334,120,30);msegButton.setBounds(1090,334,82,30);msegOutputButton.setBounds(1178,334,78,30);
++        lfo1Button.setBounds(995,334,80,30);lfo2Button.setBounds(1080,334,80,30);lfo3Button.setBounds(1165,334,80,30);
++        msegButton.setBounds(1000,97,90,24);msegOutputButton.setBounds(1096,97,110,24);
+         level.setBounds(12,97,46,458);
+         for(int panel=0;panel<6;++panel)for(int i=0;i<8;++i)cells[static_cast<size_t>(panel)][static_cast<size_t>(i)]->setBounds(75+(panel%3)*399+(i%4)*96,130+(panel/3)*240+(i/4)*96,91,91);
+         viewport.setBounds(65,88,1192,480);closeButton.setBounds(1070,51,145,32);gateButton.setVisible(false);
+@@ -701,16 +757,21 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+         menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&machineButton).withMinimumWidth(320),[safe](int result){if(!safe||result<=0)return;
+             auto* p=safe->processor.parameters.getParameter("machine");p->beginChangeGesture();p->setValueNotifyingHost(p->convertTo0to1(static_cast<float>(result-1)));p->endChangeGesture();safe->bind();});
+     }
+-    // DSP mode list - fixed: erase extra m letters, show all 8 modes with explanations
++    // DSP mode list, 1.6.5: разделы сгруппированы по папкам-категориям
++    // (dspSectionCategory), ROUTE убран (цепочка одна -- справка отдельным
++    // подменю), каждая строка начинается с имени своего раздела.
+     void showDspModes(int section){
+         juce::PopupMenu menu;
+         auto addSection=[&](int index){
++            if(!monomachine::dspSectionVisibleInMenu(index))return; // ROUTE: переключателя больше нет
+             const int current=processor.dspMode(index);
+             const int primary=monomachine::dspModePrimaryForSection(index);
+             juce::PopupMenu sub;
++            // папка/категория: к чему относится раздел (машины, ручки, страницы)
++            sub.addItem(-1,juce::String("ПАПКА: ")+monomachine::dspSectionCategory(index),false,false);
+             // 1) основной режим раздела -- всегда первым пунктом
+             sub.addItem(index*100+primary+1,
+-                        "mnm - ОСНОВНОЙ: "+juce::String(monomachine::dspModeProvenanceForMode(index,primary)),
++                        juce::String(monomachine::dspModeProvenanceForMode(index,primary)),
+                         true, current==primary);
+             // 2) резервные режимы -- только те, что имеют смысл в ЭТОМ разделе
+             if(monomachine::kShowBackupModes){
+@@ -722,22 +783,30 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+                 }
+                 if(backups.size()>0){
+                     sub.addSeparator();
+-                    sub.addItem(-1,"РЕЗЕРВ (бэкап, не основной):",false,false);
++                    sub.addItem(-1,"РЕЗЕРВ (не основной):",false,false);
+                     for(auto& name:backups){
+                         const int m=monomachine::dspModeIndexByName(name.toRawUTF8());
+                         if(m<0)continue;
+                         sub.addItem(index*100+m+1,
+-                                    "   "+name+" - "+juce::String(monomachine::dspModeProvenanceForMode(index,m)),
++                                    juce::String(monomachine::dspModeProvenanceForMode(index,m)),
+                                     true, current==m);
+                     }
+                 }
+             }
+             sub.addSeparator();
+             sub.addItem(-1, monomachine::dspModeProvenance(index), false, false);
+-            menu.addSubMenu(juce::String(monomachine::dspSectionLabel(index))+"   ["+juce::String(monomachine::dspModeLabel(current))+"]",sub);
++            menu.addSubMenu(juce::String(monomachine::dspSectionCategory(index))+" / "+juce::String(monomachine::dspSectionLabel(index))+"   ["+juce::String(monomachine::dspModeLabel(current))+"]",sub);
+         };
+         if(section>=0&&section<monomachine::DspSectionCount)addSection(section);
+         else for(int i=0;i<monomachine::DspSectionCount;++i)addSection(i);
++        // 1.6.5: справка по цепочке (ROUTE) -- описание при наведении, без переключения
++        if(section<0||section==monomachine::DspRouting){
++            juce::PopupMenu route;
++            route.addItem(-1,"ЦЕПЬ ОДНА (ПРОВЕРЕНА), ПЕРЕКЛЮЧАТЕЛЬ УБРАН В 1.6.5",false,false);
++            for(const auto& line:juce::StringArray::fromLines(juce::String(monomachine::dspRouteDescription())))
++                if(line.isNotEmpty())route.addItem(-1,line,false,false);
++            menu.addSubMenu("ЦЕПЬ / ROUTE   [fixed]",route);
++        }
+         juce::Component::SafePointer<Surface> safe(this);
+         menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&dspModeButton).withMinimumWidth(560),[safe](int result){
+             if(!safe||result<=0)return;
+@@ -750,15 +819,21 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+             safe->updateDspModeLabel();});
+     }
+     void updateDspModeLabel(){
+-        juce::String text="DSP MODE";
+-        dspModeButton.setButtonText(text);
+-        juce::String tip="DSP MODE -- в каждом разделе свой список, основной режим mnm:\n";
++        dspModeButton.setButtonText("DSP MODE");
++        // 1.6.5: тултип сгруппирован по папкам, строки начинаются с имени
++        // своего раздела; в конце -- подробное описание цепочки (ROUTE),
++        // как она влияет на звук и почему при дефолте FX не меняет источник.
++        juce::String tip="DSP MODE -- папки разделов, основной режим mnm:\n";
+         for(int i=0;i<monomachine::DspSectionCount;++i){
++            if(!monomachine::dspSectionVisibleInMenu(i))continue;
+             const int mode=processor.dspMode(i);
+-            tip+=juce::String(monomachine::dspSectionLabel(i))+": "+juce::String(monomachine::dspModeLabel(mode));
++            tip+=juce::String(monomachine::dspSectionCategory(i))+" / "+juce::String(monomachine::dspSectionLabel(i));
++            tip+=" ["+juce::String(monomachine::dspModeLabel(mode))+"]";
+             tip+= (mode==monomachine::dspModeMnm) ? " (основной)" : " (резерв)";
+             tip+=" - "+juce::String(monomachine::dspModeProvenanceForMode(i,mode))+"\n";
+         }
++        tip+="\n";
++        tip+=juce::String(monomachine::dspRouteDescription());
+         dspModeButton.setTooltip(tip);
+     }
+     void showSettings(bool matrix){setViewportMode(matrix);}
+@@ -769,7 +844,7 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+             if(result==1||result==2)safe->setViewportMode(result==2);if(result==8)safe->showMseg();
+             if(result==3)safe->processor.resetSamples();if(result==4)safe->processor.requestPanic();
+             if(result==5){safe->processor.requestPanic();for(auto* parameter:safe->processor.getParameters()){parameter->beginChangeGesture();parameter->setValueNotifyingHost(parameter->getDefaultValue());parameter->endChangeGesture();}safe->bind();}
+-            if(result==6)juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,"Monomachine Nova Synth / BUILD 1.6.0","Build 1.6.0 mnm modes: AMP editor, MIDI/LATCH, FX unity calibration.\nNative implementations; not an exact emulator.\nFX-CHORUS runs the translated OS 1.32B core (24-bit fixed point, DEL/DEP/SPD/MIX/FB/WID/LP/INP).\nINP is input gain everywhere, DIST/DSND are bipolar, DSND<0 pings across.\nFX: MIDI OFF = latch holds AMP open; MIDI ON = note envelope gate.\nAHD: HOLD=127 sustains. MENU contains arp and 8 modulation routes.\nBBOX: 24 native sample slots, CHRM keyboard map and embedded custom PCM. Factory ROM audio is not included.\nLFO/ARP use host BPM but are note-synchronised, not timeline-locked.\nNo oversampling or output limiter. Turn down LEV before testing.");
++            if(result==6)juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,"Monomachine Nova Synth / BUILD 1.6.5","Build 1.6.5: AMP editor, MIDI/LATCH, FX unity calibration.\nNative implementations; not an exact emulator.\nFX-CHORUS runs the translated OS 1.32B core (24-bit fixed point, DEL/DEP/SPD/MIX/FB/WID/LP/INP).\nINP is input gain everywhere, DIST/DSND are bipolar, DSND<0 pings across.\nFX: MIDI OFF = latch holds AMP open; MIDI ON = note envelope gate.\nAHD: HOLD=127 sustains. MENU contains arp and 8 modulation routes.\nBBOX: 24 native sample slots, CHRM keyboard map and embedded custom PCM. Factory ROM audio is not included.\nLFO/ARP use host BPM but are note-synchronised, not timeline-locked.\nNo oversampling or output limiter. Turn down LEV before testing.");
+             if(result==7)safe->showSamples();
+         });
+     }
+@@ -780,14 +855,14 @@ struct MonomachineNovaAudioProcessorEditor::Surface final : juce::Component, pub
+     }
+     MonomachineNovaAudioProcessor& processor;PixelTheme theme;
+     std::array<std::array<std::unique_ptr<Cell>,8>,6> cells;
+-    PixelButton machineButton,menuButton,tempoButton,arpButton,arpSettingsButton,matrixButton,lfoButton,lfo3Button,msegButton;MsegOutputButton msegOutputButton;PixelButton closeButton,gateButton;juce::Slider level;PixelButton dspModeButton{"DSP MODE"};
++    PixelButton machineButton,menuButton,tempoButton,arpButton,arpSettingsButton,matrixButton,msegButton;ModSourceButton lfo1Button,lfo2Button,lfo3Button;MsegOutputButton msegOutputButton;PixelButton closeButton,gateButton;juce::Slider level;PixelButton dspModeButton{"DSP MODE"};
+     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> levelLink;
+     juce::ToggleButton arpEnabled,trigToggle,tempoSync;juce::TextEditor tempoEntry;std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tempoSyncLink;
+     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> arpLink,trigLink;
+     PixelButton ampButton{"AMP"};juce::ComboBox ampMode;std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> ampModeLink;std::unique_ptr<EnvelopePage> envelopePage;
+     std::unique_ptr<SamplePage> samplePage;std::unique_ptr<MsegPage> msegPage;
+     std::unique_ptr<ArpPage> settings;std::unique_ptr<MatrixPage> matrixPage;FramedViewport viewport;std::unique_ptr<juce::FileChooser> chooser;
+-    juce::TooltipWindow tooltips{this,800};bool showLfo3=false;int boundMachine=-1;bool pickingTarget=false;int pickRoute=-1,pickHoverTarget=-1;
++    juce::TooltipWindow tooltips{this,800};int lfoPageSel=1;int modDragSrc=-1;Cell* modHover=nullptr;int boundMachine=-1;bool pickingTarget=false;int pickRoute=-1,pickHoverTarget=-1;
+ };
+ MonomachineNovaAudioProcessorEditor::MonomachineNovaAudioProcessorEditor(MonomachineNovaAudioProcessor& p):AudioProcessorEditor(&p),processor(p){
+     surface=std::make_unique<Surface>(p);addAndMakeVisible(*surface);
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.cpp
+index bb9df21..e3226de 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.cpp
+@@ -25,6 +25,7 @@ MonomachineNovaAudioProcessor::MonomachineNovaAudioProcessor():AudioProcessor(is
+     parameters(*this,nullptr,isSynthVersion?"NovaUnifiedSynth":"NovaUnifiedFX",createLayout()){
+     machineRaw=parameters.getRawParameterValue("machine");
+     const char* ampIds[]{"amp_mode","amp_curve_a","amp_curve_d","amp_curve_r"};for(size_t i=0;i<4;++i)ampRaw[i]=parameters.getRawParameterValue(ampIds[i]);
++    repitchRaw=parameters.getRawParameterValue("dly_repitch");
+     for(int i=0;i<monomachine::DspSectionCount;++i)modeRaw[static_cast<size_t>(i)]=parameters.getRawParameterValue(monomachine::dspModeParamId(i));
+     for(size_t m=0;m<nova::machines().size();++m)for(int i=0;i<8;++i)
+         if(nova::machines()[m].synthParams[static_cast<size_t>(i)].maxVal>0)synthRaw[m][static_cast<size_t>(i)]=parameters.getRawParameterValue(nova::machineParam(nova::machines()[m].id,i));
+@@ -72,6 +73,7 @@ void MonomachineNovaAudioProcessor::snapshot(){
+     envelope.configure(dspModes[monomachine::DspAmp]==monomachine::dspModeMnm?nova::AmpEnvelope::kKernelAlgorithm:juce::roundToInt(ampRaw[0]->load()),{ampRaw[1]->load(),ampRaw[2]->load(),ampRaw[3]->load()});
+     machine.setModes(dspModes[monomachine::DspSynt],dspModes[monomachine::DspDist]);
+     chain.setModes(dspModes[monomachine::DspFilter],dspModes[monomachine::DspDist],dspModes[monomachine::DspDelay],dspModes[monomachine::DspRouting]);
++    chain.setRepitch(repitchRaw?juce::roundToInt(repitchRaw->load()):2);
+     for(size_t i=0;i<GlobalCount;++i)global[i]=globalRaw[i]?globalRaw[i]->load(std::memory_order_relaxed):0;
+     int selected=juce::jlimit(0,static_cast<int>(nova::machines().size())-1,juce::roundToInt(machineRaw->load()));
+     for(int i=0;i<8;++i){auto* ptr=synthRaw[static_cast<size_t>(selected)][static_cast<size_t>(i)];base[static_cast<size_t>(i)]=ptr?ptr->load():0;}
+@@ -298,6 +300,28 @@ void MonomachineNovaAudioProcessor::addMsegRoute(uint8_t target){
+     set("r"+juce::String(slot)+"_mode",0.0f);
+     set("r"+juce::String(slot)+"_on",1.0f);
+ }
++void MonomachineNovaAudioProcessor::addRouteFromSource(int src, uint8_t target){
++    const int source=juce::jlimit(0,15,src);
++    const int destination=juce::jlimit(0,55,static_cast<int>(target));
++    // 1.6.5: если у этого источника уже есть маршрут на эту цель -- перезаписать
++    // его (повторное перетаскивание не плодит маршруты), иначе занять первый
++    // свободный слот, иначе слот 16.
++    int slot=-1;
++    for(int r=0;r<16;++r){
++        auto* on=parameters.getRawParameterValue("r"+juce::String(r)+"_on");
++        auto* dest=parameters.getRawParameterValue("r"+juce::String(r)+"_dest");
++        auto* srcPar=parameters.getRawParameterValue("r"+juce::String(r)+"_src");
++        if(on&&dest&&srcPar&&on->load()>0.5f&&juce::roundToInt(srcPar->load())==source&&juce::roundToInt(dest->load())==destination){slot=r;break;}
++    }
++    if(slot<0)for(int r=0;r<16;++r){auto* on=parameters.getRawParameterValue("r"+juce::String(r)+"_on");if(on&&on->load()<0.5f){slot=r;break;}}
++    if(slot<0)slot=15;
++    auto set=[this](const juce::String& id,float value){if(auto* p=parameters.getParameter(id)){p->beginChangeGesture();p->setValueNotifyingHost(p->convertTo0to1(value));p->endChangeGesture();}};
++    set("r"+juce::String(slot)+"_src",static_cast<float>(source));
++    set("r"+juce::String(slot)+"_dest",static_cast<float>(destination));
++    set("r"+juce::String(slot)+"_depth",32.0f);
++    set("r"+juce::String(slot)+"_mode",0.0f);
++    set("r"+juce::String(slot)+"_on",1.0f);
++}
+ void MonomachineNovaAudioProcessor::moveModRoute(int from,int to){
+     if(from<0||from>=16||to<0||to>=16||from==to)return;
+     const char* fields[]={"on","src","dest","depth","mode"};
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.h b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.h
+index 8323344..e89e76f 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.h
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/PluginProcessor.h
+@@ -51,6 +51,9 @@ public:
+     bool removeMsegPoint(int index) noexcept { return mseg.removePoint(index); }
+     void resetMseg() noexcept { mseg.reset(); }
+     void addMsegRoute(uint8_t target);
++    // 1.6.5: назначение модуляции «прицелом» перетаскиванием с кнопки источника
++    // (LFO1/2/3): создать/перезаписать маршрут src->target и включить его.
++    void addRouteFromSource(int src, uint8_t target);
+     void moveModRoute(int from, int to);
+     void sortModRoutes(int column, bool descending);
+     int dspMode(int section) const {return (section>=0&&section<monomachine::DspSectionCount)?dspModes[static_cast<size_t>(section)]:monomachine::dspModeMnm;}
+@@ -58,6 +61,7 @@ public:
+ private:
+     enum Global {Level,Bpm,HostSync,Mix,Gate,ArpMode,ArpPlay,ArpSpeed,ArpRange,ArpLength,MacroX,MacroY,ArpOn,ArpHold,ArpSync,ArpTime,ArpGrid,ArpWrap,ArpVelocityMode,ArpStep,ArpStepVelocity,ArpStepTranspose,ArpStepHold,ArpStepPage,ArpStepPageLimit,ArpStepRandom,MsegRate,MsegSync,MsegLoop,GlobalCount};
+     std::array<std::atomic<float>*,4> ampRaw{};
++    std::atomic<float>* repitchRaw=nullptr; // 1.6.5: dly_repitch (debug)
+     // DSP mode lists ("mnm" default, "old" selectable). See models/DspModes.hpp.
+     std::array<std::atomic<float>*,monomachine::DspSectionCount> modeRaw{};
+     std::array<int,monomachine::DspSectionCount> dspModes{};
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDelay.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDelay.hpp
+index d4eb24c..ed887c9 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDelay.hpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/mnm/MnmDelay.hpp
+@@ -1,24 +1,28 @@
+-// FX-DLY (machine 32) "mnm" core -- Monomachine Nova 1.6.0
++// FX-DLY (machine 32) "mnm" core -- Monomachine Nova 1.6.0 / revised 1.6.5
+ //
+ // Recovered geometry and parameter law from P:$147B38-$147D00
+ // (listings: memory_images/dsp1_machines_fx.txt):
+ //
+ //   * buffer: X:$114000, 2048 words per channel, second channel at +$800
+-//     (`move #>$114000,a0`, REPORT_verdict_and_fm_data.md part 1.3)
+ //   * delay time: DEL parameter is turned into a read rate through the reciprocal
+-//     table X:$144C49 (values 1/1, 1/2, 1/3 ... 1/64):
+-//     P:$147BA9-$147BBA  (`move x:(r0+$144c49),x0` / `move x:(r1+$144c49),x0`
+-//                          then two 1.23 multiplies with `asl #$b`)
+-//   * read pointer: fractional read with linear interpolation, the same
+-//     mpysu/dmac/asl pattern the chorus uses for its taps
+-//   * modulation: the read pointer is modulated through the X:$140000 pitch table
+-//     (P:$147BE5-$147C1A) -> the delay has the LFO-modulated "tape" character
++//     table X:$144C49 (values 1/1, 1/2, 1/3 ... 1/64)
++//   * read pointer: fractional read with linear interpolation
++//   * feedback topology: two independent loops with the optional cross feed
++//     used by the ping-pong setting
+ //
+-// What is exact here: buffer size, per-channel split, reciprocal time table,
+-// interpolated fractional read, feedback topology (two independent loops with the
+-// optional cross feed used by the ping-pong setting).
+-// What is approximate: the modulation depth/rate scaling and the exact wet/dry
+-// arithmetic (the listing mixes three read taps with channel-dependent gains).
++// ПРАВКИ 1.6.5 (жалобы пользователя):
++//   * «в mnm эта ручка сенда сломана» — раньше выход core был dry/wet-кроссфейдом
++//     (out = in*(1-mix)+read*mix), а TrackChain добавлял dry ЕЩЁ раз: при DSND=0
++//     сухой сигнал удваивался (+6 дБ), из-за чего «thru режим в fx vst делает
++//     звук громче». Теперь core пишет в линию ВХОД*send и отдаёт ЧИСТО МОКРЫЙ
++//     сигнал (out = read), сухой добавляется ровно один раз в TrackChain —
++//     при DSND=0 цепочка прозрачна (unity).
++//   * «на значениях от 80 до 127 при прокрутке тайм делея клики» — таблица
++//     времён дискретная (64 ступени 1/(n+1)), скачок указателя чтения давал
++//     щелчки. Теперь длина линии slewing-уется к цели с настраиваемой
++//     скоростью (параметр dly_repitch в MENU): плавное изменение длины =
++//     постепенный repitch повторов, как у ленточного дилея, кликов нет.
++//     OFF возвращает прежнее мгновенное поведение (для сравнения).
+ #pragma once
+ 
+ #include "MnmKernel.hpp"
+@@ -43,29 +47,43 @@ public:
+         size = frames;
+         write = 0;
+         maxSamples = static_cast<float>(frames - 2);
++        smoothSamples = -1.0f; // будет инициализирована первой целью
+     }
+     void reset() {
+         std::fill(left.begin(), left.end(), 0.0f);
+         std::fill(right.begin(), right.end(), 0.0f);
+         write = 0;
++        smoothSamples = -1.0f;
+     }
+ 
+-    // delayParam: DEL knob 0..127 -> reciprocal table index (0..63)
+-    // feedback:   0..1 ; mix: 0..1 ; pingPong: cross-feed
+-    // modDepth:   extra read-pointer modulation 0..1, modPhase advanced by modRate
+-    inline void process(float delParam, float feedback, float mix, bool pingPong,
+-                        float modDepth, float modRate, float inL, float inR,
++    // delayParam:   DEL/DTIM knob 0..127 -> reciprocal table index (0..63)
++    // feedback:     0..1
++    // send:         0..1 — how much of the input is written into the line
++    //               (DSND на hardware: 0 = посыла нет, цепочка прозрачна)
++    // pingPong:     cross-feed the two feedback loops
++    // slewSeconds:  0 = мгновенная смена длины (прежнее поведение, возможны
++    //               клики); >0 = время сглаживания длины линии: повторы при
++    //               прокрутке DTIM плавно репитчатся без щелчков.
++    // outL/outR:    ЧИСТО мокрый сигнал; сухой добавляет вызывающий код.
++    inline void process(float delParam, float feedback, float send, bool pingPong,
++                        float slewSeconds, float inL, float inR,
+                         float& outL, float& outR) {
+         // DTIM 0..127 -> 64-entry reciprocal table. The table itself is exact (P:$144C49);
+         // the knob direction is not verified yet, so DTIM 0 is the shortest setting:
+         // index 0 -> 1/64 of the line, index 63 -> the full line.
+         const int idx = std::clamp(static_cast<int>(delParam * 63.0f / 127.0f + 0.5f), 0, 63);
+-        const float delaySamples = std::clamp(maxSamples * kDelayRecip[static_cast<size_t>(63 - idx)],
+-                                              1.0f, maxSamples);
+-        modPhase = wrapf(modPhase + modRate * static_cast<float>(kDspRate / sr) / static_cast<float>(size));
+-        const float wobble = SineTable::instance().read(modPhase) * modDepth * 0.15f;
++        const float target = std::clamp(maxSamples * kDelayRecip[static_cast<size_t>(63 - idx)],
++                                        1.0f, maxSamples);
++        if (smoothSamples < 0.0f) smoothSamples = target;
++        if (slewSeconds > 0.0005f) {
++            const float alpha = 1.0f - std::exp(-1.0f / (static_cast<float>(sr) * slewSeconds));
++            smoothSamples += (target - smoothSamples) * alpha;
++            if (std::fabs(target - smoothSamples) < 0.01f) smoothSamples = target;
++        } else {
++            smoothSamples = target;
++        }
+ 
+-        const float pos = static_cast<float>(write) - delaySamples * (1.0f + wobble);
++        const float pos = static_cast<float>(write) - smoothSamples;
+         float readPos = pos;
+         while (readPos < 0.0f) readPos += static_cast<float>(size);
+         const int i0 = static_cast<int>(readPos) % size;
+@@ -76,22 +94,21 @@ public:
+ 
+         const float fbL = pingPong ? aR : aL;
+         const float fbR = pingPong ? aL : aR;
+-        left[static_cast<size_t>(write)] = inL + fbL * feedback;
+-        right[static_cast<size_t>(write)] = inR + fbR * feedback;
++        left[static_cast<size_t>(write)] = inL * send + fbL * feedback;
++        right[static_cast<size_t>(write)] = inR * send + fbR * feedback;
+         write = (write + 1) % static_cast<size_t>(size);
+ 
+-        outL = inL * (1.0f - mix) + aL * mix;
+-        outR = inR * (1.0f - mix) + aR * mix;
++        outL = aL;
++        outR = aR;
+     }
+ 
+ private:
+-    static float wrapf(float v) { return v - std::floor(v); }
+     std::vector<float> left, right;
+     size_t write = 0;
+     int size = 1024;
+     double sr = kDspRate;
+     float maxSamples = 1022.0f;
+-    float modPhase = 0.0f;
++    float smoothSamples = -1.0f;
+ };
+ 
+ }  // namespace mnm
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_par.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_par.hpp
+new file mode 100644
+index 0000000..33f1828
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_par.hpp
+@@ -0,0 +1,185 @@
++// Nova 1.6.5: FM+ PARALLEL (machine 9) выделен в отдельный файл, чтобы каждую
++// FM-машину можно было править/удалять независимо (просьба пользователя:
++// «раздели все машины… чтобы я мог удалять отдельно версию fm stat»).
++//
++// ИСПРАВЛЕНИЕ 1.6.5 (жалоба: «fm par OLD не работает, 1FRQ и 1ENV — маленький
++// призвук при 1ENV в максимум, частота никак не меняется»):
++//   * раньше индекс каждого модулятора умножался на огибающую с декаем ~20 мс,
++//     поэтому через 20 мс после ноты модуляция исчезала и смена 1FRQ/2FRQ/3FRQ
++//     была не слышна — оставался только короткий призвук в атаке;
++//   * теперь у огибающей есть УСТОЙЧИВЫЙ ПОЛ (45% глубины ручки ENV) и медленный
++//     декей 0.25/0.45/0.65 с: ручка ENV задаёт глубину модуляции, а ручка FRQ
++//     слышимо меняет тембр в любой момент ноты; атака остаётся чуть ярче (плик).
++#pragma once
++
++#include <cmath>
++#include <algorithm>
++#include <cstdint>
++#include <array>
++
++namespace monomachine {
++
++/** Listed fixed frequency ratios (FM+ STATIC / PARALLEL), disassembled from the
++    OS 1.32B frequency lookup tables: 1/64 … 12/1. */
++inline float getFmListedRatio(uint8_t index) {
++    static constexpr std::array<float, 32> kListedRatios = {{
++        0.015625f, // 1/64
++        0.03125f,  // 1/32
++        0.0625f,   // 1/16
++        0.09375f,  // 3/32
++        0.125f,    // 1/8
++        0.1875f,   // 3/16
++        0.25f,     // 1/4
++        0.3125f,   // 5/16
++        0.375f,    // 3/8
++        0.4375f,   // 7/16
++        0.5f,      // 1/2
++        0.625f,    // 5/8
++        0.75f,     // 3/4
++        0.875f,    // 7/8
++        1.0f,      // 1/1 (Fundamental)
++        1.25f,     // 5/4
++        1.333333f, // 4/3
++        1.5f,      // 3/2
++        1.666667f, // 5/3
++        1.75f,     // 7/4
++        2.0f,      // 2/1 (1 Octave up)
++        2.25f,     // 9/4
++        2.5f,      // 5/2
++        2.666667f, // 8/3
++        3.0f,      // 3/1
++        3.5f,      // 7/2
++        4.0f,      // 4/1 (2 Octaves up)
++        5.0f,      // 5/1
++        6.0f,      // 6/1
++        7.0f,      // 7/1
++        8.0f,      // 8/1 (3 Octaves up)
++        12.0f      // 12/1
++    }};
++    const size_t idx = std::min<size_t>(index, kListedRatios.size() - 1);
++    return kListedRatios[idx];
++}
++
++/** ELEKTRON MONOMACHINE FM+ PARALLEL (Machine 9 / 0x09), old ("old") engine.
++    3 parallel modulators into one carrier.
++    1FRQ/2FRQ/3FRQ: listed harmonic ratios; 1ENV/2ENV/3ENV: modulation depth
++    (sustained floor + decaying pluck); TONE handled by the integration; TUNE fine. */
++class MonomachineFmParallel {
++public:
++    MonomachineFmParallel() = default;
++
++    void reset(double sampleRate = 44100.0) {
++        m_sampleRate = sampleRate > 0.0 ? sampleRate : 44100.0;
++        m_phaseCarrier = 0.0f;
++        m_phaseMod1 = 0.0f;
++        m_phaseMod2 = 0.0f;
++        m_phaseMod3 = 0.0f;
++        m_env1 = 0.0f;
++        m_env2 = 0.0f;
++        m_env3 = 0.0f;
++    }
++
++    void setParameters(uint8_t frq1, uint8_t env1, uint8_t frq2, uint8_t env2,
++                       uint8_t frq3, uint8_t env3, uint8_t tone, uint8_t tune) {
++        m_ratioMod1 = getFmListedRatio(static_cast<uint8_t>(frq1 / 4));
++        m_index1 = (static_cast<float>(env1) / 127.0f) * 4.0f;
++
++        m_ratioMod2 = getFmListedRatio(static_cast<uint8_t>(frq2 / 4));
++        m_index2 = (static_cast<float>(env2) / 127.0f) * 4.0f;
++
++        m_ratioMod3 = getFmListedRatio(static_cast<uint8_t>(frq3 / 4));
++        m_index3 = (static_cast<float>(env3) / 127.0f) * 4.0f;
++
++        m_toneParam = tone;
++        m_tuneSemitones = (static_cast<float>(tune) - 64.0f) / 64.0f * 12.0f;
++        updateFrequencies();
++    }
++
++    void noteOn(uint8_t note, uint8_t velocity = 127) {
++        (void)velocity;
++        m_midiNote = note;
++        m_env1 = 1.0f;
++        m_env2 = 1.0f;
++        m_env3 = 1.0f;
++        updateFrequencies();
++    }
++
++    void noteOff() {}
++
++    void processStereo(float* outL, float* outR, size_t numFrames) {
++        constexpr float twoPi = 2.0f * 3.14159265358979323846f;
++        const float sampleRateInv = 1.0f / static_cast<float>(m_sampleRate);
++
++        // 1.6.5: медленные огибающие (0.25/0.45/0.65 с) вместо 20/40/60 мс.
++        const float decay1 = std::exp(-1.0f / (0.25f * static_cast<float>(m_sampleRate)));
++        const float decay2 = std::exp(-1.0f / (0.45f * static_cast<float>(m_sampleRate)));
++        const float decay3 = std::exp(-1.0f / (0.65f * static_cast<float>(m_sampleRate)));
++
++        for (size_t i = 0; i < numFrames; ++i) {
++            m_env1 *= decay1;
++            m_env2 *= decay2;
++            m_env3 *= decay3;
++
++            // Устойчивый пол 45% + атакующий плик до 100%: модуляция слышна
++            // всю ноту, поэтому 1FRQ/2FRQ/3FRQ меняют тембр, а не только атаку.
++            const float depth1 = m_index1 * (kSustain + (1.0f - kSustain) * m_env1);
++            const float depth2 = m_index2 * (kSustain + (1.0f - kSustain) * m_env2);
++            const float depth3 = m_index3 * (kSustain + (1.0f - kSustain) * m_env3);
++
++            const float mod1Out = std::sin(m_phaseMod1) * depth1;
++            const float mod2Out = std::sin(m_phaseMod2) * depth2;
++            const float mod3Out = std::sin(m_phaseMod3) * depth3;
++
++            m_phaseMod1 += twoPi * (m_carrierFreq * m_ratioMod1) * sampleRateInv;
++            m_phaseMod2 += twoPi * (m_carrierFreq * m_ratioMod2) * sampleRateInv;
++            m_phaseMod3 += twoPi * (m_carrierFreq * m_ratioMod3) * sampleRateInv;
++
++            m_phaseMod1 -= twoPi * std::floor(m_phaseMod1 / twoPi);
++            m_phaseMod2 -= twoPi * std::floor(m_phaseMod2 / twoPi);
++            m_phaseMod3 -= twoPi * std::floor(m_phaseMod3 / twoPi);
++
++            const float totalMod = mod1Out + mod2Out + mod3Out;
++            const float carrierOut = std::sin(m_phaseCarrier + totalMod);
++
++            m_phaseCarrier += twoPi * m_carrierFreq * sampleRateInv;
++            m_phaseCarrier -= twoPi * std::floor(m_phaseCarrier / twoPi);
++
++            const float outSample = std::tanh(carrierOut);
++            outL[i] = outSample;
++            outR[i] = outSample;
++        }
++    }
++
++    void setPitchBend(float semitones) { m_pitchBend = semitones; updateFrequencies(); }
++
++private:
++    static constexpr float kSustain = 0.45f;
++    float m_pitchBend = 0.0f;
++    void updateFrequencies() {
++        const float effectivePitch = static_cast<float>(m_midiNote) + m_tuneSemitones + m_pitchBend;
++        m_carrierFreq = 440.0f * std::pow(2.0f, (effectivePitch - 69.0f) / 12.0f);
++    }
++
++    double m_sampleRate = 44100.0;
++    uint8_t m_midiNote = 60;
++    float m_carrierFreq = 261.63f;
++    float m_tuneSemitones = 0.0f;
++
++    float m_ratioMod1 = 1.0f;
++    float m_index1 = 1.0f;
++    float m_ratioMod2 = 2.0f;
++    float m_index2 = 1.0f;
++    float m_ratioMod3 = 3.0f;
++    float m_index3 = 1.0f;
++    uint8_t m_toneParam = 64;
++
++    float m_phaseCarrier = 0.0f;
++    float m_phaseMod1 = 0.0f;
++    float m_phaseMod2 = 0.0f;
++    float m_phaseMod3 = 0.0f;
++    float m_env1 = 0.0f;
++    float m_env2 = 0.0f;
++    float m_env3 = 0.0f;
++};
++
++} // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat.hpp
+new file mode 100644
+index 0000000..c027f1b
+--- /dev/null
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat.hpp
+@@ -0,0 +1,21 @@
++// Nova 1.6.5: FM+ STATIC (machine 8) выделен в собственный файл.
++//
++// ПОЛЬЗОВАТЕЛЬСКОЕ РЕШЕНИЕ 1.6.5: «fm stat в old можешь удалить» и
++// «раздели все машины… чтобы я мог удалять отдельно версию fm stat,
++// а не вмешиваться сразу в 3 FM машины».
++//
++// Поэтому прежний класс MonomachineFmStatic (old-движок) УДАЛЁН из сборки
++// (старый совмещённый файл оставлен рядом как monomachine_fm_stat_par.hpp.bak-v7).
++// Машина FM+ STAT (id 8) при этом НЕ удалена: в режиме old она теперь молча
++// использует основной mnm-кор (monomachine::mnm::FmCore, FmKind::Stat) — тот же,
++// что и в режиме mnm. Резервного old-варианта у FM+ STAT больше нет, о чём
++// честно написано в меню DSP MODE (раздел SYNT).
++//
++// FM+ PAR (id 9) лежит в monomachine_fm_par.hpp, FM+ DYN (id 10) — в
++// monomachine_fm_dynamic.hpp: три FM-машины больше не делят один файл.
++#pragma once
++
++namespace monomachine {
++// Намеренно пусто: old-движок FM+ STATIC удалён в 1.6.5 по просьбе пользователя.
++// Машина 8 работает через mnm-ядро (см. NovaDSP.h, MachineEngine::render).
++} // namespace monomachine
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat_par.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat_par.hpp.bak-v7
+similarity index 100%
+rename from JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat_par.hpp
+rename to JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/dsp/monomachine_fm_stat_par.hpp.bak-v7
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/models/DspModes.hpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/models/DspModes.hpp
+index 4d7a3d8..0b79519 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/models/DspModes.hpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/Source/models/DspModes.hpp
+@@ -1,5 +1,17 @@
+ #pragma once
+-// DSP mode registry -- Monomachine Nova 1.6.3 (ревизия v6)
++// DSP mode registry -- Monomachine Nova 1.6.5 (ревизия v7)
++//
++// ЧТО ИЗМЕНИЛОСЬ В v7 (по жалобам пользователя на 1.6.4):
++//   * Раздел ROUTE убран из меню DSP MODE: проверенная цепочка одна
++//     (synth->dist->srr->filt+eq->env->dsnd), переключатель ничего не менял
++//     на слух («если так можно просто удалить mnm роутинг»). Параметр mode_route
++//     оставлен в состоянии для совместимости, но в UI не показывается;
++//     вместо него -- подробное описание цепочки при наведении (dspRouteDescription).
++//   * У FM+STAT удалён резервный old-движок (пользователь разрешил): машина 8
++//     всегда использует mnm-ядро; FM-машины разведены по отдельным файлам
++//     (monomachine_fm_stat.hpp / monomachine_fm_par.hpp / monomachine_fm_dynamic.hpp).
++//   * Тексты меню/тултипов переписаны: категории не перепутаны, каждая строка
++//     начинается с имени своего раздела, без лишних подчёркиваний.
+ // -----------------------------------------------------------------------------
+ // ГЛАВНОЕ ПРАВИЛО: в каждом разделе свой короткий список режимов,
+ // первым всегда основной "mnm".
+@@ -164,18 +176,41 @@ inline constexpr int dspModePrimaryForSection(int) { return dspModeMnm; }
+ inline constexpr int dspModeFilter = DspFilter;
+ 
+ // -----------------------------------------------------------------------------
+-// Тексты (меню/тултипы). Константы резонанса -- реальные из прошивки:
+-// $F528BD = -0.084747577, $4A4DF0 = +0.581161499.
++// Категории (папки) меню DSP MODE: чтобы было видно, к чему относится каждый
++// раздел и какие машины/ручки он обслуживает (просьба пользователя:
++// «дсп должны быть отсортированы по папкам, чтобы понимать зависимость»).
++// -----------------------------------------------------------------------------
++inline const char* dspSectionCategory(int section) {
++    switch (section) {
++        case DspSynt:    return "МАШИНЫ (OSC)";   // FM+ STAT/PAR/DYN и остальные осцилляторы
++        case DspAmp:     return "АМПЛИТУДА";      // ручка DIST/VOL страницы AMP + огибающая
++        case DspFilter:  return "ФИЛЬТР";         // страница FILT: BASE/WDTH/HPQ/LPQ/ATK/DEC/BOFS/WOFS
++        case DspDist:    return "ДИСТОРШН/SRR";   // ручка DIST (страница AMP) + SRR (страница EFFX)
++        case DspDelay:   return "ДИЛЕЙ";          // страница EFFX: DTIM/DSND/DFB/DBAS/DWID
++        case DspRouting: return "ЦЕПЬ";           // порядок блоков (один, проверенный)
++        case DspChorus:  return "ХОРУС";          // машина FX-CHORUS (15)
++        default:         return "";
++    }
++}
++
++// 1.6.5: ROUTE больше не выбирается в меню -- цепочка одна и проверена.
++// Раздел остаётся в состоянии (mode_route) только для совместимости пресетов.
++inline bool dspSectionVisibleInMenu(int section) { return section != DspRouting; }
++
++// -----------------------------------------------------------------------------
++// Тексты (меню/тултипы). Каждая строка начинается с имени СВОЕГО раздела,
++// чтобы категории больше не могли «перепутаться». Константы резонанса --
++// реальные из прошивки: $F528BD = -0.084747577, $4A4DF0 = +0.581161499.
+ // -----------------------------------------------------------------------------
+ inline const char* dspModeProvenance(int section) {
+     switch (section) {
+-        case DspSynt:   return "SYNT: mnm=восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7). Резерв: old=прежний Nova FM";
+-        case DspAmp:    return "AMP: kernel P:$4A8-$4F5 ADSR FSM, таблицы Y:$141800/Y:$141880, LFO $791FD0=0.94628";
+-        case DspFilter: return "FILT: mnm=РЕАЛЬНЫЙ фильтр из дампа прошивки (kLP 258 коэффициентов P:$144AC7, SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, AD-огибающая BOFS/WOFS). Резерв: old=прежнее приближение";
+-        case DspDist:   return "DIST: mnm=ALU-сатурация прошивки bset #$14,sr (hardclip +-1.0). Резерв: old=прежний bipolarDist";
+-        case DspDelay:  return "DLY: mnm=m32 FX-DLY X:$114000 + P:$144C49. Резерв: old=линейная интерполяция";
+-        case DspRouting:return "ROUTE: mnm=проверенная цепочка synth->dist->srr->filt+eq->env->dsnd";
+-        case DspChorus: return "CHOR: mnm=нативное ядро OS1.32B 24-bit (как в 1.6.0), INP линейный, микс dry->wet по MIX";
++        case DspSynt:   return "SYNT: mnm = ядро FM+ из прошивки OS 1.32B (P:$4A8-$4F5, тон LP P:$144AC7). old = прежний Nova FM (у FM+STAT резерва нет, машина 8 всегда на mnm)";
++        case DspAmp:    return "AMP: mnm = огибающая-автомат из прошивки, таблицы Y:$141800 (атака) и Y:$141880 (декей/релиз). old = прежняя аппроксимация Nova с кривыми";
++        case DspFilter: return "FILT: mnm = настоящий фильтр из дампа прошивки (258 коэфф. P:$144AC7, SVF $F528BD/$4A4DF0, огибающая BOFS/WOFS, при дефолте прозрачен). old = прежний biquad";
++        case DspDist:   return "DIST: mnm = насыщение как в прошивке (жёсткий клип +-1.0, 64 = прозрачно). old = прежний tanh/bipolar";
++        case DspDelay:  return "DLY: mnm = линия m32 FX-DLY (буфер X:$114000, таблица времён P:$144C49), wet отдельным сигналом, DSND=0 прозрачно. old = линейная интерполяция, DSND влево = пинг-понг, вправо = стерео";
++        case DspRouting:return "ROUTE: цепочка одна и проверена: synth->dist->srr->filt+eq->env->dsnd. Переключатель убран из меню в 1.6.5";
++        case DspChorus: return "CHOR: mnm = нативное ядро OS 1.32B (24-bit), INP линейный, микс dry->wet по MIX";
+         default:        return "";
+     }
+ }
+@@ -183,18 +218,47 @@ inline const char* dspModeProvenance(int section) {
+ inline const char* dspModeProvenanceForMode(int section, int mode) {
+     if (mode == dspModeMnm) {
+         switch (section) {
+-            case DspSynt:   return "SYNT mnm (основной): восстановленное ядро OS1.32B (P:$4A8-$4F5, tone LP P:$144AC7)";
+-            case DspAmp:    return "AMP mnm (основной): kernel ADSR FSM Y:$141800/Y:$141880";
+-            case DspFilter: return "FILT mnm (ОСНОВНОЙ): реальный дамп -- kLP 258 коэффициентов + SVF $F528BD=-0.0847476 $4A4DF0=+0.5811615, Q 0.5..16, AD-огибающая BOFS/WOFS, при дефолте unity THRU";
+-            case DspDist:   return "DIST mnm (основной): ALU-сатурация прошивки bset #$14,sr";
+-            case DspDelay:  return "DLY mnm (основной): m32 FX-DLY X:$114000 + P:$144C49";
+-            case DspRouting:return "ROUTE mnm (основной): synth->dist->srr->filt+eq->env->dsnd (проверено)";
+-            case DspChorus: return "CHOR mnm (основной): нативное ядро OS1.32B 24-bit, линейный INP, микс dry->wet";
+-            default:        return "mnm (основной): восстановленная прошивка";
++            case DspSynt:    return "SYNT mnm (основной): ядро FM+ из прошивки OS 1.32B (P:$4A8-$4F5, тон LP P:$144AC7)";
++            case DspAmp:     return "AMP mnm (основной): огибающая-автомат прошивки, таблицы Y:$141800/Y:$141880";
++            case DspFilter:  return "FILT mnm (основной): настоящий дамп прошивки, 258 коэфф. + SVF $F528BD/$4A4DF0, Q 0.5..16, огибающая BOFS/WOFS, при дефолте прозрачен";
++            case DspDist:    return "DIST mnm (основной): насыщение прошивки bset #$14,sr (жёсткий клип +-1.0)";
++            case DspDelay:   return "DLY mnm (основной): линия m32 FX-DLY X:$114000 + P:$144C49, wet отдельно, при DSND=0 прозрачна";
++            case DspRouting: return "ROUTE (единственный): synth->dist->srr->filt+eq->env->dsnd (проверено)";
++            case DspChorus:  return "CHOR mnm (основной): нативное ядро OS 1.32B 24-bit, линейный INP, микс dry->wet";
++            default:         return "mnm (основной): восстановленная прошивка";
++        }
++    }
++    if (mode == dspModeOld) {
++        switch (section) {
++            case DspSynt:    return "SYNT old (резерв): прежний Nova FM. Внимание: у FM+STAT резерв удалён в 1.6.5, машина 8 остаётся на mnm";
++            case DspAmp:     return "AMP old (резерв): прежняя огибающая Nova с кривыми ATK/DEC/REL";
++            case DspFilter:  return "FILT old (резерв): прежний biquad-фильтр Nova";
++            case DspDist:    return "DIST old (резерв): прежний tanh/bipolar дист";
++            case DspDelay:   return "DLY old (резерв): линейная интерполяция; DSND влево = пинг-понг, вправо = стерео";
++            case DspChorus:  return "CHOR old (резерв): не используется, ядро одно";
++            default:         return "old (резерв): прежнее приближение Nova";
+         }
+     }
+-    if (mode == dspModeOld) return "old (резерв): прежнее приближение Nova (фильтр -- biquad, дист -- tanh/bipolar, дилей -- линейная интерполяция)";
+     return "?";
+ }
+ 
++// -----------------------------------------------------------------------------
++// 1.6.5: подробное описание цепочки для наведения на строчку роутинга
++// (тултип кнопки DSP MODE и справка в меню). Объясняет, КАК каждый блок
++// влияет на звук и почему при ручках «по умолчанию» FX не меняет источник.
++// -----------------------------------------------------------------------------
++inline const char* dspRouteDescription() {
++    return
++        "ЦЕПЬ (одна, проверена, как в прошивке OS 1.32B):\n"
++        "1) SYNTH/машина -> источник звука (FM+, SWAVE, SID, FX-машины...).\n"
++        "2) DIST: насыщение. Ручка DIST=64 полностью прозрачна, ниже 64 ослабляет драйв, выше добавляет перегруз.\n"
++        "3) SRR: понижение частоты дискретизации (ручка SRR=0 выключена) -> зернистость при повышении.\n"
++        "4) FILT+EQ: фильтр прошивки (BASE/WDTH/HPQ/LPQ + огибающая BOFS/WOFS), затем пик-EQ (EQF/EQG). При BASE=0/WDTH=127/Q=0 и EQG=0 прозрачен.\n"
++        "5) ENV: амплитудная огибающая (ATK/HOLD/DEC/REL). В FX-версии при LATCH держится открытой, при MIDI gate следует за нотами.\n"
++        "6) DSND: посыл в дилей ПОСЛЕ фильтра и огибающей. DSND=0 посыл выключен, выход = сухой сигнал без изменений.\n"
++        "Итог: при DIST=64, SRR=0, фильтре/EQ по умолчанию и DSND=0 цепочка unity, то есть не меняет громкость и тембр источника.\n"
++        "Порядок важен: дист до фильтра (перегруз режется фильтром), огибающая после фильтра (огибающая не модулирует срез), дилей в конце (повторы не проходят через дист).";
++}
++
+ }  // namespace monomachine
++
+diff --git a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/tests/MnmCoreTests.cpp b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/tests/MnmCoreTests.cpp
+index ac3c960..deba91b 100644
+--- a/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/tests/MnmCoreTests.cpp
++++ b/JUCE/Monomachine-Nova-1.6.4/Monomachine_Nova_Synth/tests/MnmCoreTests.cpp
+@@ -106,24 +106,67 @@ int main() {
+         delay.prepare(44100.0);
+         float wl = 0.0f, wr = 0.0f;
+         // DTIM = 127 marks the longest setting: the full one-second line.
+-        delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 1.0f, 1.0f, wl, wr);
++        // 1.6.5 API: (delParam, feedback, send, pingPong, slewSeconds, inL, inR, outL, outR),
++        // выход -- чистый wet.
++        delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 1.0f, 1.0f, wl, wr);
+         int samples = 1;
+         for (; samples < 44100 * 2; ++samples) {
+-            delay.process(127.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, wl, wr);
++            delay.process(127.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, wl, wr);
+             if (std::fabs(wl) > 1.0e-5f) break;
+         }
+         check(true, "DLY longest setting echo time (ms)", samples / 44.1f, 1000.0f, 2.0f);
+ 
+         DelayCore shortDelay;
+         shortDelay.prepare(44100.0);
+-        shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 1.0f, 1.0f, wl, wr);
++        shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 1.0f, 1.0f, wl, wr);
+         samples = 1;
+         for (; samples < 44100; ++samples) {
+-            shortDelay.process(0.0f, 0.0f, 1.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, wl, wr);
++            shortDelay.process(0.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, wl, wr);
+             if (std::fabs(wl) > 1.0e-5f) break;
+         }
+         // P:$144C49 index 63 = 1/64 of the line.
+         check(true, "DLY shortest setting echo time (ms)", samples / 44.1f, 1000.0f / 64.0f, 1.0f);
++
++        // 1.6.5: send=0 -> выход мокрого ядра нулевой (цепочка прозрачна,
++        // «thru больше не громче»: сухой добавляется ровно один раз снаружи).
++        DelayCore unity;
++        unity.prepare(44100.0);
++        float ul = 0.0f, ur = 0.0f;
++        for (int i = 0; i < 2048; ++i) unity.process(64.0f, 0.5f, 0.0f, false, 0.03f, 0.7f, -0.7f, ul, ur);
++        check(true, "DLY send=0 wet is silent (unity thru)", std::fabs(ul) + std::fabs(ur), 0.0f, 1.0e-6f);
++
++        // 1.6.5: slew>0 -> указатель чтения не телепортируется при смене DTIM
++        // (нет клика, повторы репитчатся). Линия заполнена рампой: значение на
++        // выходе = позиция чтения, поэтому скачок выхода = скачок указателя.
++        // треугольник по всей длине линии: непрерывен на кольцевом переходе,
++        // поэтому скачок выхода равен именно скачку указателя чтения.
++        auto fillRamp = [](DelayCore& d) {
++            float a = 0.0f, b = 0.0f;
++            for (int i = 0; i < 44104; ++i) {
++                const float v = static_cast<float>(i < 22052 ? i : 44104 - i);
++                d.process(127.0f, 0.0f, 1.0f, false, 0.0f, v, v, a, b);
++            }
++        };
++        DelayCore noslew;
++        noslew.prepare(44100.0);
++        fillRamp(noslew);
++        float nl = 0.0f, nr = 0.0f, noslewJump = 0.0f, nprev = 0.0f;
++        for (int i = 0; i < 64; ++i) { // резкая смена DTIM 127->40 без сглаживания
++            noslew.process(40.0f, 0.0f, 0.0f, false, 0.0f, 0.0f, 0.0f, nl, nr);
++            noslewJump = std::max(noslewJump, std::fabs(nl - nprev));
++            nprev = nl;
++        }
++        DelayCore slewed;
++        slewed.prepare(44100.0);
++        fillRamp(slewed);
++        float sl = 0.0f, srOut = 0.0f, slewJump = 0.0f, prev = 0.0f;
++        for (int i = 0; i < 4410; ++i) { // та же смена, но slew=MED (0.03 с)
++            slewed.process(40.0f, 0.0f, 0.0f, false, 0.03f, 0.0f, 0.0f, sl, srOut);
++            slewJump = std::max(slewJump, std::fabs(sl - prev));
++            prev = sl;
++        }
++        checkTrue(noslewJump > 500.0f, "DLY without slew teleports the read pointer (click)");
++        checkTrue(slewJump < 200.0f, "DLY repitch slew keeps the read pointer continuous (no click)");
+     }
+ 
+     // ---------------------------------------------------------------- saturation (DIST)
