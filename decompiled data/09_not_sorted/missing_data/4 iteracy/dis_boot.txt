@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Дизассемблер boot ROM Monomachine (ColdFire MCF5206e) вокруг депакера 0x1C4-0x362
+и внешнего цикла загрузчика после EOF. Режим M68K_030 (как в аудите, ближайший к ColdFire)."""
+import sys
+from capstone import Cs, CS_ARCH_M68K, CS_MODE_M68K_030, CS_MODE_BIG_ENDIAN
+
+BIN = "/home/z/my-project/hi08/firmware.bin"
+data = open(BIN, "rb").read()
+
+md = Cs(CS_ARCH_M68K, CS_MODE_M68K_030 | CS_MODE_BIG_ENDIAN)
+md.skipdata = True
+
+start = int(sys.argv[1], 0) if len(sys.argv) > 1 else 0x362
+end = int(sys.argv[2], 0) if len(sys.argv) > 2 else 0x560
+
+code = data[start:end]
+for ins in md.disasm(code, start):
+    print(f"{ins.address:06x}: {ins.bytes.hex():<12} {ins.mnemonic:<8} {ins.op_str}")

@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""MMNova iteration 4 — быстрый бит-точный депакер секций Monomachine OS 1.32B.
+
+Семантика 1:1 с верифицированным портом ColdFire-декомпрессора (mm_aplib_mm.py):
+  getbit:  tag<<=1; если младший байт tag==0 -> tag=(b<<1)|1, бит=(b>>7); иначе бит=(tag>>8)&1
+  gamma:   v=1; v=v*2+bit; до stop-bit==1
+  offset:  v==2 -> reuse last; иначе off=(v<<8)+b-768; off==0xFF -> EOF; dist=off+1
+  length:  sl=2*ba+bb; L=sl if sl else gamma+2; dist>3328 -> L+=1; копия L+1 байт
+Оптимизации: локальные переменные вместо атрибутов, копирование слайсом (C-уровень),
+мультипроцессинг по секциям, векторная проверка суммы.
+"""
+import struct, os, sys, time
+import numpy as np
+from multiprocessing import Pool
+
+# ---------------------------------------------------------------- секции
+
+def read_sections(data: bytes, base: int = 0x4000):
+    """[(off, slen, bsum, sum_ok)] — суммы считаем numpy (быстро)."""
+    secs = []
+    p = base
+    while p + 8 <= len(data):
+        slen, bsum = struct.unpack_from(">II", data, p)
+        if slen == 0 or slen > 0x1000000 or p + 8 + slen > len(data):
+            break
+        stream = data[p + 8:p + 8 + slen]
+        calc = int(np.frombuffer(stream, dtype=np.uint8).sum(dtype=np.uint64))
+        secs.append((p, slen, bsum, calc == bsum))
+        p += 8 + slen
+    return secs
+
+# ---------------------------------------------------------------- депакер
+
+def depack(data: bytes, ip: int) -> tuple[bytes, int]:
+    """Бит-точная распаковка одного потока. Возвращает (out, ip_end)."""
+    out = bytearray()
+    n_end = len(data)
+    tag = 0
+    last_dist = 1
+
+    # локальные ссылки (скорость)
+    lb = data  # bytes
+
+    while True:
+        # ---- getbit x1: 1 -> литерал, 0 -> offset-гамма
+        tag = (tag << 1) & 0xFFFFFFFF
+        if (tag & 0xFF) == 0:
+            b = lb[ip]; ip += 1
+            tag = ((b << 1) | 1) & 0xFFFFFFFF
+            bit = (b >> 7) & 1
+        else:
+            bit = (tag >> 8) & 1
+        if bit:
+            out.append(lb[ip]); ip += 1
+            continue
+
+        # ---- gamma (offset): читаем биты до stop
+        v = 1
+        while True:
+            # бит данных
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                v = v * 2 + (b >> 7)
+            else:
+                v = v * 2 + ((tag >> 8) & 1)
+            # stop-бит
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                stop = (b >> 7) & 1
+            else:
+                stop = (tag >> 8) & 1
+            if stop:
+                break
+
+        if v == 2:
+            dist = last_dist
+        else:
+            b = lb[ip]; ip += 1
+            off = (v << 8) + b - 768
+            if off == 0xFF:
+                break  # EOF
+            dist = off + 1
+            last_dist = dist
+
+        # ---- 2 бита длины
+        bits = 0
+        for _ in range(2):
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                bits = (bits << 1) | (b >> 7)
+            else:
+                bits = (bits << 1) | ((tag >> 8) & 1)
+        sl = bits
+        if sl:
+            L = sl
+        else:
+            # гамма длины
+            v = 1
+            while True:
+                tag = (tag << 1) & 0xFFFFFFFF
+                if (tag & 0xFF) == 0:
+                    b = lb[ip]; ip += 1
+                    tag = ((b << 1) | 1) & 0xFFFFFFFF
+                    v = v * 2 + (b >> 7)
+                else:
+                    v = v * 2 + ((tag >> 8) & 1)
+                tag = (tag << 1) & 0xFFFFFFFF
+                if (tag & 0xFF) == 0:
+                    b = lb[ip]; ip += 1
+                    tag = ((b << 1) | 1) & 0xFFFFFFFF
+                    stop = (b >> 7) & 1
+                else:
+                    stop = (tag >> 8) & 1
+                if stop:
+                    break
+            L = v + 2
+
+        if dist > 3328:
+            L += 1
+        n = L + 1
+        cp = len(out) - dist
+        if cp < 0:
+            raise ValueError(f"dist {dist} > out {len(out)}")
+        # Копия n байт из истории (перекрытие = периодичное заполнение)
+        if cp + n <= len(out):
+            out += out[cp:cp + n]          # быстрый путь без перекрытия
+        else:
+            block = bytes(out[cp:])         # доступный хвост длины dist
+            q, r = divmod(n, len(block))
+            out += block * q + block[:r]
+    return bytes(out), ip
+
+# ---------------------------------------------------------------- ---
+
+def _dep_worker(args):
+    data, off, slen, outpath = args
+    t0 = time.perf_counter()
+    out, ip_end = depack(data, off + 8)
+    dt = time.perf_counter() - t0
+    if outpath:
+        open(outpath, "wb").write(out)
+    return off, len(out), ip_end, dt
+
+def depack_all(binpath: str, outdir: str, workers: int = 4):
+    data = open(binpath, "rb").read()
+    os.makedirs(outdir, exist_ok=True)
+    secs = read_sections(data)
+    tasks = [(data, off, slen, os.path.join(outdir, f"sec{k}.bin"))
+             for k, (off, slen, bsum, ok) in enumerate(secs)]
+    t0 = time.perf_counter()
+    with Pool(min(workers, len(tasks))) as pool:
+        results = pool.map(_dep_worker, tasks)
+    total = time.perf_counter() - t0
+    for k, ((off, slen, bsum, ok), (o, size, ip_end, dt)) in enumerate(zip(secs, results)):
+        print(f"sec{k}: @{off:#07x} stored={slen:#07x} sum_ok={ok} -> {size} байт "
+              f"({dt:.2f}s, ip_end={ip_end:#x} ожид {off+8+slen:#x})")
+    print(f"ИТОГО депак: {total:.2f}s (parallel x{min(workers,len(tasks))})")
+    return data, secs, [r[1] for r in results]
+
+if __name__ == "__main__":
+    binpath = sys.argv[1] if len(sys.argv) > 1 else "/home/z/my-project/hi08/firmware.bin"
+    outdir = sys.argv[2] if len(sys.argv) > 2 else "/home/z/my-project/hi08/sec_out"
+    t0 = time.perf_counter()
+    depack_all(binpath, outdir)
+    print(f"wall: {time.perf_counter()-t0:.2f}s")

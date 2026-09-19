@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Итерация 4, этап 2: карта покрытия записей, реконструкция памяти,
+сверка с образами DSP1/DSP2, diff DSP1 vs DSP2, анализ blk4."""
+import json, hashlib, sys
+import numpy as np
+sys.path.insert(0, "/home/z/my-project/scripts")
+from mm_iter4_pipeline import words_le24, words_be24, BANK, parse_records
+
+OUT = "/home/z/my-project/download/hi08_iteration4"
+HI = "/home/z/my-project/hi08"
+
+streams = {k: open(f"{OUT}/blk{k}_full.bin", "rb").read() for k in range(5)}
+
+# ---------- 1) карта записей blk3
+recs3, consumed, tail = parse_records(streams[3])
+print(f"blk3: {len(recs3)} записей, consumed {consumed}/{len(streams[3])}")
+# группируем в непрерывные диапазоны
+spans = []
+for r in recs3:
+    if r["cmd"] not in (0, 1, 2) or r["count"] == 0:
+        continue
+    a, c = r["addr"], r["count"]
+    if spans and a == spans[-1][0] + spans[-1][1] and r["cmd"] == spans[-1][2]:
+        spans[-1][1] += c
+    else:
+        spans.append([a, c, r["cmd"]])
+print(f"непрерывных диапазонов: {len(spans)}")
+for a, c, cmd in spans:
+    print(f"  {BANK[cmd]}:${a:06x}..${a+c-1:06x}  ({c} слов = ${c:x})")
+
+# ---------- 2) реконструкция P-памяти из blk3 и сверка с образами
+p1 = np.frombuffer(open(f"{HI}/dsp1_pmem.bin", "rb").read(), dtype=np.uint8)
+p2 = np.frombuffer(open(f"{HI}/dsp2_pmem.bin", "rb").read(), dtype=np.uint8)
+n_words_img = len(p1) // 3
+img1 = p1.reshape(-1, 3).astype(np.uint32)
+img2 = p2.reshape(-1, 3).astype(np.uint32)
+w1 = (img1[:, 0] << 16) | (img1[:, 1] << 8) | img1[:, 2]
+w2 = (img2[:, 0] << 16) | (img2[:, 1] << 8) | img2[:, 2]
+
+mem = np.zeros(n_words_img, dtype=np.uint32)
+covered = np.zeros(n_words_img, dtype=bool)
+for a, c, cmd in spans:
+    if cmd != 0:
+        continue
+    mem[a:a + c] = 0  # (адрес = индекс, алиасинг >$100000 уже в адресах записей)
+# записиblk3 адресуются как P:$xxxxxx; в образе индекс = адрес
+mem = np.zeros(n_words_img, dtype=np.uint32)
+covered = np.zeros(n_words_img, dtype=bool)
+for r in recs3:
+    if r["cmd"] != 0 or r["count"] == 0:
+        continue
+    a, c = r["addr"], r["count"]
+    # из потока берём сырые слова
+    off_bytes = r["off"] * 3 + 9
+    seg = streams[3][off_bytes: off_bytes + c * 3]
+    sw = words_le24(seg)
+    if a + c <= n_words_img:
+        mem[a:a + c] = sw
+        covered[a:a + c] = True
+    else:
+        print(f"  !! запись за границей образа: ${a:06x} +{c}")
+
+print(f"\nпокрыто записями blk3: {covered.sum()}/{n_words_img} слов "
+      f"({100*covered.sum()/n_words_img:.1f}%)")
+mism1 = np.where(covered & (mem != w1))[0]
+mism2 = np.where(covered & (mem != w2))[0]
+print(f"расхождений с dsp1_pmem: {len(mism1)} слов")
+print(f"расхождений с dsp2_pmem: {len(mism2)} слов")
+if len(mism1):
+    # сгруппировать
+    def groups(idx):
+        g = []
+        s = p = idx[0]
+        for x in idx[1:]:
+            if x == p + 1:
+                p = x
+            else:
+                g.append((s, p)); s = p = x
+        g.append((s, p))
+        return g
+    g1 = groups(mism1)
+    print(f"  dsp1 группы расхождений ({len(g1)}):")
+    for s, e in g1[:40]:
+        print(f"    ${s:06x}..${e:06x} ({e-s+1} слов)")
+json.dump({"covered": int(covered.sum()), "img_words": int(n_words_img),
+           "mismatch_dsp1": int(len(mism1)), "mismatch_dsp2": int(len(mism2)),
+           "mismatch_groups_dsp1": [[int(s), int(e)] for s, e in (groups(mism1) if len(mism1) else [])]},
+          open(f"{OUT}/coverage_report.json", "w"), indent=1)

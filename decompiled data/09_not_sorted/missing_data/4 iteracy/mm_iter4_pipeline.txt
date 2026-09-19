@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""MMNova iteration 4 — ПОЛНЫЙ пайплайн извлечения Monomachine OS 1.32B.
+
+КЛЮЧЕВОЕ ОТКРЫТИЕ: маркер (v=3, b=255) в потоке — НЕ EOF, а обычный матч dist=256.
+Потоки секций непрерывны до конца данных блока. Прошлые итерации теряли всё после
+первого такого маркера (sec0: 7149 байт вместо 425858; sec3: 133 записи вместо N).
+
+Семантика (верифицировано бит-в-бит против coldfire_main.bin из репо):
+  депак от bits_src = block_off + 8, до исчерпания валидных данных блока.
+"""
+import struct, os, sys, json, hashlib, time
+import numpy as np
+
+BIN = "/home/z/my-project/hi08/firmware.bin"
+OUT = "/home/z/my-project/download/hi08_iteration4"
+os.makedirs(OUT, exist_ok=True)
+
+# ---------------------------------------------------------------- депакер (noEOF)
+
+def depack_full(data: bytes, ip: int, end_limit: int | None = None, cap: int = 8_000_000):
+    """Бит-точный депак с продолжением через маркер off==0xFF (dist=0x100).
+    Конец: cp<0 (мусор), ip>=end_limit (граница блока) или cap."""
+    out = bytearray()
+    tag = 0
+    last_dist = 1
+    lb = data
+    N = len(data)
+    while True:
+        if end_limit is not None and ip >= end_limit:
+            break
+        tag = (tag << 1) & 0xFFFFFFFF
+        if (tag & 0xFF) == 0:
+            if ip >= N: break
+            b = lb[ip]; ip += 1
+            tag = ((b << 1) | 1) & 0xFFFFFFFF
+            bit = (b >> 7) & 1
+        else:
+            bit = (tag >> 8) & 1
+        if bit:
+            out.append(lb[ip]); ip += 1
+            if len(out) > cap: break
+            continue
+        v = 1
+        while True:
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                if ip >= N: break
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                v = v * 2 + (b >> 7)
+            else:
+                v = v * 2 + ((tag >> 8) & 1)
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                if ip >= N: break
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                stop = (b >> 7) & 1
+            else:
+                stop = (tag >> 8) & 1
+            if stop:
+                break
+        if v == 2:
+            dist = last_dist
+        else:
+            if ip >= N: break
+            b = lb[ip]
+            off = (v << 8) + b - 768
+            ip += 1
+            if off == 0xFF:
+                dist = 0x100          # ← ГЛАВНАЯ ПОПРАВКА: не EOF, а dist 256
+            else:
+                dist = off + 1
+            last_dist = dist
+        bits2 = 0
+        for _ in range(2):
+            tag = (tag << 1) & 0xFFFFFFFF
+            if (tag & 0xFF) == 0:
+                if ip >= N: break
+                b = lb[ip]; ip += 1
+                tag = ((b << 1) | 1) & 0xFFFFFFFF
+                bits2 = (bits2 << 1) | (b >> 7)
+            else:
+                bits2 = (bits2 << 1) | ((tag >> 8) & 1)
+        if bits2:
+            L = bits2
+        else:
+            v = 1
+            while True:
+                tag = (tag << 1) & 0xFFFFFFFF
+                if (tag & 0xFF) == 0:
+                    if ip >= N: break
+                    b = lb[ip]; ip += 1
+                    tag = ((b << 1) | 1) & 0xFFFFFFFF
+                    v = v * 2 + (b >> 7)
+                else:
+                    v = v * 2 + ((tag >> 8) & 1)
+                tag = (tag << 1) & 0xFFFFFFFF
+                if (tag & 0xFF) == 0:
+                    if ip >= N: break
+                    b = lb[ip]; ip += 1
+                    tag = ((b << 1) | 1) & 0xFFFFFFFF
+                    stop = (b >> 7) & 1
+                else:
+                    stop = (tag >> 8) & 1
+                if stop:
+                    break
+            L = v + 2
+        if dist > 3328:
+            L += 1
+        n = L + 1
+        cp = len(out) - dist
+        if cp < 0:
+            break   # мусор после конца валидного потока
+        if cp + n <= len(out):
+            out += out[cp:cp + n]
+        else:
+            block = bytes(out[cp:])
+            q, r = divmod(n, len(block))
+            out += block * q + block[:r]
+        if len(out) > cap:
+            break
+    return bytes(out), ip
+
+# ---------------------------------------------------------------- блоки
+
+def find_blocks(data: bytes):
+    """Цепочка блоков boot ROM: 0x4000 + [len]+8 → след. блок; последний → common-DSP блок."""
+    blocks = []
+    off = 0x4000
+    while off + 8 <= len(data):
+        slen = struct.unpack_from(">I", data, off)[0]
+        if slen == 0 or slen > 0x400000 or off + 8 + slen > len(data):
+            break
+        blocks.append({"off": off, "slen": slen, "end": off + 8 + slen})
+        off = off + 8 + slen
+    return blocks
+
+def depack_block(data, blk):
+    src = blk["off"] + 8
+    return depack_full(data, src, end_limit=blk["end"] - 4)
+
+# ---------------------------------------------------------------- слова/записи
+
+def words_le24(buf: bytes) -> np.ndarray:
+    a = np.frombuffer(buf, dtype=np.uint8)
+    n = len(a) // 3
+    a = a[: n * 3].reshape(n, 3).astype(np.uint32)
+    return a[:, 0] | (a[:, 1] << 8) | (a[:, 2] << 16)
+
+def words_be24(buf: bytes) -> np.ndarray:
+    a = np.frombuffer(buf, dtype=np.uint8)
+    n = len(a) // 3
+    a = a[: n * 3].reshape(n, 3).astype(np.uint32)
+    return (a[:, 0] << 16) | (a[:, 1] << 8) | a[:, 2]
+
+BANK = {0: "P", 1: "X", 2: "Y"}
+
+def parse_records(buf: bytes):
+    """Парсит HI08-записи [cmd LE24][addr LE24][count LE24][data LE24×count].
+    cmd 3 = JMP P:addr (поток продолжается!), cmd 4 = END."""
+    w = words_le24(buf)
+    recs = []
+    i = 0
+    while i < len(w):
+        cmd = int(w[i])
+        if cmd == 4:                       # END
+            recs.append({"cmd": 4, "addr": 0, "count": 0, "off": i})
+            i += 1
+            break
+        if cmd == 3:                       # JMP — поток продолжается
+            if i + 1 >= len(w): break
+            recs.append({"cmd": 3, "addr": int(w[i + 1]), "count": 0, "off": i})
+            i += 2
+            continue
+        if cmd not in (0, 1, 2):
+            break                           # не записи — хвост данных
+        if i + 2 >= len(w): break
+        addr, cnt = int(w[i + 1]), int(w[i + 2])
+        if i + 3 + cnt > len(w): break
+        data_words = w[i + 3: i + 3 + cnt]
+        raw = b"".join(int(x).to_bytes(3, "little") for x in data_words)
+        recs.append({"cmd": cmd, "addr": addr, "count": cnt, "off": i,
+                     "sha256": hashlib.sha256(raw).hexdigest()})
+        i += 3 + cnt
+    consumed = i * 3
+    return recs, consumed, len(buf) - consumed
+
+# ---------------------------------------------------------------- main
+
+def main():
+    t0 = time.perf_counter()
+    data = open(BIN, "rb").read()
+    blocks = find_blocks(data)
+    print(f"Блоки в BIN: {len(blocks)}")
+    for k, b in enumerate(blocks):
+        print(f"  blk{k}: @{b['off']:#07x} slen={b['slen']:#x} end={b['end']:#x}")
+
+    streams = {}
+    for k, b in enumerate(blocks):
+        t = time.perf_counter()
+        out, ip = depack_block(data, b)
+        streams[k] = out
+        dt = time.perf_counter() - t
+        h = hashlib.sha256(out).hexdigest()
+        open(f"{OUT}/blk{k}_full.bin", "wb").write(out)
+        print(f"  blk{k}: депак {len(out)} байт за {dt:.2f}s (ip_end={ip:#x}) sha256={h[:16]}")
+
+    # ---- blk4 (S4): DSP-блок по цепочке указателей boot ROM (не в [len]-цепочке)
+    out4, ip4 = depack_full(data, 0x79BB2, end_limit=0x3FE000)
+    streams[4] = out4
+    open(f"{OUT}/blk4_full.bin", "wb").write(out4)
+    print(f"  blk4: депак {len(out4)} байт (ip_end={ip4:#x}) sha256={hashlib.sha256(out4).hexdigest()[:16]}")
+
+    # ---- blk0 = ColdFire main — сверка с эталоном репо
+    cf = open("/home/z/my-project/hi08/coldfire_main.bin", "rb").read()
+    print(f"\nblk0 == coldfire_main.bin: {streams[0] == cf} ({len(streams[0])} vs {len(cf)})")
+
+    # ---- парс записей blk1..4
+    all_records = {}
+    for k in range(1, len(streams)):
+        buf = streams[k]
+        recs, consumed, tail = parse_records(buf)
+        all_records[k] = recs
+        banks = {}
+        for r in recs:
+            if "count" in r and r["count"]:
+                b = BANK.get(r["cmd"], f"cmd{r['cmd']}")
+                banks[b] = banks.get(b, 0) + r["count"]
+        tailinfo = ""
+        if tail:
+            tailinfo = f", ХВОСТ {tail} байт (не-записи: {buf[consumed:consumed+16].hex(' ')}...)"
+        print(f"  blk{k}: {len(recs)} записей, consumed {consumed}/{len(buf)} байт, "
+              f"слов по банкам: {banks}{tailinfo}")
+    json.dump({str(k): [{kk: vv for kk, vv in r.items()} for r in v]
+               for k, v in all_records.items()},
+              open(f"{OUT}/records_full.json", "w"), indent=1)
+    print(f"\nвремя: {time.perf_counter()-t0:.1f}s")
+    return data, blocks, streams, all_records
+
+if __name__ == "__main__":
+    main()

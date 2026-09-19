@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""Финальное извлечение банка заводских вейвформ (62 шт., индексы 0..61).
+Структура входа: [1a][idx][cksum][name4][data...] — данные до заголовка следующего входа."""
+import re, json, hashlib, os
+
+data = open('/home/z/my-project/hi08/firmware.bin', 'rb').read()
+blob = data[0x100000:0x15feff]
+WAV = '/home/z/my-project/download/hi08_iteration4/factory_wavetables'
+os.makedirs(WAV, exist_ok=True)
+
+# 1) все заголовки 1a [idx] [ck] в диапазоне индексов 0..80, имя (4 байта печатных) в +3..+7
+hdrs = {}
+for m in re.finditer(rb'\x1a(.)(.)', blob, re.S):
+    idx = m.group(1)[0]
+    if idx > 80:
+        continue
+    start = m.start()
+    win = blob[start+3:start+10]
+    nm = re.search(rb'[\x20-\x7e]{4}', win)
+    if nm and nm.start() <= 4:
+        if idx not in hdrs or start < hdrs[idx][0]:
+            hdrs[idx] = (start, nm.group().decode('latin1'), m.group(2)[0])
+
+idxs = sorted(hdrs)
+print(f'заголовков: {len(idxs)}, индексы {idxs[0]}..{idxs[-1]}, пропуски: '
+      f'{[i for i in range(idxs[0], idxs[-1]+1) if i not in hdrs]}')
+
+# 2) коррекция имён, склеенных с данными (SYN4/SYN5/WND1 и т.п.)
+FIX = {11: 'SYN4', 12: 'SYN5', 40: 'WND1'}
+entries = []
+for k, idx in enumerate(idxs):
+    off, nm, ck = hdrs[idx]
+    if idx in FIX:
+        nm = FIX[idx]
+    nm_m = re.search(rb'[\x20-\x7e]{4}', blob[off+3:off+10])
+    data_start = off + 3 + nm_m.start() + 4
+    data_end = hdrs[idxs[k+1]][0] if k + 1 < len(idxs) else len(blob)
+    chunk = blob[data_start:data_end]
+    entries.append({'index': int(idx), 'name': nm, 'cksum': int(ck),
+                    'hdr_bin_off': 0x100000 + off,
+                    'data_bin_off': 0x100000 + int(data_start),
+                    'data_len': len(chunk),
+                    'sha256': hashlib.sha256(chunk).hexdigest()})
+    # файлы
+    safe_nm = nm.replace('\\', '_').replace('[', '_').replace(']', '_')
+    base = f'{WAV}/wt{idx:02d}_{safe_nm}'
+    open(base + '.bin', 'wb').write(chunk)
+    with open(base + '.txt', 'w') as f:
+        f.write(f"# Заводская вейвформа '{nm}' (SWAVE WT-слот {idx})\n")
+        f.write(f"# BIN: заголовок @{0x100000+off:#x}, данные @{0x100000+data_start:#x}, "
+                f"{len(chunk)} байт\n")
+        f.write(f"# cksum(1 байт) = {ck:#04x}; SHA-256 данных = {hashlib.sha256(chunk).hexdigest()}\n")
+        f.write(f"# Кодирование сэмплов — открытый вопрос (см. README_v4)\n\n")
+        for j in range(0, min(len(chunk), 6136), 16):
+            f.write(f"  +{j:04x}: {chunk[j:j+16].hex(' ')}\n")
+
+json.dump(entries, open(f'{WAV}/_wavetables_manifest.json', 'w'), indent=1)
+print(f'сохранено {len(entries)} вейвформ -> {WAV}')

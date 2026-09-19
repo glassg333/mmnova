@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Бенчмарк + бит-точная верификация: старый депакер (mm_aplib_mm) vs быстрый (mm_depack_fast)."""
+import sys, time, os, hashlib
+sys.path.insert(0, "/home/z/my-project/hi08")
+sys.path.insert(0, "/home/z/my-project/scripts")
+
+BIN = "/home/z/my-project/hi08/firmware.bin"
+REF = "/home/z/my-project/hi08/sec_ref"
+NEW = "/home/z/my-project/hi08/sec_out"
+
+data = open(BIN, "rb").read()
+
+# --- старый (эталон)
+from mm_aplib_mm import depack as depack_old, read_sections as read_sections_old
+t0 = time.perf_counter()
+secs_old = read_sections_old(data)
+os.makedirs(REF, exist_ok=True)
+old_out = []
+for k, s in enumerate(secs_old):
+    out, ip = depack_old(data, s["off"] + 8)
+    old_out.append(out)
+    open(f"{REF}/sec{k}.bin", "wb").write(out)
+t_old = time.perf_counter() - t0
+print(f"СТАРЫЙ депакер: {t_old:.2f}s для {len(secs_old)} секций, размеры {[len(o) for o in old_out]}")
+
+# --- новый
+from mm_depack_fast import depack_all
+t0 = time.perf_counter()
+data2, secs_new, sizes = depack_all(BIN, NEW)
+t_new_wall = time.perf_counter() - t0
+print(f"НОВЫЙ депакер (wall, вкл. импорт): {t_new_wall:.2f}s")
+
+# --- бит-точная сверка
+ok = True
+for k in range(len(old_out)):
+    new = open(f"{NEW}/sec{k}.bin", "rb").read()
+    same = new == old_out[k]
+    h_old = hashlib.sha256(old_out[k]).hexdigest()[:16]
+    h_new = hashlib.sha256(new).hexdigest()[:16]
+    print(f"sec{k}: bit-exact={same} size={len(new)} sha={h_new}")
+    ok &= same
+print("ВЕРДИКТ:", "БИТ-ТОЧНО СОВПАДАЕТ" if ok else "!! РАСХОЖДЕНИЕ !!")
+print(f"ускорение x{t_old/t_new_wall:.2f} (wall) ")
