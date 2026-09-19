@@ -1,0 +1,23 @@
+[
+  {
+    "file": "dispatch_dsp1_kernel_P0000-0B4D.txt",
+    "addr": "0x000407",
+    "ref_mnemonic": "bra",
+    "ref_operands": "func_000421",
+    "reason": "GOT: bra int_000421"
+  },
+  {
+    "file": "dispatch_dsp1_kernel_P0000-0B4D.txt",
+    "addr": "0x0004DB",
+    "ref_mnemonic": "bra",
+    "ref_operands": "func_0004f5",
+    "reason": "GOT: bra int_0004f5"
+  },
+  {
+    "file": "dispatch_dsp1_kernel_P0000-0B4D.txt",
+    "addr": "0x00052A",
+    "ref_mnemonic": "bra",
+    "ref_operands": "func_000537",
+    "reason": "GOT: bra int_000537"
+  }
+]

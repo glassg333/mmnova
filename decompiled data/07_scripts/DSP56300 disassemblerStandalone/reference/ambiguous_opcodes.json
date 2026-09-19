@@ -1,0 +1,260 @@
+[
+  {
+    "opcode": "44D9D0",
+    "mnemonic": "mpy",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a         x:(r1)+,x0', 'y0,x0,a x:(r1)+,x0']"
+  },
+  {
+    "opcode": "44DAD8",
+    "mnemonic": "mpy",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,b         x:(r2)+,x0', 'y0,x0,b x:(r2)+,x0']"
+  },
+  {
+    "opcode": "44D9DA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,b         x:(r1)+,x0', 'y0,x0,b x:(r1)+,x0']"
+  },
+  {
+    "opcode": "202B59",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,b            ifmi', 'y0,b ifmi']"
+  },
+  {
+    "opcode": "202B13",
+    "mnemonic": "clr",
+    "reason": "no ext, 2 variants",
+    "data": "['a ifmi', 'a               ifmi']"
+  },
+  {
+    "opcode": "202141",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['x0,a            ifge', 'x0,a ifge']"
+  },
+  {
+    "opcode": "F19800",
+    "mnemonic": "move",
+    "reason": "no ext, 2 variants",
+    "data": "['x:(r0)+,x0      y:(r4)+,y1', 'x:(r0)+,x0 y:(r4)+,y1']"
+  },
+  {
+    "opcode": "10CCFA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y1,x1,b         a,x0            y:(r4)+n4,y0', 'y1,x1,b a,x0 y:(r4)+n4,y0']"
+  },
+  {
+    "opcode": "1919D2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a         a,x:(r1)+       a,y1', 'y0,x0,a a,x:(r1)+ a,y1']"
+  },
+  {
+    "opcode": "44D8A0",
+    "mnemonic": "mpy",
+    "reason": "no ext, 2 variants",
+    "data": "['x1,x0,a         x:(r0)+,x0', 'x1,x0,a x:(r0)+,x0']"
+  },
+  {
+    "opcode": "F0BADA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,b         x:(r2)+,x0      y:(r5)+,y0', 'y0,x0,b x:(r2)+,x0 y:(r5)+,y0']"
+  },
+  {
+    "opcode": "F438D2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a x1,x:(r0)+ y:(r5)+,y0', 'y0,x0,a         x1,x:(r0)+      y:(r5)+,y0']"
+  },
+  {
+    "opcode": "1FDCA6",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['-x1,x0,a        b,x1            y:(r4)+,b', '-x1,x0,a b,x1 y:(r4)+,b']"
+  },
+  {
+    "opcode": "F438BA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y1,y0,b x1,x:(r0)+ y:(r5)+,y0', 'y1,y0,b         x1,x:(r0)+      y:(r5)+,y0']"
+  },
+  {
+    "opcode": "16DCFE",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['-y1,x1,b a,x1 y:(r4)+,a', '-y1,x1,b        a,x1            y:(r4)+,a']"
+  },
+  {
+    "opcode": "B199D2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a x:(r1)+,x0 y1,y:(r4)+', 'y0,x0,a         x:(r1)+,x0      y1,y:(r4)+']"
+  },
+  {
+    "opcode": "1F98B6",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['-y1,y0,a        x:(r0)+,b       b,y1', '-y1,y0,a x:(r0)+,b b,y1']"
+  },
+  {
+    "opcode": "B199AA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['x1,x0,b         x:(r1)+,x0      y1,y:(r4)+', 'x1,x0,b x:(r1)+,x0 y1,y:(r4)+']"
+  },
+  {
+    "opcode": "1998FE",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['-y1,x1,b        x:(r0)+,a       a,y1', '-y1,x1,b x:(r0)+,a a,y1']"
+  },
+  {
+    "opcode": "202B1B",
+    "mnemonic": "clr",
+    "reason": "no ext, 2 variants",
+    "data": "['b               ifmi', 'b ifmi']"
+  },
+  {
+    "opcode": "21E609",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['a,b             b,y0', 'a,b b,y0']"
+  },
+  {
+    "opcode": "4EDCF2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y1,x1,a         y:(r4)+,y0', 'y1,x1,a y:(r4)+,y0']"
+  },
+  {
+    "opcode": "4EDCDA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,b         y:(r4)+,y0', 'y0,x0,b y:(r4)+,y0']"
+  },
+  {
+    "opcode": "202741",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['x0,a            ifgt', 'x0,a ifgt']"
+  },
+  {
+    "opcode": "21E769",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['x1,b            b,y1', 'x1,b b,y1']"
+  },
+  {
+    "opcode": "21C641",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['x0,a a,y0', 'x0,a            a,y0']"
+  },
+  {
+    "opcode": "5E5CD2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a         a,y:(r4)+', 'y0,x0,a a,y:(r4)+']"
+  },
+  {
+    "opcode": "5F5CCA",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['x0,y1,b b,y:(r4)+', 'x0,y1,b         b,y:(r4)+']"
+  },
+  {
+    "opcode": "F09800",
+    "mnemonic": "move",
+    "reason": "no ext, 2 variants",
+    "data": "['x:(r0)+,x0      y:(r4)+,y0', 'x:(r0)+,x0 y:(r4)+,y0']"
+  },
+  {
+    "opcode": "44D8D2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a x:(r0)+,x0', 'y0,x0,a         x:(r0)+,x0']"
+  },
+  {
+    "opcode": "44D8C2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['x0,y1,a x:(r0)+,x0', 'x0,y1,a         x:(r0)+,x0']"
+  },
+  {
+    "opcode": "44C8D2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a         x:(r0)+n0,x0', 'y0,x0,a x:(r0)+n0,x0']"
+  },
+  {
+    "opcode": "202913",
+    "mnemonic": "clr",
+    "reason": "no ext, 2 variants",
+    "data": "['a iflt', 'a               iflt']"
+  },
+  {
+    "opcode": "5E5DD2",
+    "mnemonic": "mac",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,x0,a a,y:(r5)+', 'y0,x0,a         a,y:(r5)+']"
+  },
+  {
+    "opcode": "202709",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['a,b             ifgt', 'a,b ifgt']"
+  },
+  {
+    "opcode": "202959",
+    "mnemonic": "tfr",
+    "reason": "no ext, 2 variants",
+    "data": "['y0,b            iflt', 'y0,b iflt']"
+  },
+  {
+    "opcode": "202A1B",
+    "mnemonic": "clr",
+    "reason": "no ext, 2 variants",
+    "data": "['b               ifeq', 'b ifeq']"
+  },
+  {
+    "opcode": "BA9800",
+    "mnemonic": "move",
+    "reason": "no ext, 2 variants",
+    "data": "['x:(r0)+,a a,y:(r4)+', 'x:(r0)+,a       a,y:(r4)+']"
+  },
+  {
+    "opcode": "BF9800",
+    "mnemonic": "move",
+    "reason": "no ext, 2 variants",
+    "data": "['x:(r0)+,b       b,y:(r4)+', 'x:(r0)+,b b,y:(r4)+']"
+  },
+  {
+    "opcode": "050E1E",
+    "mnemonic": "bra",
+    "reason": "no ext, 2 variants",
+    "data": "['func_10178a', 'func_1463fb']"
+  },
+  {
+    "opcode": "050891",
+    "mnemonic": "bsr",
+    "reason": "no ext, 2 variants",
+    "data": "['func_147c50', 'func_147ee5']"
+  },
+  {
+    "opcode": "050859",
+    "mnemonic": "bsr",
+    "reason": "no ext, 2 variants",
+    "data": "['func_147ed3', 'func_147c3e']"
+  },
+  {
+    "opcode": "050850",
+    "mnemonic": "bsr",
+    "reason": "no ext, 2 variants",
+    "data": "['func_147c50', 'func_147ee5']"
+  }
+]

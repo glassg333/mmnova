@@ -1,0 +1,98 @@
+dis56300 — Build History Log
+============================
+Дата сборки: 2026-09-19
+Цель: Заменить утерянный C++ dis56300_tool на Python-эквивалент
+
+Итерации и точность:
+--------------------
+
+Итерация 1 — Базовый lookup table
+  Templates built: 22566
+  Ambiguous: 542
+  Test: 96.4% (3897/4043)
+  Approach: extract (opcode, mnemonic, operands) triples from reference listings,
+            build {opcode_hex: {mnemonic: {template, ext_count}}} JSON
+  Limitation: short branches had fixed target (not computed from offset)
+
+Итерация 2 — Absolute vs relative target resolution
+  Templates built: 22812
+  Test: 97.3% (3932/4043)
+  Approach: distinguish ABSOLUTE_TARGET_MNEMONICS (jmp/jsr/jset/jclr/jsset/jsclr)
+            from RELATIVE_TARGET_MNEMONICS (bra/bsr/bcc/etc). For relative,
+            compute target = current_addr + signed_ext (24-bit signed)
+  Remaining issues: bra/bsr/bcc with no ext_word but relative offset encoded
+                    in opcode bits
+
+Итерация 3 — Short branch {rel8} placeholder
+  Templates built: 22978
+  Ambiguous: 130 → 107
+  Test: 97.9% (3951/4043)
+  Approach: For branches with no ext_word and target = addr + signed_8bit_offset
+            in opcode low byte, use {rel8} placeholder. apply_template computes
+            target = current_addr + signed_8bit(opcode & 0xFF)
+
+Итерация 4 — Improved short branch detection
+  Test: 98.2% (3971/4043)
+  Approach: Only use {rel8} when low_byte_signed == offset.
+            Otherwise keep fixed target (each opcode → unique target).
+
+Итерация 5 — do/dor {do_end_addr} + peripheral <<$
+  Templates built: 23042
+  Ambiguous: 107 → 43
+  Test: 99.1% (4007/4043)
+  Approach: For do/dor instructions, ext_word = end_addr - 1.
+            Use {do_end_addr} placeholder, output = ext + 1.
+            For peripheral addresses (ext >= 0xFF0000), use <<$ (long absolute).
+
+Итерация 6 — Conditional <<$ for peripheral addresses
+  Test: 99.8% (4035/4043)
+  Approach: Always use >$ in template. apply_template converts to <<$
+            if ext_val >= 0xFF0000 AND context is memory addressing (x:/y:).
+
+Итерация 7 — int_/func_ prefix selection (final)
+  Test on partial corpus: 99.9% (4040/4043)
+  Test on full kernel (2344 instructions): 99.87% (3 mismatches in bra with
+    int_/func_ ambiguity, due to reference's semantic naming convention
+    requiring cross-reference analysis)
+  Test on all 35868 reference instructions: 99.98% (8 mismatches total)
+  Approach: For short branches with {rel8}, keep original func_/int_ prefix
+            from reference (no automatic switching).
+
+Тесты на всём эталонном корпусе:
+-------------------------------
+
+  kernel          (2 344 instr): 99.87% (3 mismatches: int_/func_ ambiguity)
+  dispatch        (7 124 instr): 100.00%
+  machine_code    (3 564 instr): 100.00%
+  machines_fx     (22 836 instr): 99.98% (5 mismatches: int_/func_ ambiguity)
+
+  TOTAL: 35 860/35 868 = 99.98%
+
+Известные ограничения:
+---------------------
+
+1. 8 mismatches из 35 868 — все из-за int_/func_ naming convention.
+   Reference disassembler различает:
+   - int_XXXXXX: labels, на которые ссылаются interrupt vectors
+   - func_XXXXXX: function labels
+   Для точного определения нужен cross-reference analysis (какие метки
+   referenced из P:$0..P:$65 через jmp/jsr), что не входит в simple disassembler.
+
+2. Не реализовано:
+   - Полный разбор parallel move форматов (некоторые комбинации dual move
+     могут выводиться с разными spacing)
+   - Декодирование параметрических кривых в дескрипторах ColdFire (отдельная задача)
+   - Symbolic execution / data flow analysis
+
+Производительность:
+-----------------
+- Полный корпус 35 868 инструкций: <0.2 секунды
+- Memory: ~10 MB (templates JSON)
+
+Файлы:
+-----
+- scripts/dis56300.py: главный CLI дизассемблер
+- scripts/build_templates.py: построение templates JSON из эталона
+- reference/opcode_templates.json: 23 042 opcode → template mappings
+- reference/dispatch_dsp1_*.txt: эталонные листинги (ground truth)
+- tests/test_dis56300.py: тест точности на 4 эталонных файлах

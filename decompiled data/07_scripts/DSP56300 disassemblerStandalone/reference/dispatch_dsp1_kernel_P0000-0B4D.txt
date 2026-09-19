@@ -1,0 +1,2344 @@
+000000: jmp func_ff0000          ; 0AF080 FF0000
+000002: jmp int_000002           ; 0C0002
+000003: nop                      ; 000000
+000004: jmp int_000004           ; 0C0004
+000005: nop                      ; 000000
+000006: jmp int_000006           ; 0C0006
+000007: nop                      ; 000000
+000008: jmp int_000008           ; 0C0008
+000009: nop                      ; 000000
+00000A: jmp int_00000a           ; 0C000A
+00000B: nop                      ; 000000
+00000C: jsr func_000235          ; 0BF080 000235
+00000E: nop                      ; 000000
+00000F: nop                      ; 000000
+000010: jsr func_000219          ; 0BF080 000219
+000012: jsr func_000220          ; 0BF080 000220
+000014: jsr func_000227          ; 0BF080 000227
+000016: jsr func_00022e          ; 0BF080 00022E
+000018: jmp int_000018           ; 0C0018
+000019: nop                      ; 000000
+00001A: jsset #$1,x:<<$fffff4,func_00023e ; 0BB4A1 00023E
+00001C: jmp int_00001c           ; 0C001C
+00001D: nop                      ; 000000
+00001E: jmp int_00001e           ; 0C001E
+00001F: nop                      ; 000000
+000020: jsset #$4,x:<<$fffff4,func_000259 ; 0BB4A4 000259
+000022: bset #$1,x:<<$fffffe     ; 0ABE21
+000023: nop                      ; 000000
+000024: jmp int_000024           ; 0C0024
+000025: nop                      ; 000000
+000026: jmp int_000026           ; 0C0026
+000027: nop                      ; 000000
+000028: jmp int_000028           ; 0C0028
+000029: nop                      ; 000000
+00002A: jmp int_00002a           ; 0C002A
+00002B: nop                      ; 000000
+00002C: jmp int_00002c           ; 0C002C
+00002D: nop                      ; 000000
+00002E: jmp int_00002e           ; 0C002E
+00002F: nop                      ; 000000
+000030: jmp int_000030           ; 0C0030
+000031: nop                      ; 000000
+000032: jmp int_000032           ; 0C0032
+000033: nop                      ; 000000
+000034: jmp int_000034           ; 0C0034
+000035: nop                      ; 000000
+000036: jmp int_000036           ; 0C0036
+000037: nop                      ; 000000
+000038: jmp int_000038           ; 0C0038
+000039: nop                      ; 000000
+00003A: jmp int_00003a           ; 0C003A
+00003B: nop                      ; 000000
+00003C: nop                      ; 000000
+00003D: nop                      ; 000000
+00003E: nop                      ; 000000
+00003F: nop                      ; 000000
+000040: jmp int_000040           ; 0C0040
+000041: nop                      ; 000000
+000042: jmp int_000042           ; 0C0042
+000043: nop                      ; 000000
+000044: jmp int_000044           ; 0C0044
+000045: nop                      ; 000000
+000046: jmp int_000046           ; 0C0046
+000047: nop                      ; 000000
+000048: jmp int_000048           ; 0C0048
+000049: nop                      ; 000000
+00004A: jmp int_00004a           ; 0C004A
+00004B: nop                      ; 000000
+00004C: nop                      ; 000000
+00004D: nop                      ; 000000
+00004E: nop                      ; 000000
+00004F: nop                      ; 000000
+000050: jmp int_000050           ; 0C0050
+000051: nop                      ; 000000
+000052: jmp int_000052           ; 0C0052
+000053: nop                      ; 000000
+000054: jmp int_000054           ; 0C0054
+000055: nop                      ; 000000
+000056: jmp int_000056           ; 0C0056
+000057: nop                      ; 000000
+000058: jmp int_000058           ; 0C0058
+000059: nop                      ; 000000
+00005A: nop                      ; 000000
+00005B: nop                      ; 000000
+00005C: nop                      ; 000000
+00005D: nop                      ; 000000
+00005E: nop                      ; 000000
+00005F: nop                      ; 000000
+000060: jmp int_000060           ; 0C0060
+000061: nop                      ; 000000
+000062: jmp int_000062           ; 0C0062
+000063: nop                      ; 000000
+000064: movep a0,x:<<$ffffc7     ; 08C807
+000065: nop                      ; 000000
+000066: ori #$3,mr               ; 0003F8
+000067: move #>$490d,omr         ; 05F43A 00490D
+000069: move #>$80300,sr         ; 05F439 080300
+00006B: nop                      ; 000000
+00006C: nop                      ; 000000
+00006D: nop                      ; 000000
+00006E: nop                      ; 000000
+00006F: nop                      ; 000000
+000070: nop                      ; 000000
+000071: pflush                   ; 000003
+000072: move #>$4d0d,omr         ; 05F43A 004D0D
+000074: nop                      ; 000000
+000075: nop                      ; 000000
+000076: jsr func_100077          ; 0BF080 100077
+000078: jsr func_100139          ; 0BF080 100139
+00007A: jsr func_145cce          ; 0BF080 145CCE
+00007C: jsr func_100109          ; 0BF080 100109
+00007E: jsr func_10009e          ; 0BF080 10009E
+000080: jsr func_10012e          ; 0BF080 10012E
+000082: jsr func_100110          ; 0BF080 100110
+000084: bset #$14,x:<<$ffffff    ; 0ABF34
+000085: bset #$15,x:<<$ffffff    ; 0ABF35
+000086: andi #$fc,mr             ; 00FCB8
+000087: movep x:<<$ffffeb,a      ; 084E2B
+000088: cmp #>$180,a             ; 0140C5 000180
+00008A: beq int_000092           ; 05A408
+00008B: cmp #>$160,a             ; 0140C5 000160
+00008D: beq int_00009f           ; 05A412
+00008E: cmp #>$140,a             ; 0140C5 000140
+000090: beq int_0000ac           ; 05A41C
+000091: bra int_000087           ; 050FD6
+000092: move #>$140,r1           ; 61F400 000140
+000094: move #>$1a0,r2           ; 62F400 0001A0
+000096: move #>$200,r3           ; 63F400 000200
+000098: move #>$260,r0           ; 60F400 000260
+00009A: move #>$2cc,x0           ; 44F400 0002CC
+00009C: move #>$32c,x1           ; 45F400 00032C
+00009E: bra int_0000b8           ; 050C1A
+00009F: move #>$180,r1           ; 61F400 000180
+0000A1: move #>$1e0,r2           ; 62F400 0001E0
+0000A3: move #>$240,r3           ; 63F400 000240
+0000A5: move #>$2a0,r0           ; 60F400 0002A0
+0000A7: move #>$2fc,x0           ; 44F400 0002FC
+0000A9: move #>$2cc,x1           ; 45F400 0002CC
+0000AB: bra int_0000b8           ; 050C0D
+0000AC: move #>$160,r1           ; 61F400 000160
+0000AE: move #>$1c0,r2           ; 62F400 0001C0
+0000B0: move #>$220,r3           ; 63F400 000220
+0000B2: move #>$280,r0           ; 60F400 000280
+0000B4: move #>$32c,x0           ; 44F400 00032C
+0000B6: move #>$2fc,x1           ; 45F400 0002FC
+0000B8: move a,x:>$2c8           ; 567000 0002C8
+0000BA: move r1,x:>$2c0          ; 617000 0002C0
+0000BC: move r2,x:>$2c1          ; 627000 0002C1
+0000BE: move r3,x:>$2c2          ; 637000 0002C2
+0000C0: move r0,x:>$2c3          ; 607000 0002C3
+0000C2: move x0,x:>$2c9          ; 447000 0002C9
+0000C4: move x0,x:>$2cb          ; 447000 0002CB
+0000C6: move x1,x:>$2ca          ; 457000 0002CA
+0000C8: move #>$528,x0           ; 44F400 000528
+0000CA: move x0,y:>$123          ; 4C7000 000123
+0000CC: move #$0,x0              ; 240000
+0000CD: move x0,y:>$124          ; 4C7000 000124
+0000CF: move y:>$123,r6          ; 6EF000 000123
+0000D1: move #>$ffffff,m0        ; 05F420 FFFFFF
+0000D3: move m0,m1               ; 0461A0
+0000D4: move m0,m2               ; 0462A0
+0000D5: move m0,m3               ; 0463A0
+0000D6: move m0,m6               ; 0466A0
+0000D7: move m0,m5               ; 0465A0
+0000D8: move m0,m4               ; 0464A0
+0000D9: move m0,m7               ; 0467A0
+0000DA: move #$0,x0              ; 240000
+0000DB: move x0,x:(r6-$1c)       ; 039684
+0000DC: move y:(r6-$3),x0        ; 03F6F4
+0000DD: move x0,x:>$2c4          ; 447000 0002C4
+0000DF: move y:>$124,r1          ; 69F000 000124
+0000E1: move y:(r6),a            ; 5EE600
+0000E2: bclr #$7,a1              ; 0ACC47
+0000E3: move a,y:(r6)            ; 5E6600
+0000E4: bcc func_000100          ; 05041C
+0000E5: move y:(r6-$4),x0        ; 03F6B4
+0000E6: move x0,r0               ; 209000
+0000E7: move y:(r1+$120),a       ; 0B71CE 000120
+0000E9: cmp x0,a                 ; 200045
+0000EA: beq int_0000f7           ; 05A40D
+0000EB: move x:(r0+$10016b),r2   ; 0A70D2 10016B
+0000ED: move x0,y:(r1+$120)      ; 0B7184 000120
+0000EF: move y:(r6+$1),b         ; 0206FF
+0000F0: move #$20,x0             ; 242000
+0000F1: move x0,x:(r6-$1d)       ; 038EC4
+0000F2: move #>$1,x0             ; 44F400 000001
+0000F4: move x0,x:(r6-$19)       ; 039EC4
+0000F5: move b,x:(r6-$20)        ; 03868F
+0000F6: jsr (r2)                 ; 0BE280
+0000F7: move y:>$124,r1          ; 69F000 000124
+0000F9: move y:(r1+$120),r0      ; 0B71D0 000120
+0000FB: move x:(r0+$10018d),r1   ; 0A70D1 10018D
+0000FD: move y:>$123,r6          ; 6EF000 000123
+0000FF: jsr (r1)                 ; 0BE180
+000100: move y:>$124,r1          ; 69F000 000124
+000102: move #>$100,r7           ; 67F400 000100
+000104: move y:(r1+$120),r0      ; 0B71D0 000120
+000106: move x:(r0+$1001af),r1   ; 0A70D1 1001AF
+000108: move y:>$123,r6          ; 6EF000 000123
+00010A: move #>$ffffff,m0        ; 05F420 FFFFFF
+00010C: move m0,m1               ; 0461A0
+00010D: move m0,m2               ; 0462A0
+00010E: move m0,m3               ; 0463A0
+00010F: move m0,m4               ; 0464A0
+000110: move m0,m5               ; 0465A0
+000111: move m0,m6               ; 0466A0
+000112: move m0,m7               ; 0467A0
+000113: move x:>$2c4,x1          ; 45F000 0002C4
+000115: move x:>$2c3,r2          ; 62F000 0002C3
+000117: brset #$6,x1,func_0002ed ; 0CC5A6 0001D6
+000119: brset #$7,x1,func_000302 ; 0CC5A7 0001E9
+00011B: move y:(r6+$b),b         ; 022EFF
+00011C: move #$40,y0             ; 264000
+00011D: move x:>$2c4,a           ; 56F000 0002C4
+00011F: brclr #$4,a,func_000125  ; 0CCE84 000006
+000121: move x:>$2c3,r0          ; 60F000 0002C3
+000123: tfr y0,b                 ; 200059
+000124: jmp func_000262          ; 0C0262
+000125: btst #$3,a               ; 0BCE63
+000126: tfr y0,b ifcs            ; 202859
+000127: move x:>$2c0,r0          ; 60F000 0002C0
+000129: brset #$c,a,func_000262  ; 0CCEAC 000139
+00012B: move x:>$2c1,r0          ; 60F000 0002C1
+00012D: brset #$d,a,func_000262  ; 0CCEAD 000135
+00012F: move x:>$2c2,r0          ; 60F000 0002C2
+000131: jmp func_000262          ; 0C0262
+000132: move #>$ffffff,m0        ; 05F420 FFFFFF
+000134: move m0,m6               ; 0466A0
+000135: move m0,m1               ; 0461A0
+000136: move m0,m2               ; 0462A0
+000137: move m0,m3               ; 0463A0
+000138: move y:>$123,r6          ; 6EF000 000123
+00013A: move m0,m4               ; 0464A0
+00013B: move m0,m5               ; 0465A0
+00013C: move m0,m7               ; 0467A0
+00013D: lua (r6-$28),r6          ; 042E86
+00013E: move #>$100,r7           ; 67F400 000100
+000140: move x:>$2c3,r5          ; 65F000 0002C3
+000142: jmp func_0004a8          ; 0C04A8
+000143: move y:>$123,r6          ; 6EF000 000123
+000145: move #$0,x0              ; 240000
+000146: move x:>$2c4,a           ; 56F000 0002C4
+000148: move x0,y:(r6)           ; 4C6600
+000149: brset #$3,a,func_0001f3  ; 0CCEA3 0000AA
+00014B: brclr #$0,a,func_000153  ; 0CCE80 000008
+00014D: move x:>$2c0,r2          ; 62F000 0002C0
+00014F: move #$0,r4              ; 340000
+000150: bsr func_0001e2          ; 050912
+000151: move x:>$2c4,a           ; 56F000 0002C4
+000153: brclr #$1,a,func_00015b  ; 0CCE81 000008
+000155: move x:>$2c1,r2          ; 62F000 0002C1
+000157: move #$0,r4              ; 340000
+000158: bsr func_0001e2          ; 05090A
+000159: move x:>$2c4,a           ; 56F000 0002C4
+00015B: brclr #$2,a,func_000163  ; 0CCE82 000008
+00015D: move x:>$2c2,r2          ; 62F000 0002C2
+00015F: move #$0,r4              ; 340000
+000160: bsr func_0001e2          ; 050902
+000161: move x:>$2c4,a           ; 56F000 0002C4
+000163: move y:>$123,b           ; 5FF000 000123
+000165: add #>$100,b             ; 0140C8 000100
+000167: move y:>$124,a           ; 5EF000 000124
+000169: add #<$1,a               ; 014180
+00016A: move b,y:>$123           ; 5F7000 000123
+00016C: move a,y:>$124           ; 5E7000 000124
+00016E: cmp #<$3,a               ; 014385
+00016F: beq func_0001a3          ; 05A454
+000170: move x:>$2c8,y0          ; 46F000 0002C8
+000172: move y:>$124,a           ; 5EF000 000124
+000174: cmp #<$1,a               ; 014185
+000175: bne func_000179          ; 052404
+000176: move #>$a,x0             ; 44F400 00000A
+000178: bra func_00017f          ; 050C07
+000179: movep x:<<$ffffeb,a      ; 084E2B
+00017A: sub y0,a                 ; 200054
+00017B: tst a                    ; 200003
+00017C: bmi func_000184          ; 05B408
+00017D: move #>$15,x0            ; 44F400 000015
+00017F: movep x:<<$ffffeb,a      ; 084E2B
+000180: sub y0,a                 ; 200054
+000181: nop                      ; 000000
+000182: cmp x0,a                 ; 200045
+000183: blt func_00017f          ; 0597DC
+000184: move y:>$124,a           ; 5EF000 000124
+000186: cmp #<$1,a               ; 014185
+000187: beq func_000189          ; 05A402
+000188: bra int_0000cf           ; 050E87
+000189: move x:<<$ffffb8,x0      ; 44F000 FFFFB8
+00018B: movep x:<<$ffffbd,b      ; 044FDD
+00018C: eor #<$2,b               ; 01428B
+00018D: move #>$60,x1            ; 45F400 000060
+00018F: move b,x:<<$ffffbd       ; 577000 FFFFBD
+000191: move x:>$2c0,a           ; 56F000 0002C0
+000193: add #<$20,a              ; 016080
+000194: cmp #>$1a0,a             ; 0140C5 0001A0
+000196: sub x1,a ifeq            ; 202A64
+000197: movep #>$a5140,x:<<$ffffdc ; 08F49C 0A5140
+000199: movep #>$41,x:<<$fffff1  ; 08F4B1 000041
+00019B: movep a1,x:<<$ffffde     ; 08CC1E
+00019C: movep #>$ffffb8,x:<<$ffffdf ; 08F49F FFFFB8
+00019E: movep #>$301f,x:<<$ffffdd ; 08F49D 00301F
+0001A0: movep #>$ca5140,x:<<$ffffdc ; 08F49C CA5140
+0001A2: bra int_0000cf           ; 050E4D
+0001A3: move #$0,x0              ; 240000
+0001A4: move x0,x:>$4fe          ; 447000 0004FE
+0001A6: move x:>$2c4,a           ; 56F000 0002C4
+0001A8: brset #$8,a,func_0001ad  ; 0CCEA8 000005
+0001AA: brset #$a,a,func_0001c2  ; 0CCEAA 000018
+0001AC: jmp int_000087           ; 0C0087
+0001AD: move x:>$2c0,r1          ; 61F000 0002C0
+0001AF: move x:>$2c1,r2          ; 62F000 0002C1
+0001B1: move x:>$2c2,r3          ; 63F000 0002C2
+0001B3: move r1,r0               ; 223000
+0001B4: move #>$7fffff,y0        ; 46F400 7FFFFF
+0001B6: move x:(r1)+,x0          ; 44D900
+0001B7: do #<$10,>$1c1           ; 061080 0001C0
+0001B9: mpy y0,x0,a x:(r1)+,x0   ; 44D9D0
+0001BA: mpy y0,x0,b x:(r2)+,x0   ; 44DAD8
+0001BB: mac y0,x0,a x:(r2)+,x0   ; 44DAD2
+0001BC: mac y0,x0,b x:(r3)+,x0   ; 44DBDA
+0001BD: mac y0,x0,a x:(r3)+,x0   ; 44DBD2
+0001BE: mac y0,x0,b x:(r1)+,x0   ; 44D9DA
+0001BF: move a,x:(r0)+           ; 565800
+0001C0: move b,x:(r0)+           ; 575800
+0001C1: jmp int_000087           ; 0C0087
+0001C2: move x:>$2ca,r0          ; 60F000 0002CA
+0001C4: move #$10,n0             ; 381000
+0001C5: move x:>$2c0,r2          ; 62F000 0002C0
+0001C7: lua (r0)+n0,r1           ; 044811
+0001C8: do #<$10,>$1ce           ; 061080 0001CD
+0001CA: move x:(r0)+,x0          ; 44D800
+0001CB: move x:(r1)+,x1          ; 45D900
+0001CC: move x0,x:(r2)+          ; 445A00
+0001CD: move x1,x:(r2)+          ; 455A00
+0001CE: move x:>$2c1,r2          ; 62F000 0002C1
+0001D0: move x:>$2cb,r0          ; 60F000 0002CB
+0001D2: do #<$10,>$1d8           ; 061080 0001D7
+0001D4: move x:(r1)+,x0          ; 44D900
+0001D5: move x:(r0)+,x1          ; 45D800
+0001D6: move x0,x:(r2)+          ; 445A00
+0001D7: move x1,x:(r2)+          ; 455A00
+0001D8: move x:>$2c2,r2          ; 62F000 0002C2
+0001DA: lua (r0)+n0,r1           ; 044811
+0001DB: do #<$10,>$1e1           ; 061080 0001E0
+0001DD: move x:(r0)+,x0          ; 44D800
+0001DE: move x:(r1)+,x1          ; 45D900
+0001DF: move x0,x:(r2)+          ; 445A00
+0001E0: move x1,x:(r2)+          ; 455A00
+0001E1: jmp int_000087           ; 0C0087
+0001E2: move r2,r3               ; 225300
+0001E3: move x:(r2)+,b y:(r4)+,y0 ; FC9A00
+0001E4: add y0,b                 ; 200058
+0001E5: do #<$10,>$1eb           ; 061080 0001EA
+0001E7: move x:(r2)+,a y:(r4)+,y0 ; F89A00
+0001E8: add y0,a b,x:(r3)+       ; 575B50
+0001E9: move x:(r2)+,b y:(r4)+,y0 ; FC9A00
+0001EA: add y0,b a,x:(r3)+       ; 565B58
+0001EB: rts                      ; 00000C
+0001EC: move y:(r4)+,a           ; 5EDC00
+0001ED: move y:(r4)+,b           ; 5FDC00
+0001EE: do #<$10,>$1f2           ; 061080 0001F1
+0001F0: move a,x:(r2)+ y:(r4)+,a ; FA1A00
+0001F1: move b,x:(r2)+ y:(r4)+,b ; FF1A00
+0001F2: rts                      ; 00000C
+0001F3: brclr #$0,a,func_000200  ; 0CCE80 00000D
+0001F5: move #$0,r4              ; 340000
+0001F6: move x:>$2c0,r2          ; 62F000 0002C0
+0001F8: bsclr #$c,a,func_0001e2  ; 0DCE8C FFFFEA
+0001FA: move x:>$2c4,a           ; 56F000 0002C4
+0001FC: bsset #$c,a,func_0001ec  ; 0DCEAC FFFFF0
+0001FE: move x:>$2c4,a           ; 56F000 0002C4
+000200: brclr #$1,a,func_00020d  ; 0CCE81 00000D
+000202: move #$0,r4              ; 340000
+000203: move x:>$2c1,r2          ; 62F000 0002C1
+000205: bsclr #$d,a,func_0001e2  ; 0DCE8D FFFFDD
+000207: move x:>$2c4,a           ; 56F000 0002C4
+000209: bsset #$d,a,func_0001ec  ; 0DCEAD FFFFE3
+00020B: move x:>$2c4,a           ; 56F000 0002C4
+00020D: brclr #$2,a,func_000218  ; 0CCE82 00000B
+00020F: move #$0,r4              ; 340000
+000210: move x:>$2c2,r2          ; 62F000 0002C2
+000212: bsclr #$e,a,func_0001e2  ; 0DCE8E FFFFD0
+000214: move x:>$2c4,a           ; 56F000 0002C4
+000216: bsset #$e,a,func_0001ec  ; 0DCEAE FFFFD6
+000218: bra func_000163          ; 050E8B
+000219: movep #>$500,x:<<$ffffda ; 08F49A 000500
+00021B: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+00021D: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+00021F: rti                      ; 000004
+000220: movep #>$600,x:<<$ffffda ; 08F49A 000600
+000222: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+000224: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+000226: rti                      ; 000004
+000227: movep #>$700,x:<<$ffffda ; 08F49A 000700
+000229: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+00022B: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+00022D: rti                      ; 000004
+00022E: movep x:<<$ffffc6,x:<<$ffffda ; 087086 FFFFDA
+000230: movep #>$7ff,x:<<$ffffd9 ; 08F499 0007FF
+000232: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+000234: rti                      ; 000004
+000235: move r0,x:>$4ff          ; 607000 0004FF
+000237: brclr #$0,x:<<$ffffc3,func_000237 ; 0CC300 000000
+000239: movep x:<<$ffffc6,r0     ; 085006
+00023A: movep x:(r0),x:<<$ffffc7 ; 08E087
+00023B: move x:>$4ff,r0          ; 60F000 0004FF
+00023D: rti                      ; 000004
+00023E: move a2,x:>$2c7          ; 527000 0002C7
+000240: move a1,x:>$2c6          ; 547000 0002C6
+000242: move a0,x:>$2c5          ; 507000 0002C5
+000244: move x:>$4fe,a           ; 56F000 0004FE
+000246: add #<$1,a               ; 014180
+000247: cmp #<$3,a               ; 014385
+000248: bge func_000252          ; 05140A
+000249: move a,x:>$4fe           ; 567000 0004FE
+00024B: move x:>$2c6,a1          ; 54F000 0002C6
+00024D: move x:>$2c7,a2          ; 52F000 0002C7
+00024F: move x:>$2c5,a0          ; 50F000 0002C5
+000251: rti                      ; 000004
+000252: movep #>$0,x:<<$ffffe8   ; 08F4A8 000000
+000254: movep #>$0,x:<<$ffffe4   ; 08F4A4 000000
+000256: movep #>$0,x:<<$ffffe0   ; 08F4A0 000000
+000258: jmp func_000258          ; 0C0258
+000259: movep #>$4a5a20,x:<<$ffffdc ; 08F49C 4A5A20
+00025B: movep x:>$2ca,x:<<$ffffde ; 08F09E 0002CA
+00025D: movep #>$2f,x:<<$ffffdd  ; 08F49D 00002F
+00025F: movep #>$8a52c0,x:<<$ffffdc ; 08F49C 8A52C0
+000261: rti                      ; 000004
+000262: move b,x:$1              ; 570100
+000263: move y:(r6+$1),b         ; 0206FF
+000264: move x:(r6-$21),a        ; 037EDE
+000265: cmp a,b                  ; 20000D
+000266: beq func_000270          ; 05A40A
+000267: move x:(r6-$20),x0       ; 038694
+000268: cmp x0,b                 ; 20004D
+000269: blt func_00026d          ; 059404
+00026A: cmp x0,a                 ; 200045
+00026B: bge func_000270          ; 051405
+00026C: move a,x:(r6-$22)        ; 037E8E
+00026D: cmp x0,a                 ; 200045
+00026E: blt func_000270          ; 059402
+00026F: move a,x:(r6-$22)        ; 037E8E
+000270: move b,x:(r6-$21)        ; 037ECF
+000271: move y:(r6-$6),b         ; 03EEBF
+000272: move x:(r6-$26),a        ; 036E9E
+000273: cmp a,b                  ; 20000D
+000274: beq func_00027e          ; 05A40A
+000275: move x:(r6-$24),x0       ; 037694
+000276: cmp x0,b                 ; 20004D
+000277: blt func_00027b          ; 059404
+000278: cmp x0,a                 ; 200045
+000279: bge func_00027e          ; 051405
+00027A: move a,x:(r6-$25)        ; 036ECE
+00027B: cmp x0,a                 ; 200045
+00027C: blt func_00027e          ; 059402
+00027D: move a,x:(r6-$25)        ; 036ECE
+00027E: move b,x:(r6-$26)        ; 036E8F
+00027F: move #>$1449c6,r4        ; 64F400 1449C6
+000281: move r4,r3               ; 229300
+000282: move #>$7f,y0            ; 46F400 00007F
+000284: move y:(r6-$c),b         ; 03D6BF
+000285: move y:(r6-$21),a        ; 037EFE
+000286: asr #$10,a,a             ; 0C1C20
+000287: asr #$10,b,b             ; 0C1CA1
+000288: move a,n4                ; 21DC00
+000289: move b,n3                ; 21FB00
+00028A: move y:(r6+$2),y1        ; 020EB7
+00028B: move y:(r4+n4),x0        ; 4CEC00
+00028C: move y:(r3+n3),x1        ; 4DEB00
+00028D: mpy x0,y1,a              ; 2000C0
+00028E: tfr y0,a ifmi            ; 202B51
+00028F: mpy y1,x1,b              ; 2000F8
+000290: tfr y0,b ifmi            ; 202B59
+000291: asr #$8,a,a              ; 0C1C10
+000292: asr #$8,b,b              ; 0C1C91
+000293: move a0,y0               ; 210600
+000294: move b0,y1               ; 212700
+000295: move x:(r6-$26),b        ; 036E9F
+000296: move x:(r6-$25),a        ; 036EDE
+000297: sub a,b                  ; 20001C
+000298: move x:(r6-$24),a        ; 03769E
+000299: move x:(r6-$23),a0       ; 0376D8
+00029A: move b,x0                ; 21E400
+00029B: mac x0,y1,a              ; 2000C2
+00029C: tst b                    ; 20000B
+00029D: bmi func_0002a4          ; 05B407
+00029E: move y:(r6-$6),b         ; 03EEBF
+00029F: cmp b,a                  ; 200005
+0002A0: ble func_0002a9          ; 05F409
+0002A1: move b,x:(r6-$25)        ; 036ECF
+0002A2: move b,a                 ; 21EE00
+0002A3: bra func_0002a9          ; 050C06
+0002A4: move y:(r6-$6),b         ; 03EEBF
+0002A5: cmp b,a                  ; 200005
+0002A6: bge func_0002a9          ; 051403
+0002A7: move b,x:(r6-$25)        ; 036ECF
+0002A8: move b,a                 ; 21EE00
+0002A9: move x:(r6-$21),b        ; 037EDF
+0002AA: move a,l:<$0             ; 480000
+0002AB: move a1,x:(r6-$24)       ; 03768C
+0002AC: move a0,x:(r6-$23)       ; 0376C8
+0002AD: move x:(r6-$22),a        ; 037E9E
+0002AE: sub a,b                  ; 20001C
+0002AF: move x:(r6-$20),a        ; 03869E
+0002B0: move x:(r6-$1f),a0       ; 0386D8
+0002B1: move b,x0                ; 21E400
+0002B2: mac y0,x0,a              ; 2000D2
+0002B3: tst b                    ; 20000B
+0002B4: bmi func_0002bb          ; 05B407
+0002B5: move y:(r6+$1),b         ; 0206FF
+0002B6: cmp b,a                  ; 200005
+0002B7: ble func_0002c0          ; 05F409
+0002B8: move b,x:(r6-$22)        ; 037E8F
+0002B9: move b,a                 ; 21EE00
+0002BA: bra func_0002c0          ; 050C06
+0002BB: move y:(r6+$1),b         ; 0206FF
+0002BC: cmp b,a                  ; 200005
+0002BD: bge func_0002c0          ; 051403
+0002BE: move b,x:(r6-$22)        ; 037E8F
+0002BF: move b,a                 ; 21EE00
+0002C0: move x:$1,x0             ; 448100
+0002C1: move #>$2ab,x1           ; 45F400 0002AB
+0002C3: mpy x1,x0,b              ; 2000A8
+0002C4: move a1,x:(r6-$20)       ; 03868C
+0002C5: move a0,x:(r6-$1f)       ; 0386C8
+0002C6: move y:(r6-$2),x0        ; 03FEB4
+0002C7: add x0,a                 ; 200040
+0002C8: move y:(r6-$a),x0        ; 03DEB4
+0002C9: add b,a                  ; 200010
+0002CA: maci #>$b000,x0,a        ; 0141C2 00B000
+0002CC: sub #>$5800,a            ; 0140C4 005800
+0002CE: move l:<$0,b             ; 498000
+0002CF: add b,a                  ; 200010
+0002D0: clr a ifmi               ; 202B13
+0002D1: move #>$5800,x0          ; 44F400 005800
+0002D3: cmp x0,a                 ; 200045
+0002D4: tfr x0,a ifge            ; 202141
+0002D5: move y:>$124,b           ; 5FF000 000124
+0002D7: move a,x:(r6-$27)        ; 0366CE
+0002D8: cmp #>$2,b               ; 0140CD 000002
+0002DA: beq func_0002dd          ; 05A403
+0002DB: move a,x:(r6+$ff)        ; 0A768E 0000FF
+0002DD: asr #$b,a,b              ; 0C1C17
+0002DE: and #>$7ff,a             ; 0140C6 0007FF
+0002E0: move a,r2                ; 21D200
+0002E1: move b,x0                ; 21E400
+0002E2: move x:(r2+$140000),a    ; 0A72CE 140000
+0002E4: asr #$a,a,a              ; 0C1C14
+0002E5: asl x0,a,a               ; 0C1E48
+0002E6: move #>$1d22a,y0         ; 46F400 01D22A
+0002E8: move a,x0                ; 21C400
+0002E9: mpy y0,x0,a              ; 2000D0
+0002EA: asr #$3,a,a              ; 0C1C06
+0002EB: jsr (r1)                 ; 0BE180
+0002EC: jmp func_000132          ; 0C0132
+0002ED: move #>$100,b            ; 57F400 000100
+0002EF: move #>$120,x0           ; 44F400 000120
+0002F1: move x:<<$ffffee,a       ; 56F000 FFFFEE
+0002F3: cmp x0,a                 ; 200045
+0002F4: tlt x0,b                 ; 029048
+0002F5: move #$3f,m0             ; 053FA0
+0002F6: move b,r0                ; 21F000
+0002F7: move #$2,n0              ; 380200
+0002F8: brset #$7,x1,func_000319 ; 0CC5A7 000021
+0002FA: do #<$10,>$2ff           ; 061080 0002FE
+0002FC: move x:(r0)+n0,x0        ; 44C800
+0002FD: move x0,x:(r2)+          ; 445A00
+0002FE: move x0,x:(r2)+          ; 445A00
+0002FF: move #>$ffffff,m0        ; 05F420 FFFFFF
+000301: jmp func_00011b          ; 0C011B
+000302: move #>$100,b            ; 57F400 000100
+000304: move #>$120,x0           ; 44F400 000120
+000306: move x:<<$ffffee,a       ; 56F000 FFFFEE
+000308: cmp x0,a                 ; 200045
+000309: tlt x0,b                 ; 029048
+00030A: move #$3f,m0             ; 053FA0
+00030B: move b,r0                ; 21F000
+00030C: move #$2,n0              ; 380200
+00030D: brset #$6,x1,func_000319 ; 0CC5A6 00000C
+00030F: move x:(r0)+,x0          ; 44D800
+000310: do #<$10,>$315           ; 061080 000314
+000312: move x:(r0)+n0,x0        ; 44C800
+000313: move x0,x:(r2)+          ; 445A00
+000314: move x0,x:(r2)+          ; 445A00
+000315: move x:(r0)-,x0          ; 44D000
+000316: move #>$ffffff,m0        ; 05F420 FFFFFF
+000318: jmp func_00011b          ; 0C011B
+000319: do #<$20,>$31d           ; 062080 00031C
+00031B: move x:(r0)+,x0          ; 44D800
+00031C: move x0,x:(r2)+          ; 445A00
+00031D: move #>$ffffff,m0        ; 05F420 FFFFFF
+00031F: jmp func_00011b          ; 0C011B
+000320: nop                      ; 000000
+000321: nop                      ; 000000
+000322: nop                      ; 000000
+000323: nop                      ; 000000
+000324: nop                      ; 000000
+000325: nop                      ; 000000
+000326: nop                      ; 000000
+000327: nop                      ; 000000
+000328: nop                      ; 000000
+000329: nop                      ; 000000
+00032A: nop                      ; 000000
+00032B: nop                      ; 000000
+00032C: nop                      ; 000000
+00032D: nop                      ; 000000
+00032E: nop                      ; 000000
+00032F: nop                      ; 000000
+000330: nop                      ; 000000
+000331: nop                      ; 000000
+000332: nop                      ; 000000
+000333: nop                      ; 000000
+000334: nop                      ; 000000
+000335: nop                      ; 000000
+000336: nop                      ; 000000
+000337: nop                      ; 000000
+000338: nop                      ; 000000
+000339: nop                      ; 000000
+00033A: nop                      ; 000000
+00033B: nop                      ; 000000
+00033C: nop                      ; 000000
+00033D: nop                      ; 000000
+00033E: nop                      ; 000000
+00033F: nop                      ; 000000
+000340: move x:(r0)+,x0          ; 44D800
+000341: move #$2,n1              ; 390200
+000342: tfr x0,a x:(r0)+,x0 y:(r4)+,y0 ; F09841
+000343: do #<$10,>$34f           ; 061080 00034E
+000345: mac y0,x0,a x:(r0)-,x1 y:(r4)+,y1 ; F590D2
+000346: mac y0,x0,a              ; 2000D2
+000347: mac y1,x1,a x:(r1)+,x0   ; 44D9F2
+000348: mac -x0,y1,a x:(r1)-,x0  ; 44D1C6
+000349: mac -y0,x0,a b,y:(r1)+n1 ; 5F49D6
+00034A: mac -y0,x0,a x:(r0)+,x0 y:(r4)+,y0 ; F098D6
+00034B: mpy x1,y0,b y:(r4)+,y1   ; 4FDCE8
+00034C: tfr x0,a a,x:(r1)- a,y0  ; 181141
+00034D: mac y1,y0,b x:(r0)+,x0 y:(r4)+,y0 ; F098BA
+00034E: asl #$2,b,b              ; 0C1D85
+00034F: rts                      ; 00000C
+000350: move x:(r0)+,x0 y:(r4)+,y1 ; F19800
+000351: move #>$fffffe,n4        ; 74F400 FFFFFE
+000353: move b,x1                ; 21E500
+000354: do #<$10,>$364           ; 061080 000363
+000356: asr #$4,b,b              ; 0C1C89
+000357: mac x0,y1,b y:(r4)+,y1   ; 4FDCCA
+000358: asl #$4,b,b              ; 0C1D89
+000359: mac y1,x1,b a,x0 y:(r4)+n4,y0 ; 10CCFA
+00035A: mac -y0,x0,b a,l:(r1)+   ; 4859DE
+00035B: mac x0,y1,a x:(r0)+,x0 y:(r4)+,y1 ; F198C2
+00035C: mac x1,y0,a b,x1         ; 21E5E2
+00035D: asr #$4,b,b              ; 0C1C89
+00035E: mac x0,y1,b y:(r4)+,y1   ; 4FDCCA
+00035F: asl #$4,b,b              ; 0C1D89
+000360: mac y1,x1,b a,x0 y:(r4)+,y0 ; 10DCFA
+000361: mac -y0,x0,b a,l:(r1)+   ; 4859DE
+000362: mac x0,y1,a x:(r0)+,x0 y:(r4)+,y1 ; F198C2
+000363: mac x1,y0,a b,x1         ; 21E5E2
+000364: rts                      ; 00000C
+000365: move x:(r0)+,x1 y:(r4)+,y1 ; F59800
+000366: move x:(r1),x0 y:(r5),y0 ; C0A100
+000367: move #>$fffffe,n4        ; 74F400 FFFFFE
+000369: do #<$10,>$37b           ; 061080 00037A
+00036B: mac -y1,x1,b b,x1 y:(r4)+,y1 ; 1DDCFE
+00036C: mac y0,x0,a a,l:(r2)     ; 4862D2
+00036D: asl #$7,a,a              ; 0C1D0E
+00036E: mac y1,x1,b x:(r2),x0 y:(r4)+n4,y0 ; D082FA
+00036F: mac -y0,x0,b a,l:(r1)+   ; 4859DE
+000370: move l:(r2),a            ; 48E200
+000371: mac x0,y1,a x:(r1),x0 y:(r4)+,y1 ; F181C2
+000372: mac x1,y0,a x:(r0)+,x1 y:(r5),y0 ; C4B8E2
+000373: mac -y1,x1,b b,x1 y:(r4)+,y1 ; 1DDCFE
+000374: mac y0,x0,a a,l:(r2)     ; 4862D2
+000375: asl #$7,a,a              ; 0C1D0E
+000376: mac y1,x1,b x:(r2),x0 y:(r4)+,y0 ; F082FA
+000377: mac -y0,x0,b a,l:(r1)+   ; 4859DE
+000378: move l:(r2),a            ; 48E200
+000379: mac x0,y1,a x:(r1),x0 y:(r4)+,y1 ; F181C2
+00037A: mac x1,y0,a x:(r0)+,x1 y:(r5),y0 ; C4B8E2
+00037B: rts                      ; 00000C
+00037C: move x:(r0)+,x0 y:(r4)+n4,y0 ; D09800
+00037D: do #<$10,>$387           ; 061080 000386
+00037F: mac y0,x0,a a,x:(r1)+ a,y1 ; 1919D2
+000380: mac -y1,y0,a x:(r2)+,x0  ; 44DAB6
+000381: mac y0,x0,b b,x:(r3)+ b,y1 ; 1F1BDA
+000382: mac -y1,y0,b x:(r0)+,x0  ; 44D8BE
+000383: mac y0,x0,a a,x:(r1)+ a,y1 ; 1919D2
+000384: mac -y1,y0,a x:(r2)+,x0  ; 44DAB6
+000385: mac y0,x0,b b,x:(r3)+ b,y1 ; 1F1BDA
+000386: mac -y1,y0,b x:(r0)+,x0 y:(r4)+n4,y0 ; D098BE
+000387: move a,x:(r1)+           ; 565900
+000388: move b,x:(r3)+           ; 575B00
+000389: rts                      ; 00000C
+00038A: move x:(r0)+,y0          ; 46D800
+00038B: do #<$10,>$394           ; 061080 000393
+00038D: move l:(r4)+,x           ; 42DC00
+00038E: mac -y0,x0,a a,x:(r1)+ a,y0 ; 1819D6
+00038F: mac -x1,y0,a x:(r0),y0   ; 46E0E6
+000390: mac y0,x0,a x:(r2)+,y0   ; 46DAD2
+000391: mac -y0,x0,b b,x:(r3)+ b,y0 ; 1E1BDE
+000392: mac -x1,y0,b x:(r2),y0   ; 46E2EE
+000393: mac y0,x0,b x:(r0)+,y0   ; 46D8DA
+000394: move a,x:(r1)+           ; 565900
+000395: move b,x:(r3)+           ; 575B00
+000396: rts                      ; 00000C
+000397: do #<$8,>$3a7            ; 060880 0003A6
+000399: move x:(r4),r1           ; 61E400
+00039A: mpy -x1,y0,a a,x:(r2)+   ; 565AE4
+00039B: add x1,a x:(r0)+n0,x1    ; 45C860
+00039C: macr x1,y0,a x:(r0)+,x1  ; 45D8E3
+00039D: mpy -x1,y0,b b,x:(r3)+   ; 575BEC
+00039E: add x1,b x:(r0),x1       ; 45E068
+00039F: macr x1,y0,b x:(r1)+,x1 y:(r4)+,y0 ; F499EB
+0003A0: move x:(r4),r0           ; 60E400
+0003A1: mpy -x1,y0,a a,x:(r2)+   ; 565AE4
+0003A2: add x1,a x:(r1)+n1,x1    ; 45C960
+0003A3: macr x1,y0,a x:(r1)+,x1  ; 45D9E3
+0003A4: mpy -x1,y0,b b,x:(r3)+   ; 575BEC
+0003A5: add x1,b x:(r1),x1       ; 45E168
+0003A6: macr x1,y0,b x:(r0)+,x1 y:(r4)+,y0 ; F498EB
+0003A7: move a,x:(r2)+           ; 565A00
+0003A8: move b,x:(r3)+           ; 575B00
+0003A9: rts                      ; 00000C
+0003AA: move x:(r1),a            ; 56E100
+0003AB: asr a #$0,r1             ; 310022
+0003AC: move #$1f,n4             ; 3C1F00
+0003AD: move #>$ffffe1,n5        ; 75F400 FFFFE1
+0003AF: move #$3f,m0             ; 053FA0
+0003B0: move m0,m2               ; 0462A0
+0003B1: move x:(r1)+,n0          ; 70D900
+0003B2: move #>$312,x0           ; 44F400 000312
+0003B4: move #$10,n2             ; 3A1000
+0003B5: do a1,>$3cf              ; 06CC00 0003CE
+0003B7: move r3,r0               ; 227000
+0003B8: move #>$152,b            ; 57F400 000152
+0003BA: move l:(r1)+,y           ; 43D900
+0003BB: move (r0)+n0             ; 204800
+0003BC: sub y1,b r0,r2           ; 22127C
+0003BD: tfr y1,a y:(r7)+,y1      ; 4FDF71
+0003BE: add x0,a b1,r4           ; 21B440
+0003BF: mpysu y1,y0,b            ; 0127A3
+0003C0: asr b a,r5               ; 21D52A
+0003C1: move (r0)-               ; 205000
+0003C2: neg b b,x1               ; 21E53E
+0003C3: add y1,b (r2)+n2         ; 204A78
+0003C4: move x:(r2),a y:(r5)-,y1 ; E9A200
+0003C5: move x:(r0),b b,y0       ; 1EA000
+0003C6: do #<$10,>$3cd           ; 061080 0003CC
+0003C8: mac y1,x1,a y:(r5)+n5,y1 ; 4FCDF2
+0003C9: mac y1,y0,a b,x:(r0)+    ; 5758B2
+0003CA: move x:(r0),b y:(r4)+,y1 ; FD8000
+0003CB: mac y1,x1,b a,x:(r2)+ y:(r4)+n4,y1 ; D91AFA
+0003CC: mac y1,y0,b x:(r2),a y:(r5)-,y1 ; E9A2BA
+0003CD: move x:(r1)+,n0          ; 70D900
+0003CE: move b,x:(r0)+           ; 575800
+0003CF: move #>$ffffff,m0        ; 05F420 FFFFFF
+0003D1: move m0,m2               ; 0462A0
+0003D2: rts                      ; 00000C
+0003D3: move #>$10,y1            ; 47F400 000010
+0003D5: bra func_0003db          ; 050C06
+0003D6: move b0,y0               ; 212600
+0003D7: mpysu y1,y0,a            ; 012783
+0003D8: move l:(r0)+,x           ; 42D800
+0003D9: add x,b b1,x:(r1)+       ; 555928
+0003DA: move a,l:(r1)+           ; 485900
+0003DB: cmp #<$10,b              ; 01508D
+0003DC: ble func_0003d6          ; 05F7DA
+0003DD: sub #<$10,b              ; 01508C
+0003DE: move r1,x:(r1)           ; 616100
+0003DF: rts                      ; 00000C
+0003E0: move #>$10,y1            ; 47F400 000010
+0003E2: bra func_0003e7          ; 050C05
+0003E3: move b0,y0               ; 212600
+0003E4: mpysu y1,y0,a            ; 012783
+0003E5: add x,b b1,x:(r1)+       ; 555928
+0003E6: move a,l:(r1)+           ; 485900
+0003E7: cmp #<$10,b              ; 01508D
+0003E8: ble func_0003e3          ; 05F7DB
+0003E9: sub #<$10,b              ; 01508C
+0003EA: move r1,x:(r1)           ; 616100
+0003EB: rts                      ; 00000C
+0003EC: move #$1f,r0             ; 301F00
+0003ED: move x:$1f,a             ; 569F00
+0003EE: do n2,>$3f4              ; 06DA00 0003F3
+0003F0: add x1,b b,x0 y:(r4)+,y0 ; 18DC68
+0003F1: mpy y0,x0,a a,x:(r0)+ y:(r5)+,y0 ; F838D0
+0003F2: add y0,a                 ; 200050
+0003F3: mac -y0,x0,a             ; 2000D6
+0003F4: move #>$ffffff,m4        ; 05F424 FFFFFF
+0003F6: move m4,m5               ; 0465A4
+0003F7: move a,x:(r0)+           ; 565800
+0003F8: move #$20,r0             ; 302000
+0003F9: move r0,r2               ; 221200
+0003FA: move x:(r6+$31),x1       ; 02C6D5
+0003FB: move x:(r0)+,x0          ; 44D800
+0003FC: mpy x1,x0,a x:(r0)+,x0   ; 44D8A0
+0003FD: move x:(r6+$30),y1       ; 02C697
+0003FE: mpy x1,x0,a x:(r0)+,x0 a,y0 ; 1098A0
+0003FF: mpy y1,y0,b              ; 2000B8
+000400: asl #$16,b,b             ; 0C1DAD
+000401: do n2,>$406              ; 06DA00 000405
+000403: mpy x1,x0,a x:(r0)+,x0 a,y0 ; 1098A0
+000404: mpy y1,y0,b b,x:(r2)+    ; 575AB8
+000405: asl #$16,b,b             ; 0C1DAD
+000406: move r6,n6               ; 22DE00
+000407: bra func_000421          ; 050C1A
+000408: move #$fc,r2             ; 32FC00
+000409: move #$1f,r0             ; 301F00
+00040A: move #>$8000,x1          ; 45F400 008000
+00040C: move #>$8008,y0          ; 46F400 008008
+00040E: move y0,x:(r2)+          ; 465A00
+00040F: move x0,x:(r2)-          ; 445200
+000410: move x:(r0),b y:(r5)+,y0 ; FCA000
+000411: mpy x1,y0,a x:(r2)+,x0 y:(r5)+,y0 ; F0BAE0
+000412: insert x0,y0,a           ; 0C1B58
+000413: do n2,>$41a              ; 06DA00 000419
+000415: move b,x:(r0)+ y:(r5)+,y0 ; FC3800
+000416: mpy x1,y0,a a0,x0        ; 2104E0
+000417: mpy x0,y1,b x:(r2)-,x0 y:(r4)+,y0 ; F092C8
+000418: mac y0,x0,b x:(r2)+,x0 y:(r5)+,y0 ; F0BADA
+000419: insert x0,y0,a           ; 0C1B58
+00041A: move b,x:(r0)+           ; 575800
+00041B: move a0,x0               ; 210400
+00041C: mpy x0,y1,b x:(r2)-,x0 y:(r4)+,y0 ; F092C8
+00041D: mac y0,x0,b r6,n6        ; 22DEDA
+00041E: move m0,m4               ; 0464A0
+00041F: move m4,m5               ; 0465A4
+000420: move b,x:(r0)+           ; 575800
+000421: move #$0,r6              ; 360000
+000422: move r6,r4               ; 22D400
+000423: move #>$344,x1           ; 45F400 000344
+000425: move #>$10,x0            ; 44F400 000010
+000427: move #>$47f,r2           ; 62F400 00047F
+000429: do #<$10,>$42f           ; 061080 00042E
+00042B: tfr x1,a y:(r4)+,y1      ; 4FDC61
+00042C: mac x0,y1,a b,l:(r2)+    ; 495AC2
+00042D: tfr x1,b y:(r4)+,y1      ; 4FDC69
+00042E: mac x0,y1,b a,l:(r2)+    ; 485ACA
+00042F: move #>$480,r0           ; 60F400 000480
+000431: move r7,n0               ; 22F800
+000432: move r0,r7               ; 221700
+000433: move x:(r6)+,r3          ; 63DE00
+000434: move x:(r0)+,r4          ; 64D800
+000435: move #$20,n4             ; 3C2000
+000436: move x:(r0)+,r5          ; 65D800
+000437: move n4,n5               ; 239D00
+000438: move b,l:(r2)+           ; 495A00
+000439: move x:(r3)+,x0 y:(r4)+n4,y1 ; D19B00
+00043A: do #<$10,>$454           ; 061080 000453
+00043C: mpy x0,y1,a x:(r3)+,x1 y:(r4)+n4,y1 ; D59BC0
+00043D: mpy x0,y1,b b,x:(r1)+ y:(r4)+n4,y1 ; DD19C8
+00043E: mac y1,x1,a l:(r4)+n4,y  ; 43CCF2
+00043F: mac y1,x1,b x:(r3)+,x0 y:(r4)+n4,y1 ; D19BFA
+000440: mac y0,x0,a x:(r6)+,r2   ; 62DED2
+000441: mac x0,y1,b x:(r3)+,x0 y:(r4)+n4,y1 ; D19BCA
+000442: mac x0,y1,a l:(r4)+n4,y  ; 43CCC2
+000443: mac y0,x0,b x:(r3)+,x1 y:(r4)+n4,y0 ; D49BDA
+000444: mac y1,x1,a x:(r0)+,r4   ; 64D8F2
+000445: move x:(r2)+,x0 y:(r5)+n5,y1 ; D1BA00
+000446: mac x1,y0,b a,x1 y:(r7)+,y0 ; 14DFEA
+000447: macsu x1,y0,b            ; 0126A6
+000448: mpy x0,y1,a x:(r2)+,x1 y:(r5)+n5,y1 ; D5BAC0
+000449: mpy x0,y1,b b,x:(r1)+ y:(r5)+n5,y1 ; DD39C8
+00044A: mac y1,x1,a l:(r5)+n5,y  ; 43CDF2
+00044B: mac y1,x1,b x:(r2)+,x0 y:(r5)+n5,y1 ; D1BAFA
+00044C: mac y0,x0,a x:(r6)+,r3   ; 63DED2
+00044D: mac x0,y1,b x:(r2)+,x0 y:(r5)+n5,y1 ; D1BACA
+00044E: mac x0,y1,a l:(r5)+n5,y  ; 43CDC2
+00044F: mac y0,x0,b x:(r2)+,x1 y:(r5)+n5,y0 ; D4BADA
+000450: mac y1,x1,a x:(r0)+,r5   ; 65D8F2
+000451: move x:(r3)+,x0 y:(r4)+n4,y1 ; D19B00
+000452: mac x1,y0,b a,x1 y:(r7)+,y0 ; 14DFEA
+000453: macsu x1,y0,b            ; 0126A6
+000454: move n6,r6               ; 23D600
+000455: move b,x:(r1)+           ; 575900
+000456: move n0,r7               ; 231700
+000457: rts                      ; 00000C
+000458: move #$1e,r4             ; 341E00
+000459: move #$20,r5             ; 352000
+00045A: move r4,r0               ; 229000
+00045B: move l:(r6)+,x           ; 42DE00
+00045C: move x1,y:(r4)+          ; 4D5C00
+00045D: move x0,y:(r4)-          ; 4C5400
+00045E: move l:(r6)-,x           ; 42D600
+00045F: tfr x0,b y:(r5)+,y0      ; 4EDD49
+000460: move y:(r4)+,a           ; 5EDC00
+000461: move #>$5da6b,y1         ; 47F400 05DA6B
+000463: move #>$1583e8,x0        ; 44F400 1583E8
+000465: do #<$10,>$46b           ; 061080 00046A
+000467: mac y0,x0,a x1,x:(r0)+ y:(r5)+,y0 ; F438D2
+000468: mac -x1,x0,a b,x1 y:(r4)+,b ; 1FDCA6
+000469: mac y1,y0,b x1,x:(r0)+ y:(r5)+,y0 ; F438BA
+00046A: mac -y1,x1,b a,x1 y:(r4)+,a ; 16DCFE
+00046B: move x1,x:(r0)+          ; 455800
+00046C: move b,x:(r0)+ y:(r4)+,y0 ; FC1800
+00046D: move a,x:(r6)            ; 566600
+00046E: tfr x1,a y0,y:(r6)+      ; 4E5E61
+00046F: move #$20,r1             ; 312000
+000470: move ab,l:(r6)+          ; 4A5E00
+000471: move #$1e,r0             ; 301E00
+000472: move r0,r4               ; 221400
+000473: move l:(r6),y            ; 43E600
+000474: tfr y0,b x:(r1)+,x0      ; 44D959
+000475: move x:(r0)+,a           ; 56D800
+000476: move #>$2a8f65,x1        ; 45F400 2A8F65
+000478: move #>$4092ff,y0        ; 46F400 4092FF
+00047A: do #<$10,>$480           ; 061080 00047F
+00047C: mac y0,x0,a x:(r1)+,x0 y1,y:(r4)+ ; B199D2
+00047D: mac -y1,y0,a x:(r0)+,b b,y1 ; 1F98B6
+00047E: mac x1,x0,b x:(r1)+,x0 y1,y:(r4)+ ; B199AA
+00047F: mac -y1,x1,b x:(r0)+,a a,y1 ; 1998FE
+000480: move y1,y:(r4)+          ; 4F5C00
+000481: tfr y1,a b,y:(r4)+       ; 5F5C71
+000482: move #$20,r5             ; 352000
+000483: move ab,l:(r6)+          ; 4A5E00
+000484: move #$1e,r4             ; 341E00
+000485: move r4,r0               ; 229000
+000486: move l:(r6),x            ; 42E600
+000487: tfr x0,b y:(r5)+,y0      ; 4EDD49
+000488: move y:(r4)+,a           ; 5EDC00
+000489: move #>$54e3ce,y1        ; 47F400 54E3CE
+00048B: move #>$66e24c,x0        ; 44F400 66E24C
+00048D: do #<$10,>$493           ; 061080 000492
+00048F: mac y0,x0,a x1,x:(r0)+ y:(r5)+,y0 ; F438D2
+000490: mac -x1,x0,a b,x1 y:(r4)+,b ; 1FDCA6
+000491: mac y1,y0,b x1,x:(r0)+ y:(r5)+,y0 ; F438BA
+000492: mac -y1,x1,b a,x1 y:(r4)+,a ; 16DCFE
+000493: move x1,x:(r6)           ; 456600
+000494: move x1,x:(r0)+ b,y:(r6)+ ; B75800
+000495: move b,x:(r0)+           ; 575800
+000496: move #$1e,r0             ; 301E00
+000497: move #$1f,r1             ; 311F00
+000498: move #$fe,r7             ; 37FE00
+000499: move #$2,n7              ; 3F0200
+00049A: move #>$778898,x1        ; 45F400 778898
+00049C: move l:(r6),y            ; 43E600
+00049D: tfr y0,b x:(r1)+,x0      ; 44D959
+00049E: do #<$10,>$4a4           ; 061080 0004A3
+0004A0: mac x1,x0,b x:(r1)+,x0   ; 44D9AA
+0004A1: mac -y1,x1,b x:(r0)+,a a,y:(r7)+n7 ; 9AF8FE
+0004A2: add b,a x:(r1)+,x0       ; 44D910
+0004A3: asr a x:(r0)+,b b,y1     ; 1F9822
+0004A4: move y1,x:(r6)           ; 476600
+0004A5: move b,y:(r6)            ; 5F6600
+0004A6: move a,y:(r7)+n7         ; 5E4F00
+0004A7: rts                      ; 00000C
+0004A8: move y:>$124,a           ; 5EF000 000124
+0004AA: tst a                    ; 200003
+0004AB: bne func_0004f5          ; 05248A
+0004AC: move x:(r6+$0),a         ; 02069E
+0004AD: move y:(r6+$21),b        ; 0286FF
+0004AE: tst b #$0,x0             ; 24000B
+0004AF: tfr b,a ifne             ; 202201
+0004B0: move x0,y:(r6+$21)       ; 0286E4
+0004B1: move a,x:(r6+$0)         ; 02068E
+0004B2: cmp #<$1,a               ; 014185
+0004B3: bne func_0004c7          ; 052414
+0004B4: move y:(r6+$18),a        ; 0266BE
+0004B5: asr #$10,a,a             ; 0C1C20
+0004B6: move #>$141800,r4        ; 64F400 141800
+0004B8: move a,n4                ; 21DC00
+0004B9: move y:>$4ff,a           ; 5EF000 0004FF
+0004BB: move y:(r4+n4),y0        ; 4EEC00
+0004BC: add y0,a                 ; 200050
+0004BD: bes func_0004c1          ; 05D404
+0004BE: move a,y:>$4ff           ; 5E7000 0004FF
+0004C0: bra func_0004f5          ; 050C55
+0004C1: move a,y:>$4ff           ; 5E7000 0004FF
+0004C3: move #>$4,x0             ; 44F400 000004
+0004C5: move x0,x:(r6+$0)        ; 020684
+0004C6: bra func_0004f5          ; 050C4F
+0004C7: cmp #<$4,a               ; 014485
+0004C8: bne func_0004dc          ; 052414
+0004C9: move y:(r6+$1a),y0       ; 026EB6
+0004CA: mpy y0,y0,b #>$141880,r4 ; 64F498 141880
+0004CC: move y:(r6+$19),a        ; 0266FE
+0004CD: asr #$10,a,a             ; 0C1C20
+0004CE: move a,n4                ; 21DC00
+0004CF: move y:>$4ff,x1          ; 4DF000 0004FF
+0004D1: move y:(r4+n4),y0        ; 4EEC00
+0004D2: mpy -x1,y0,a             ; 2000E4
+0004D3: cmp b,a                  ; 200005
+0004D4: ble func_0004d8          ; 05F404
+0004D5: move a,y:>$4ff           ; 5E7000 0004FF
+0004D7: bra func_0004f5          ; 050C1E
+0004D8: move #>$5,x0             ; 44F400 000005
+0004DA: move x0,x:(r6+$0)        ; 020684
+0004DB: bra func_0004f5          ; 050C1A
+0004DC: cmp #<$5,a               ; 014585
+0004DD: bne func_0004e3          ; 052406
+0004DE: move y:(r6+$1a),x0       ; 026EB4
+0004DF: mpy x0,x0,a              ; 200080
+0004E0: move a,y:>$4ff           ; 5E7000 0004FF
+0004E2: bra func_0004f5          ; 050C13
+0004E3: cmp #<$2,a               ; 014285
+0004E4: bne func_0004f1          ; 05240D
+0004E5: move y:(r6+$1b),a        ; 026EFE
+0004E6: asr #$10,a,a             ; 0C1C20
+0004E7: move #>$141880,r4        ; 64F400 141880
+0004E9: move a,n4                ; 21DC00
+0004EA: move y:>$4ff,x1          ; 4DF000 0004FF
+0004EC: move y:(r4+n4),y0        ; 4EEC00
+0004ED: mpy -x1,y0,a             ; 2000E4
+0004EE: move a,y:>$4ff           ; 5E7000 0004FF
+0004F0: jmp func_0004f5          ; 0C04F5
+0004F1: move #>$7fffff,x0        ; 44F400 7FFFFF
+0004F3: move x0,y:>$4ff          ; 4C7000 0004FF
+0004F5: move #$dc,n6             ; 3EDC00
+0004F6: move r5,x:>$ff           ; 657000 0000FF
+0004F8: move #$97,r2             ; 329700
+0004F9: move #$d7,r3             ; 33D700
+0004FA: do #<$11,>$4fe           ; 061180 0004FD
+0004FC: move a,x:(r2)+ y:(r7)+,a ; FA7A00
+0004FD: move b,x:(r3)+ y:(r7)+,b ; FF7B00
+0004FE: lua (r6)+n6,r7           ; 044E17
+0004FF: move y:(r6+$20),a        ; 0286BE
+000500: cmp #<$1,a               ; 014185
+000501: bne func_000506          ; 052405
+000502: move #$0,x0              ; 240000
+000503: move x0,y:(r7-$1)        ; 03FFE4
+000504: move x0,y:(r6+$20)       ; 0286A4
+000505: move x0,x:(r7-$1)        ; 03FFC4
+000506: move y:(r7-$1),a         ; 03FFFE
+000507: tst a                    ; 200003
+000508: bne func_000517          ; 05240F
+000509: move y:(r6+$c),a         ; 0236BE
+00050A: asr #$10,a,a             ; 0C1C20
+00050B: move x:(r7-$1),b         ; 03FFDF
+00050C: move a,r4                ; 21D400
+00050D: move y:(r4+$141800),y0   ; 0B74C6 141800
+00050F: add y0,b                 ; 200058
+000510: bec func_000515          ; 055405
+000511: move #>$1,x0             ; 44F400 000001
+000513: move x0,y:(r7-$1)        ; 03FFE4
+000514: move x0,x:(r7-$2)        ; 03FF84
+000515: move b,x:(r7-$1)         ; 03FFCF
+000516: bra func_000537          ; 050C41
+000517: cmp #<$1,a               ; 014185
+000518: bne func_00052b          ; 052413
+000519: clr a                    ; 200013
+00051A: move y:(r6+$23),y0       ; 028EF6
+00051B: move a,x0                ; 21C400
+00051C: mpy y0,x0,b              ; 2000D8
+00051D: move x:(r7-$2),a         ; 03FF9E
+00051E: move b,x1                ; 21E500
+00051F: mpyi #>$791fd0,x1,b      ; 0141E8 791FD0
+000521: asl b                    ; 20003A
+000522: add #<$1,a               ; 014180
+000523: cmp b,a                  ; 200005
+000524: blt func_000529          ; 059405
+000525: move #>$2,x0             ; 44F400 000002
+000527: move x0,y:(r7-$1)        ; 03FFE4
+000528: bra func_00052b          ; 050C03
+000529: move a,x:(r7-$2)         ; 03FF8E
+00052A: bra func_000537          ; 050C0D
+00052B: move y:(r6+$d),a         ; 0236FE
+00052C: add #>$7fff,a            ; 0140C0 007FFF
+00052E: asr #$10,a,a             ; 0C1C20
+00052F: rnd a                    ; 200011
+000530: move a,r4                ; 21D400
+000531: move x:(r7-$1),b         ; 03FFDF
+000532: move y:(r4+$141a00),y0   ; 0B74C6 141A00
+000534: sub y0,b                 ; 20005C
+000535: clr b ifmi               ; 202B1B
+000536: move b,x:(r7-$1)         ; 03FFCF
+000537: move y:(r6+$8),x0        ; 0226B4
+000538: mpyi #>$800,x0,a         ; 0141C0 000800
+00053A: sub #>$80,a              ; 0140C4 000080
+00053C: rnd a                    ; 200011
+00053D: tfr a,b                  ; 200009
+00053E: move y:(r6+$e),a         ; 023EBE
+00053F: add #>$c00000,a          ; 0140C0 C00000
+000541: abs a a,y0               ; 21C626
+000542: move #>$700,x1           ; 45F400 000700
+000544: move a,y1                ; 21C700
+000545: mpy y1,y0,a              ; 2000B0
+000546: asl #$2,a,a              ; 0C1D04
+000547: move x:(r7-$1),y1        ; 03FFD7
+000548: move a,y0                ; 21C600
+000549: mpy y1,y0,a              ; 2000B0
+00054A: move a,y1                ; 21C700
+00054B: mpy y1,x1,a              ; 2000F0
+00054C: add b,a                  ; 200010
+00054D: cmp x1,a                 ; 200065
+00054E: tfr x1,a ifge            ; 202161
+00054F: move #$8,y0              ; 260800
+000550: move x:(r6+$1),x1        ; 0206D5
+000551: move y:(r6+$25),b        ; 0296FF
+000552: move a1,x:(r7-$3)        ; 03F7CC
+000553: mac x1,y0,a              ; 2000E2
+000554: btst #$b,b               ; 0BCF6B
+000555: bcc func_000557          ; 050402
+000556: move a1,x:(r7-$3)        ; 03F7CC
+000557: move y:(r6+$9),x0        ; 0226F4
+000558: btst #$9,b               ; 0BCF69
+000559: mac -x1,y0,a ifcc        ; 2020E6
+00055A: maci #>$800,x0,a         ; 0141C2 000800
+00055C: move y:(r6+$f),b         ; 023EFF
+00055D: add #>$c00000,b          ; 0140C8 C00000
+00055F: abs b b,y0               ; 21E62E
+000560: move #>$700,x1           ; 45F400 000700
+000562: move b,y1                ; 21E700
+000563: mpy y1,y0,b              ; 2000B8
+000564: asl #$2,b,b              ; 0C1D85
+000565: move x:(r7-$1),y1        ; 03FFD7
+000566: tfr a,b b,y0             ; 21E609
+000567: mpy y1,y0,a              ; 2000B0
+000568: move a,y1                ; 21C700
+000569: mac y1,x1,b              ; 2000FA
+00056A: clr b ifmi               ; 202B1B
+00056B: move y:(r7-$3),a         ; 03F7FE
+00056C: move b1,y:(r7-$2)        ; 03FFAD
+00056D: move y:(r6+$10),b        ; 0246BF
+00056E: sub a,b                  ; 20001C
+00056F: asl #$8,b,b              ; 0C1D91
+000570: rnd b                    ; 200019
+000571: asr #$8,b,b              ; 0C1C91
+000572: add b,a                  ; 200010
+000573: move #$3,m4              ; 0503A4
+000574: move a,x0                ; 21C400
+000575: move x0,y:(r7-$3)        ; 03F7E4
+000576: mpyi #>$4af,x0,a         ; 0141C0 0004AF
+000578: move y:(r6+$11),y0       ; 0246F6
+000579: move a,r0                ; 21D000
+00057A: mpyi #>$80,y0,b          ; 0141D8 000080
+00057C: move b,r2                ; 21F200
+00057D: move x:(r0+$143f95),x0   ; 0A70C4 143F95
+00057F: move x:(r2+$144446),y1   ; 0A72C7 144446
+000581: move x0,b                ; 208F00
+000582: add y1,b                 ; 200078
+000583: asr b #$1,a              ; 2E012A
+000584: andi #$fe,ccr            ; 00FEB9
+000585: move b,x1                ; 21E500
+000586: do #<$18,>$589           ; 061880 000588
+000588: div x1,a                 ; 018060
+000589: move y1,b                ; 20EF00
+00058A: sub x0,b a0,x1           ; 21054C
+00058B: move x:(r0+$141ca7),y0   ; 0A70C6 141CA7
+00058D: move b,x0                ; 21E400
+00058E: mpy x1,x0,b              ; 2000A8
+00058F: asl #$6,b,b              ; 0C1D8D
+000590: move #$4,r4              ; 340400
+000591: move b,x0                ; 21E400
+000592: mpy -y0,x0,a             ; 2000D4
+000593: sub y0,a #$96,r0         ; 309654
+000594: asr a #$93,r1            ; 319322
+000595: move x:(r2+$1444c6),y0   ; 0A72C6 1444C6
+000597: move x:(r2+$144546),y1   ; 0A72C7 144546
+000599: move a,y:(r4)+           ; 5E5C00
+00059A: move x0,y:(r4)+          ; 4C5C00
+00059B: move l:(r7)+,x           ; 42DF00
+00059C: move x1,x:(r0)+ y0,y:(r4)+ ; B41800
+00059D: move x0,x:(r0)- y1,y:(r4)+ ; B11000
+00059E: move l:(r7)-,x           ; 42D700
+00059F: move x1,x:(r1)+          ; 455900
+0005A0: move x0,x:(r1)-          ; 445100
+0005A1: jsr func_000340          ; 0D0340
+0005A2: move x:-(r0),y0          ; 46F800
+0005A3: move x:-(r0),y1          ; 47F800
+0005A4: move x:(r1)+,x1          ; 45D900
+0005A5: move x:(r1)-,x0          ; 44D100
+0005A6: move b,y:(r1)            ; 5F6100
+0005A7: move y,l:(r7)+           ; 435F00
+0005A8: move x,l:(r7)+           ; 425F00
+0005A9: move x:(r6+$f),x0        ; 023ED4
+0005AA: jset #$0,x0,func_0005bb  ; 0AC420 0005BB
+0005AC: move #$4,r4              ; 340400
+0005AD: move #$d6,r0             ; 30D600
+0005AE: move #$d3,r1             ; 31D300
+0005AF: move l:(r7)+,x           ; 42DF00
+0005B0: move x1,x:(r0)+          ; 455800
+0005B1: move x0,x:(r0)-          ; 445000
+0005B2: move l:(r7)-,x           ; 42D700
+0005B3: move x1,x:(r1)+          ; 455900
+0005B4: move x0,x:(r1)-          ; 445100
+0005B5: jsr func_000340          ; 0D0340
+0005B6: move x:-(r0),y0          ; 46F800
+0005B7: move x:-(r0),y1          ; 47F800
+0005B8: move x:(r1)+,x1          ; 45D900
+0005B9: move x:(r1)-,x0          ; 44D100
+0005BA: move b,y:(r1)            ; 5F6100
+0005BB: move y,l:(r7)+           ; 435F00
+0005BC: move x,l:(r7)+           ; 425F00
+0005BD: move #>$ffffff,m4        ; 05F424 FFFFFF
+0005BF: lua (r7-$18),r4          ; 043784
+0005C0: move #>$fffffe,n4        ; 74F400 FFFFFE
+0005C2: move r4,r5               ; 229500
+0005C3: move #$91,r0             ; 309100
+0005C4: move #$d1,r2             ; 32D100
+0005C5: move l:(r4)+,x           ; 42DC00
+0005C6: move x0,y:(r0)+          ; 4C5800
+0005C7: move x1,y:(r0)+          ; 4D5800
+0005C8: move l:(r4)+,x           ; 42DC00
+0005C9: move x0,y:(r0)+          ; 4C5800
+0005CA: move x1,y:(r2)+          ; 4D5A00
+0005CB: move l:(r4)+,x           ; 42DC00
+0005CC: move x0,y:(r2)+          ; 4C5A00
+0005CD: move x1,y:(r2)+          ; 4D5A00
+0005CE: move #$91,r4             ; 349100
+0005CF: move #>$f528bd,x0        ; 44F400 F528BD
+0005D1: move #>$4a4df0,x1        ; 45F400 4A4DF0
+0005D3: move #$71,r1             ; 317100
+0005D4: move #$73,r2             ; 327300
+0005D5: move y:(r4)+,y0          ; 4EDC00
+0005D6: move #$3,n1              ; 390300
+0005D7: move n1,n2               ; 233A00
+0005D8: do #<$8,>$5e2            ; 060880 0005E1
+0005DA: mpy y0,x0,a a,x:(r1)+n1 y:(r4)+,y1 ; F909D0
+0005DB: mpy x0,y1,b b,x:(r2)+n2  ; 574AC8
+0005DC: mac y1,x1,a y:(r4)+,y0   ; 4EDCF2
+0005DD: mac x1,y0,b y1,x:(r1)+   ; 4759EA
+0005DE: mac x1,y0,a y:(r4)+,y1   ; 4FDCE2
+0005DF: mac y1,x1,b y0,x:(r2)+   ; 465AFA
+0005E0: mac x0,y1,a y:(r4)+n4,y0 ; 4ECCC2
+0005E1: mac y0,x0,b y:(r4)+,y0   ; 4EDCDA
+0005E2: move a,x:(r1)+n1         ; 564900
+0005E3: move b,x:(r2)+n2         ; 574A00
+0005E4: move y:(r4)+,y1          ; 4FDC00
+0005E5: move y,l:(r5)+           ; 435D00
+0005E6: move y:(r4)-,y1          ; 4FD400
+0005E7: move y1,y:(r5)           ; 4F6500
+0005E8: move x:(r6+$f),y1        ; 023ED7
+0005E9: brset #$0,y1,func_0005fb ; 0CC7A0 000012
+0005EB: move #$d1,r4             ; 34D100
+0005EC: move #$b1,r1             ; 31B100
+0005ED: move #$b3,r2             ; 32B300
+0005EE: move y:(r4)+,y0          ; 4EDC00
+0005EF: do #<$8,>$5f9            ; 060880 0005F8
+0005F1: mpy y0,x0,a a,x:(r1)+n1 y:(r4)+,y1 ; F909D0
+0005F2: mpy x0,y1,b b,x:(r2)+n2  ; 574AC8
+0005F3: mac y1,x1,a y:(r4)+,y0   ; 4EDCF2
+0005F4: mac x1,y0,b y1,x:(r1)+   ; 4759EA
+0005F5: mac x1,y0,a y:(r4)+,y1   ; 4FDCE2
+0005F6: mac y1,x1,b y0,x:(r2)+   ; 465AFA
+0005F7: mac x0,y1,a y:(r4)+n4,y0 ; 4ECCC2
+0005F8: mac y0,x0,b y:(r4)+,y0   ; 4EDCDA
+0005F9: move a,x:(r1)+n1         ; 564900
+0005FA: move b,x:(r2)+n2         ; 574A00
+0005FB: move y0,x:(r5)+          ; 465D00
+0005FC: move y:(r4)+,y0          ; 4EDC00
+0005FD: move y:(r4)+,y1          ; 4FDC00
+0005FE: move y,l:(r5)            ; 436500
+0005FF: move y:(r7-$6),x1        ; 03EFB5
+000600: tfr x1,a                 ; 200061
+000601: sub #>$5bf,a             ; 0140C4 0005BF
+000603: clr a ifmi               ; 202B13
+000604: move a,y0                ; 21C600
+000605: sub #>$80,a              ; 0140C4 000080
+000607: clr a ifmi               ; 202B13
+000608: move a,y1                ; 21C700
+000609: move #>$63f,x0           ; 44F400 00063F
+00060B: tfr x1,a                 ; 200061
+00060C: cmp x0,a                 ; 200045
+00060D: tfr x0,a ifgt            ; 202741
+00060E: move a,x1                ; 21C500
+00060F: move x1,r0               ; 20B000
+000610: move y:(r6+$b),a         ; 022EFE
+000611: mpyi #>$fffdf3,x1,b      ; 0141E8 FFFDF3
+000613: maci #>$ffe666,y0,b      ; 0141DA FFE666
+000615: maci #>$ffa666,y1,b      ; 0141FA FFA666
+000617: asl #$18,b,b             ; 0C1DB1
+000618: tfr x1,b b,y0            ; 21E669
+000619: move a,x0                ; 21C400
+00061A: mac y0,x0,a              ; 2000D2
+00061B: clr a ifmi               ; 202B13
+00061C: move a,x0                ; 21C400
+00061D: maci #>$fff912,x0,b      ; 0141CA FFF912
+00061F: move x:(r7-$1e),x0       ; 038F94
+000620: move y:(r7-$1e),a        ; 038FBE
+000621: move b1,x:(r7-$1e)       ; 038F8D
+000622: move x1,y:(r7-$1e)       ; 038FA5
+000623: add x1,a b1,r2           ; 21B260
+000624: asr a                    ; 200022
+000625: add x0,b                 ; 200048
+000626: asr b a1,r1              ; 21912A
+000627: move a0,x0               ; 210400
+000628: move b0,x1               ; 212500
+000629: move x:(r1+$141a98),y0   ; 0A71C6 141A98
+00062B: move x:(r1+$141a99),y1   ; 0A71C7 141A99
+00062D: tfr y0,a b1,r3           ; 21B351
+00062E: macsu -y0,x0,a           ; 012695
+00062F: macsu y1,x0,a            ; 01268C
+000630: move x:(r1+$142158),y0   ; 0A71C6 142158
+000632: move x:(r1+$142159),y1   ; 0A71C7 142159
+000634: mpysu -y0,x0,b           ; 0127B5
+000635: add y0,b a,y0            ; 21C658
+000636: macsu y1,x0,b            ; 0126AC
+000637: move x:(r3+$142f06),x0   ; 0A73C4 142F06
+000639: move x:(r3+$142f07),y1   ; 0A73C7 142F07
+00063B: mpysu y1,x1,a            ; 012787
+00063C: add x0,a b,y1            ; 21E740
+00063D: macsu -x0,x1,a           ; 01269A
+00063E: move #>$7fffa4,x0        ; 44F400 7FFFA4
+000640: cmp x0,a                 ; 200045
+000641: tgt x0,a                 ; 027040
+000642: move a,x0                ; 21C400
+000643: mpy x0,y1,b              ; 2000C8
+000644: mpy y0,x0,a              ; 2000D0
+000645: move b,y0                ; 21E600
+000646: add #>$800000,a          ; 0140C0 800000
+000648: move b,y:$1e             ; 5F1E00
+000649: move a,y:$1d             ; 5E1D00
+00064A: mpy x0,x0,b              ; 200088
+00064B: subr a,b                 ; 20000E
+00064C: sub #>$400000,b          ; 0140CC 400000
+00064E: andi #$fe,ccr            ; 00FEB9
+00064F: move #>$800,a            ; 56F400 000800
+000651: do #<$18,>$654           ; 061880 000653
+000653: div y0,a                 ; 018050
+000654: move b1,y1               ; 21A700
+000655: move b0,y0               ; 212600
+000656: move a0,x1               ; 210500
+000657: mpysu x1,y0,b            ; 0127A6
+000658: dmac ss x1,y1,b          ; 0124AF
+000659: asl #$a,b,b              ; 0C1D95
+00065A: move y:(r6+$4),a         ; 0216BE
+00065B: asl a b,y1               ; 21E732
+00065C: move a,x0                ; 21C400
+00065D: mpyi #>$100,x0,a         ; 0141C0 000100
+00065F: move a,r1                ; 21D100
+000660: move x:(r1+$143c06),x0   ; 0A71C4 143C06
+000662: mpy x0,y1,b              ; 2000C8
+000663: move x:(r0+$141a98),y0   ; 0A70C6 141A98
+000665: move b,y:$1c             ; 5F1C00
+000666: move x:(r0+$142158),y1   ; 0A70C7 142158
+000668: move x:(r2+$142f06),a    ; 0A72CE 142F06
+00066A: move #>$7fffa4,x0        ; 44F400 7FFFA4
+00066C: cmp x0,a                 ; 200045
+00066D: tfr x0,a ifgt            ; 202741
+00066E: move #$5,r4              ; 340500
+00066F: move a,x0                ; 21C400
+000670: mpy y0,x0,a              ; 2000D0
+000671: mpy x0,y1,b              ; 2000C8
+000672: move a,y:(r4)+           ; 5E5C00
+000673: move b,y:(r4)+           ; 5F5C00
+000674: mpy x0,x0,b b,y0         ; 21E688
+000675: subr a,b                 ; 20000E
+000676: add #>$400000,b          ; 0140C8 400000
+000678: andi #$fe,ccr            ; 00FEB9
+000679: move #>$800,a            ; 56F400 000800
+00067B: do #<$18,>$67e           ; 061880 00067D
+00067D: div y0,a                 ; 018050
+00067E: move b1,y1               ; 21A700
+00067F: move b0,y0               ; 212600
+000680: move a0,x1               ; 210500
+000681: mpysu x1,y0,b            ; 0127A6
+000682: dmac ss x1,y1,b          ; 0124AF
+000683: move #$2,n0              ; 380200
+000684: asl #$a,b,b              ; 0C1D95
+000685: move y:(r6+$4),a         ; 0216BE
+000686: asl a b,y1               ; 21E732
+000687: move #$5,r0              ; 300500
+000688: move a,x0                ; 21C400
+000689: mpyi #>$100,x0,a         ; 0141C0 000100
+00068B: move a,r1                ; 21D100
+00068C: move x:(r1+$143c06),x0   ; 0A71C4 143C06
+00068E: move #$4,r1              ; 310400
+00068F: mpy x0,y1,b y:(r0)+,a    ; 5ED8C8
+000690: add #>$800000,a          ; 0140C0 800000
+000692: move b,y:$4              ; 5F0400
+000693: move l:(r7),x            ; 42E700
+000694: move a,y:(r7)            ; 5E6700
+000695: move y:$1d,a             ; 5E9D00
+000696: sub x0,a y:(r0)-,y1      ; 4FD044
+000697: move y1,x:(r7)           ; 476700
+000698: move y:$1e,b             ; 5F9E00
+000699: sub x1,b a,y0            ; 21C66C
+00069A: tfr x0,a #$10,x0         ; 241041
+00069B: tfr x1,b b,y1            ; 21E769
+00069C: do #<$8,>$6a0            ; 060880 00069F
+00069E: mac y0,x0,a a,y:(r0)+    ; 5E58D2
+00069F: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+0006A0: move y:(r0)+,x0          ; 4CD800
+0006A1: move l:(r7)+,ba          ; 4BDF00
+0006A2: sub x0,a y:(r0)-,x1      ; 4DD044
+0006A3: sub x1,b                 ; 20006C
+0006A4: tfr x0,a a,y0            ; 21C641
+0006A5: tfr x1,b b,y1            ; 21E769
+0006A6: move #$10,x0             ; 241000
+0006A7: do #<$8,>$6ab            ; 060880 0006AA
+0006A9: mac y0,x0,a a,y:(r0)+    ; 5E58D2
+0006AA: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+0006AB: move #$3,n0              ; 380300
+0006AC: move n0,n1               ; 231900
+0006AD: move #$1c,r0             ; 301C00
+0006AE: move y:$1c,x1            ; 4D9C00
+0006AF: tfr x1,a y:(r1),b        ; 5FE161
+0006B0: move y:(r7),x0           ; 4CE700
+0006B1: sub x0,a b,y:(r7)+       ; 5F5F44
+0006B2: sub x1,b                 ; 20006C
+0006B3: tfr x0,a a,y0            ; 21C641
+0006B4: tfr x1,b b,y1            ; 21E769
+0006B5: move #$10,x0             ; 241000
+0006B6: do #<$8,>$6ba            ; 060880 0006B9
+0006B8: mac y0,x0,a a,y:(r1)+n1  ; 5E49D2
+0006B9: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+0006BA: move #$74,r0             ; 307400
+0006BB: move r0,r1               ; 221100
+0006BC: move #$4,r4              ; 340400
+0006BD: move l:(r7)+,a           ; 48DF00
+0006BE: move l:(r7)-,b           ; 49D700
+0006BF: jsr func_000350          ; 0D0350
+0006C0: move a,l:(r7)+           ; 485F00
+0006C1: move b,l:(r7)+           ; 495F00
+0006C2: move x:(r6+$f),x0        ; 023ED4
+0006C3: jset #$0,x0,func_0006cb  ; 0AC420 0006CB
+0006C5: move #$b4,r0             ; 30B400
+0006C6: move r0,r1               ; 221100
+0006C7: move #$4,r4              ; 340400
+0006C8: move l:(r7)+,a           ; 48DF00
+0006C9: move l:(r7)-,b           ; 49D700
+0006CA: jsr func_000350          ; 0D0350
+0006CB: move a,l:(r7)+           ; 485F00
+0006CC: move b,l:(r7)+           ; 495F00
+0006CD: move x:(r7-$d),x1        ; 03CFD5
+0006CE: tfr x1,a                 ; 200061
+0006CF: sub #>$5bf,a             ; 0140C4 0005BF
+0006D1: clr a ifmi               ; 202B13
+0006D2: move a,y0                ; 21C600
+0006D3: sub #>$80,a              ; 0140C4 000080
+0006D5: clr a ifmi               ; 202B13
+0006D6: move a,y1                ; 21C700
+0006D7: move #>$63f,x0           ; 44F400 00063F
+0006D9: tfr x1,a                 ; 200061
+0006DA: cmp x0,a                 ; 200045
+0006DB: tfr x0,a ifgt            ; 202741
+0006DC: tst a                    ; 200003
+0006DD: clr a ifmi               ; 202B13
+0006DE: move a,x1                ; 21C500
+0006DF: move x1,r0               ; 20B000
+0006E0: move y:(r6+$a),a         ; 022EBE
+0006E1: mpyi #>$fffdf3,x1,b      ; 0141E8 FFFDF3
+0006E3: maci #>$ffe666,y0,b      ; 0141DA FFE666
+0006E5: maci #>$ffd99a,y1,b      ; 0141FA FFD99A
+0006E7: asl #$18,b,b             ; 0C1DB1
+0006E8: tfr x1,b b,y0            ; 21E669
+0006E9: move a,x0                ; 21C400
+0006EA: mac y0,x0,a              ; 2000D2
+0006EB: clr a ifmi               ; 202B13
+0006EC: move a,x0                ; 21C400
+0006ED: maci #>$fff912,x0,b      ; 0141CA FFF912
+0006EF: move x:(r7-$25),x0       ; 036FD4
+0006F0: move y:(r7-$25),a        ; 036FFE
+0006F1: move b1,x:(r7-$25)       ; 036FCD
+0006F2: move x1,y:(r7-$25)       ; 036FE5
+0006F3: add x1,a b1,r2           ; 21B260
+0006F4: asr a                    ; 200022
+0006F5: add x0,b                 ; 200048
+0006F6: asr b a,r1               ; 21D12A
+0006F7: move a0,x0               ; 210400
+0006F8: move b0,x1               ; 212500
+0006F9: move x:(r1+$141a98),y0   ; 0A71C6 141A98
+0006FB: move x:(r1+$141a99),y1   ; 0A71C7 141A99
+0006FD: tfr y0,a b1,r3           ; 21B351
+0006FE: macsu -y0,x0,a           ; 012695
+0006FF: macsu y1,x0,a            ; 01268C
+000700: move x:(r1+$142158),y0   ; 0A71C6 142158
+000702: move x:(r1+$142159),y1   ; 0A71C7 142159
+000704: mpysu -y0,x0,b           ; 0127B5
+000705: add y0,b a,y0            ; 21C658
+000706: macsu y1,x0,b            ; 0126AC
+000707: move x:(r3+$142f07),y1   ; 0A73C7 142F07
+000709: move x:(r3+$142f06),x0   ; 0A73C4 142F06
+00070B: mpysu y1,x1,a            ; 012787
+00070C: add x0,a b,y1            ; 21E740
+00070D: macsu -x0,x1,a           ; 01269A
+00070E: move #>$7fffa4,x0        ; 44F400 7FFFA4
+000710: cmp x0,a                 ; 200045
+000711: tgt x0,a                 ; 027040
+000712: move a,x0                ; 21C400
+000713: mpy x0,y1,b              ; 2000C8
+000714: mpy y0,x0,a              ; 2000D0
+000715: move b,y0                ; 21E600
+000716: add #>$800000,a          ; 0140C0 800000
+000718: move b,y:$1e             ; 5F1E00
+000719: move a,y:$1d             ; 5E1D00
+00071A: mpy x0,x0,b              ; 200088
+00071B: subr a,b                 ; 20000E
+00071C: sub #>$400000,b          ; 0140CC 400000
+00071E: andi #$fe,ccr            ; 00FEB9
+00071F: move #>$800,a            ; 56F400 000800
+000721: do #<$18,>$724           ; 061880 000723
+000723: div y0,a                 ; 018050
+000724: move b1,y1               ; 21A700
+000725: move b0,y0               ; 212600
+000726: move a0,x1               ; 210500
+000727: mpysu x1,y0,b            ; 0127A6
+000728: dmac ss x1,y1,b          ; 0124AF
+000729: asl #$a,b,b              ; 0C1D95
+00072A: move x:(r0+$141a98),y0   ; 0A70C6 141A98
+00072C: move b,y:$1c             ; 5F1C00
+00072D: move x:(r0+$142158),y1   ; 0A70C7 142158
+00072F: move x:(r2+$142f06),a    ; 0A72CE 142F06
+000731: move #>$7fffa4,x0        ; 44F400 7FFFA4
+000733: cmp x0,a                 ; 200045
+000734: tgt x0,a                 ; 027040
+000735: move #$5,r4              ; 340500
+000736: move a,x0                ; 21C400
+000737: mpy y0,x0,a              ; 2000D0
+000738: mpy x0,y1,b              ; 2000C8
+000739: move a,y:(r4)+           ; 5E5C00
+00073A: move b,y0                ; 21E600
+00073B: mpy x0,x0,b b,y:(r4)+    ; 5F5C88
+00073C: subr a,b                 ; 20000E
+00073D: add #>$400000,b          ; 0140C8 400000
+00073F: andi #$fe,ccr            ; 00FEB9
+000740: move #>$800,a            ; 56F400 000800
+000742: do #<$18,>$745           ; 061880 000744
+000744: div y0,a                 ; 018050
+000745: move b1,y1               ; 21A700
+000746: move b0,y0               ; 212600
+000747: move a0,x1               ; 210500
+000748: mpysu x1,y0,b            ; 0127A6
+000749: dmac ss x1,y1,b          ; 0124AF
+00074A: move #$2,n0              ; 380200
+00074B: asl #$a,b,b              ; 0C1D95
+00074C: move b,y1                ; 21E700
+00074D: move #$5,r0              ; 300500
+00074E: move #$4,r1              ; 310400
+00074F: move y:(r0)+,a           ; 5ED800
+000750: add #>$800000,a          ; 0140C0 800000
+000752: move b,y:$4              ; 5F0400
+000753: move l:(r7),x            ; 42E700
+000754: move a,y:(r7)            ; 5E6700
+000755: move y:$1d,a             ; 5E9D00
+000756: sub x0,a y:(r0)-,y1      ; 4FD044
+000757: move y1,x:(r7)           ; 476700
+000758: move y:$1e,b             ; 5F9E00
+000759: sub x1,b a,y0            ; 21C66C
+00075A: tfr x0,a #$10,x0         ; 241041
+00075B: tfr x1,b b,y1            ; 21E769
+00075C: do #<$8,>$760            ; 060880 00075F
+00075E: mac y0,x0,a a,y:(r0)+    ; 5E58D2
+00075F: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+000760: move y:(r0)+,x0          ; 4CD800
+000761: move l:(r7)+,ba          ; 4BDF00
+000762: sub x0,a y:(r0)-,x1      ; 4DD044
+000763: sub x1,b                 ; 20006C
+000764: tfr x0,a a,y0            ; 21C641
+000765: tfr x1,b b,y1            ; 21E769
+000766: move #$10,x0             ; 241000
+000767: do #<$8,>$76b            ; 060880 00076A
+000769: mac y0,x0,a a,y:(r0)+    ; 5E58D2
+00076A: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+00076B: move #$3,n0              ; 380300
+00076C: move n0,n1               ; 231900
+00076D: move #$1c,r0             ; 301C00
+00076E: move y:$1c,x1            ; 4D9C00
+00076F: tfr x1,a y:(r1),b        ; 5FE161
+000770: move y:(r7),x0           ; 4CE700
+000771: sub x0,a b,y:(r7)+       ; 5F5F44
+000772: sub x1,b                 ; 20006C
+000773: tfr x0,a a,y0            ; 21C641
+000774: tfr x1,b b,y1            ; 21E769
+000775: move #$10,x0             ; 241000
+000776: do #<$8,>$77a            ; 060880 000779
+000778: mac y0,x0,a a,y:(r1)+n1  ; 5E49D2
+000779: mac x0,y1,b b,y:(r0)+n0  ; 5F48CA
+00077A: move #$0,r5              ; 350000
+00077B: move #$1,r2              ; 320100
+00077C: move #>$fffffe,n7        ; 77F400 FFFFFE
+00077E: move #$74,r0             ; 307400
+00077F: move #$72,r1             ; 317200
+000780: move #$4,r4              ; 340400
+000781: move #$10,x0             ; 241000
+000782: move x0,y:(r5)           ; 4C6500
+000783: move l:(r7)+,y           ; 43DF00
+000784: move l:(r7)+,a           ; 48DF00
+000785: move l:(r7)+n7,b         ; 49CF00
+000786: move y0,x:(r1)+          ; 465900
+000787: move y1,x:(r1)-          ; 475100
+000788: jsr func_000365          ; 0D0365
+000789: move x:(r1)+,x0          ; 44D900
+00078A: move x:(r1),x1           ; 45E100
+00078B: move x,l:(r7)+           ; 425F00
+00078C: move a,l:(r7)+           ; 485F00
+00078D: move b,l:(r7)+           ; 495F00
+00078E: move x:(r6+$f),x0        ; 023ED4
+00078F: jset #$0,x0,func_00079c  ; 0AC420 00079C
+000791: move #$b4,r0             ; 30B400
+000792: move #$b2,r1             ; 31B200
+000793: move #$4,r4              ; 340400
+000794: move l:(r7)+,y           ; 43DF00
+000795: move l:(r7)+,a           ; 48DF00
+000796: move l:(r7)+n7,b         ; 49CF00
+000797: move y0,x:(r1)+          ; 465900
+000798: move y1,x:(r1)-          ; 475100
+000799: jsr func_000365          ; 0D0365
+00079A: move x:(r1)+,x0          ; 44D900
+00079B: move x:(r1),x1           ; 45E100
+00079C: move x,l:(r7)+           ; 425F00
+00079D: move a,l:(r7)+           ; 485F00
+00079E: move b,l:(r7)+           ; 495F00
+00079F: move x:(r6+$b),y0        ; 022ED6
+0007A0: move #$8,a               ; 2E0800
+0007A1: andi #$fe,ccr            ; 00FEB9
+0007A2: do #<$18,>$7a5           ; 061880 0007A4
+0007A4: div y0,a                 ; 018050
+0007A5: move a0,y1               ; 210700
+0007A6: move y:(r6+$4),a         ; 0216BE
+0007A7: asl a #$b2,r0            ; 30B232
+0007A8: add #>$800000,a          ; 0140C0 800000
+0007AA: clr a ifmi               ; 202B13
+0007AB: move #$72,r1             ; 317200
+0007AC: move a,x0                ; 21C400
+0007AD: mpyi #>$100,x0,b         ; 0141C8 000100
+0007AF: mpy x0,x0,a #$70,r5      ; 357080
+0007B0: move #$b0,r4             ; 34B000
+0007B1: move b,r2                ; 21F200
+0007B2: move a,x1                ; 21C500
+0007B3: mpyi #>$7deccd,x1,a      ; 0141E0 7DECCD
+0007B5: add #>$21333,a           ; 0140C0 021333
+0007B7: move x:(r2+$1447c6),x1   ; 0A72C5 1447C6
+0007B9: mpy x1,y0,b a,y0         ; 21C6E8
+0007BA: mpy y1,y0,a              ; 2000B0
+0007BB: move b,x1                ; 21E500
+0007BC: move x:(r0)+,x0 a,y0     ; 109800
+0007BD: do #<$22,>$7c3           ; 062280 0007C2
+0007BF: mpy y0,x0,a x:(r1)+,x0 a,y:(r4)+ ; B299D0
+0007C0: asl #$8,a,a              ; 0C1D10
+0007C1: mpy y0,x0,b x:(r0)+,x0 b,y:(r5)+ ; B3B8D8
+0007C2: asl #$8,b,b              ; 0C1D91
+0007C3: bset #$b,sr              ; 0AF96B
+0007C4: move #$70,r5             ; 357000
+0007C5: move #$b0,r4             ; 34B000
+0007C6: move r5,r1               ; 22B100
+0007C7: move r4,r0               ; 229000
+0007C8: move #$80,x0             ; 248000
+0007C9: move y:(r4)+,y0          ; 4EDC00
+0007CA: move y:(r5)+,y1          ; 4FDD00
+0007CB: do #<$22,>$7cf           ; 062280 0007CE
+0007CD: mpy y0,x0,a a,x:(r0)+ y:(r4)+,y0 ; F818D0
+0007CE: mpy x0,y1,b b,x:(r1)+ y:(r5)+,y1 ; FD39C8
+0007CF: move a,x:(r0)+           ; 565800
+0007D0: move b,x:(r1)+           ; 575900
+0007D1: bclr #$b,sr              ; 0AF94B
+0007D2: move #>$6a3,x0           ; 44F400 0006A3
+0007D4: move y:(r7-$14),a        ; 03B7BE
+0007D5: cmp x0,a x1,y1           ; 20A745
+0007D6: tfr x0,a ifge            ; 202141
+0007D7: move l:(r7),x            ; 42E700
+0007D8: move a,r0                ; 21D000
+0007D9: move x:(r0+$143546),y0   ; 0A70C6 143546
+0007DB: mpy y1,y0,b y0,a         ; 20CEB8
+0007DC: move #$72,r0             ; 307200
+0007DD: move #$4,r4              ; 340400
+0007DE: sub x0,a ba,l:(r7)+      ; 4B5F44
+0007DF: sub x1,b                 ; 20006C
+0007E0: move a,y0                ; 21C600
+0007E1: tfr x1,b b,y1            ; 21E769
+0007E2: tfr x0,a #$8,x0          ; 240841
+0007E3: do #<$10,>$7e7           ; 061080 0007E6
+0007E5: mac y0,x0,a a,y:(r4)+    ; 5E5CD2
+0007E6: mac x0,y1,b b,y:(r4)+    ; 5F5CCA
+0007E7: move #$4,r4              ; 340400
+0007E8: move r0,r1               ; 221100
+0007E9: move #$b2,r2             ; 32B200
+0007EA: move r2,r3               ; 225300
+0007EB: move l:(r7)+,a           ; 48DF00
+0007EC: move l:(r7)-,b           ; 49D700
+0007ED: move x:(r0)+,x0 y:(r4)+,y0 ; F09800
+0007EE: move y:(r4)+,x1          ; 4DDC00
+0007EF: do #<$10,>$7fa           ; 061080 0007F9
+0007F1: mac x1,x0,a a,x:(r1)+ a,y1 ; 1919A2
+0007F2: mac -y1,y0,a x:(r2)+,x0  ; 44DAB6
+0007F3: mac x1,x0,b b,x:(r3)+ b,y1 ; 1F1BAA
+0007F4: mac -y1,y0,b x:(r0)+,x0  ; 44D8BE
+0007F5: mac x1,x0,a a,x:(r1)+ a,y1 ; 1919A2
+0007F6: mac -y1,y0,a x:(r2)+,x0  ; 44DAB6
+0007F7: mac x1,x0,b b,x:(r3)+ b,y1 ; 1F1BAA
+0007F8: mac -y1,y0,b x:(r0)+,x0 y:(r4)+,y0 ; F098BE
+0007F9: move y:(r4)+,x1          ; 4DDC00
+0007FA: move a,x:(r1)+           ; 565900
+0007FB: move b,x:(r3)+           ; 575B00
+0007FC: move a,l:(r7)+           ; 485F00
+0007FD: move b,l:(r7)+           ; 495F00
+0007FE: move #$4,r4              ; 340400
+0007FF: move #$2,n4              ; 3C0200
+000800: move #$72,r0             ; 307200
+000801: move r0,r1               ; 221100
+000802: move #$b2,r2             ; 32B200
+000803: move r2,r3               ; 225300
+000804: move l:(r7)+,a           ; 48DF00
+000805: move l:(r7)-,b           ; 49D700
+000806: jsr func_00037c          ; 0D037C
+000807: move a,l:(r7)+           ; 485F00
+000808: move b,l:(r7)+           ; 495F00
+000809: move #>$eeb88,y0         ; 46F400 0EEB88
+00080B: move #>$39c201,y1        ; 47F400 39C201
+00080D: lua (r7-$30),r3          ; 042F03
+00080E: move r3,r4               ; 227400
+00080F: move #$6d,r0             ; 306D00
+000810: move #$6c,r2             ; 326C00
+000811: move l:(r3)+,x           ; 42DB00
+000812: move x0,x:(r0)+          ; 445800
+000813: move x1,x:(r0)+          ; 455800
+000814: move l:(r3)+,x           ; 42DB00
+000815: move x0,x:(r0)+          ; 445800
+000816: move x1,x:(r0)+          ; 455800
+000817: move x:(r3),x1           ; 45E300
+000818: move x1,x:(r0)+          ; 455800
+000819: move #$6d,r0             ; 306D00
+00081A: move #>$f75277,x1        ; 45F400 F75277
+00081C: move #>$fffffd,n0        ; 70F400 FFFFFD
+00081E: move x:(r0)+,x0          ; 44D800
+00081F: do #<$10,>$828           ; 061080 000827
+000821: mpy x1,x0,a x:(r0)+,x0   ; 44D8A0
+000822: mac y0,x0,a x:(r0)+,x0   ; 44D8D2
+000823: mac x0,y1,a x:(r0)+,x0   ; 44D8C2
+000824: mac x0,y1,a x:(r0)+,x0   ; 44D8C2
+000825: mac y0,x0,a x:(r0)+n0,x0 ; 44C8D2
+000826: mac x1,x0,a b,x:(r2)+    ; 575AA2
+000827: tfr a,b x:(r0)+,x0       ; 44D809
+000828: move a,x:(r2)+           ; 565A00
+000829: tfr x0,a r0,r1           ; 221141
+00082A: move x:(r0)+,x1          ; 45D800
+00082B: move x,l:(r4)+           ; 425C00
+00082C: move x:(r0)+,x0          ; 44D800
+00082D: move x:(r0)+,x1          ; 45D800
+00082E: move x,l:(r4)+           ; 425C00
+00082F: move x:(r0)+,x1          ; 45D800
+000830: move x1,x:(r4)           ; 456400
+000831: move a,x0                ; 21C400
+000832: move r1,r0               ; 223000
+000833: move x:(r6+$f),x1        ; 023ED5
+000834: jset #$0,x1,func_00084e  ; 0AC520 00084E
+000836: move #$ad,r0             ; 30AD00
+000837: move #$ac,r2             ; 32AC00
+000838: move y:(r3)+,x0          ; 4CDB00
+000839: move x0,x:(r0)+          ; 445800
+00083A: move l:(r3)+,x           ; 42DB00
+00083B: move x0,x:(r0)+          ; 445800
+00083C: move x1,x:(r0)+          ; 455800
+00083D: move l:(r3)+,x           ; 42DB00
+00083E: move x0,x:(r0)+          ; 445800
+00083F: move x1,x:(r0)+          ; 455800
+000840: move #$ad,r0             ; 30AD00
+000841: move #>$f75277,x1        ; 45F400 F75277
+000843: move x:(r0)+,x0          ; 44D800
+000844: do #<$10,>$84d           ; 061080 00084C
+000846: mpy x1,x0,a x:(r0)+,x0   ; 44D8A0
+000847: mac y0,x0,a x:(r0)+,x0   ; 44D8D2
+000848: mac x0,y1,a x:(r0)+,x0   ; 44D8C2
+000849: mac x0,y1,a x:(r0)+,x0   ; 44D8C2
+00084A: mac y0,x0,a x:(r0)+n0,x0 ; 44C8D2
+00084B: mac x1,x0,a b,x:(r2)+    ; 575AA2
+00084C: tfr a,b x:(r0)+,x0       ; 44D809
+00084D: move a,x:(r2)+           ; 565A00
+00084E: move x0,y:(r4)+          ; 4C5C00
+00084F: move x:(r0)+,x0          ; 44D800
+000850: move x:(r0)+,x1          ; 45D800
+000851: move x,l:(r4)+           ; 425C00
+000852: move x:(r0)+,x0          ; 44D800
+000853: move x:(r0)+,x1          ; 45D800
+000854: move x,l:(r4)+           ; 425C00
+000855: move #>$63f,x0           ; 44F400 00063F
+000857: move x:(r7-$1a),a        ; 039F9E
+000858: tst a                    ; 200003
+000859: clr a ifmi               ; 202B13
+00085A: cmp x0,a                 ; 200045
+00085B: tfr x0,a ifgt            ; 202741
+00085C: move a,r0                ; 21D000
+00085D: move #>$7fffff,a         ; 56F400 7FFFFF
+00085F: move l:(r7),x            ; 42E700
+000860: move x:(r0+$1435c6),b    ; 0A70CF 1435C6
+000862: sub b,a a,y0             ; 21C614
+000863: add y0,a #$6c,r0         ; 306C50
+000864: asr a #$4,r4             ; 340422
+000865: sub x0,a ba,l:(r7)+      ; 4B5F44
+000866: sub x1,b a,y0            ; 21C66C
+000867: tfr x0,a #$8,x0          ; 240841
+000868: tfr x1,b b,y1            ; 21E769
+000869: do #<$10,>$86d           ; 061080 00086C
+00086B: mac y0,x0,a a,y:(r4)     ; 5E64D2
+00086C: mac x0,y1,b b,x:(r4)+    ; 575CCA
+00086D: move #$4,r4              ; 340400
+00086E: move r0,r1               ; 221100
+00086F: move #$ac,r2             ; 32AC00
+000870: move r2,r3               ; 225300
+000871: move l:(r7)+,a           ; 48DF00
+000872: move l:(r7)+,b           ; 49DF00
+000873: move l:(r7),x            ; 42E700
+000874: move x0,x:(r0)           ; 446000
+000875: move x1,x:(r2)           ; 456200
+000876: move x:(r0+$10),x0       ; 024094
+000877: move x:(r2+$10),x1       ; 024295
+000878: move x,l:(r7)-           ; 425700
+000879: jsr func_00038a          ; 0D038A
+00087A: move b,l:(r7)-           ; 495700
+00087B: move a,l:(r7)            ; 486700
+00087C: lua (r7+$3),r7           ; 040737
+00087D: move #$4,r4              ; 340400
+00087E: move #$6c,r0             ; 306C00
+00087F: move r0,r1               ; 221100
+000880: move #$ac,r2             ; 32AC00
+000881: move r2,r3               ; 225300
+000882: move l:(r7)+,a           ; 48DF00
+000883: move l:(r7)+,b           ; 49DF00
+000884: move l:(r7),x            ; 42E700
+000885: move x0,x:(r0)           ; 446000
+000886: move x1,x:(r2)           ; 456200
+000887: move x:(r0+$10),x0       ; 024094
+000888: move x:(r2+$10),x1       ; 024295
+000889: move x,l:(r7)-           ; 425700
+00088A: jsr func_00038a          ; 0D038A
+00088B: move b,l:(r7)-           ; 495700
+00088C: move a,l:(r7)            ; 486700
+00088D: lua (r7+$3),r7           ; 040737
+00088E: move y:(r6+$28),a        ; 02A6BE
+00088F: move y:(r7-$23),b        ; 0377FF
+000890: cmp #<$1,a               ; 014185
+000891: bne func_000894          ; 052403
+000892: move #$0,x0              ; 240000
+000893: move x0,x:(r7-$22)       ; 037F84
+000894: cmp #<$2,a               ; 014285
+000895: blt func_00089d          ; 059408
+000896: move #>$3,x0             ; 44F400 000003
+000898: cmp #<$3,a               ; 014385
+000899: bne func_00089c          ; 052403
+00089A: move #>$4,x0             ; 44F400 000004
+00089C: move x0,x:(r7-$22)       ; 037F84
+00089D: move x:(r7-$22),a        ; 037F9E
+00089E: tst a #$40,r0            ; 304003
+00089F: bne func_0008ae          ; 05240F
+0008A0: move y:(r6+$0),a         ; 0206BE
+0008A1: asr #$10,a,a             ; 0C1C20
+0008A2: move a,r4                ; 21D400
+0008A3: move y:(r7-$23),a        ; 0377FE
+0008A4: move y:(r4+$141800),y0   ; 0B74C6 141800
+0008A6: add y0,a                 ; 200050
+0008A7: move a,y:(r7-$23)        ; 0377EE
+0008A8: bec func_0008d8          ; 055450
+0008A9: move #>$1,x0             ; 44F400 000001
+0008AB: move x0,x:(r7-$22)       ; 037F84
+0008AC: move x0,y:(r7-$22)       ; 037FA4
+0008AD: bra func_0008d8          ; 050C4B
+0008AE: cmp #<$1,a               ; 014185
+0008AF: bne func_0008c6          ; 052417
+0008B0: move y:(r6+$1),a         ; 0206FE
+0008B1: cmp #>$10000,a           ; 0140C5 010000
+0008B3: clr a iflt               ; 202913
+0008B4: move y:(r6+$23),y0       ; 028EF6
+0008B5: move a,x0                ; 21C400
+0008B6: mpy y0,x0,b              ; 2000D8
+0008B7: move y:(r7-$22),a        ; 037FBE
+0008B8: move b,x1                ; 21E500
+0008B9: mpyi #>$791fd0,x1,b      ; 0141E8 791FD0
+0008BB: asl b                    ; 20003A
+0008BC: add #<$1,a               ; 014180
+0008BD: cmp b,a                  ; 200005
+0008BE: bgt func_0008c1          ; 057403
+0008BF: move a,y:(r7-$22)        ; 037FAE
+0008C0: bra func_0008d8          ; 050C18
+0008C1: move #>$2,x0             ; 44F400 000002
+0008C3: move x0,x:(r7-$22)       ; 037F84
+0008C4: move x0,a                ; 208E00
+0008C5: bra func_0008d8          ; 050C13
+0008C6: cmp #<$2,a               ; 014285
+0008C7: bne func_0008ca          ; 052403
+0008C8: move y:(r6+$2),b         ; 020EBF
+0008C9: bra func_0008ce          ; 050C05
+0008CA: move y:(r6+$3),b         ; 020EFF
+0008CB: cmp #<$4,a               ; 014485
+0008CC: bne func_0008ce          ; 052402
+0008CD: move #$20,b              ; 2F2000
+0008CE: add #>$7fff,b            ; 0140C8 007FFF
+0008D0: asr #$10,b,b             ; 0C1CA1
+0008D1: rnd b                    ; 200019
+0008D2: move b,r4                ; 21F400
+0008D3: move y:(r7-$23),x1       ; 0377F5
+0008D4: move y:(r4+$141880),y0   ; 0B74C6 141880
+0008D6: mpy -x1,y0,a             ; 2000E4
+0008D7: move a,y:(r7-$23)        ; 0377EE
+0008D8: move y:(r6+$6),x0        ; 021EB4
+0008D9: move #>$408e05,y0        ; 46F400 408E05
+0008DB: mpy y0,x0,b #$11,r3      ; 3311D8
+0008DC: asl b #$10,n0            ; 38103A
+0008DD: move b,a                 ; 21EE00
+0008DE: asr #$c,a,a              ; 0C1C18
+0008DF: move y:(r6+$5),x0        ; 0216F4
+0008E0: mpy x0,x0,a a,r2         ; 21D280
+0008E1: move a,x0                ; 21C400
+0008E2: move y:(r7-$23),x1       ; 0377F5
+0008E3: mpy x1,x0,a              ; 2000A0
+0008E4: mpy x1,x0,a              ; 2000A0
+0008E5: move x:(r2+$14a000),x1   ; 0A72C5 14A000
+0008E7: move x1,y:$0             ; 4D0000
+0008E8: move a,x0                ; 21C400
+0008E9: move n0,n1               ; 231900
+0008EA: move #$6d,r1             ; 316D00
+0008EB: move x:(r2+$14a801),y1   ; 0A72C7 14A801
+0008ED: move y1,y:$1             ; 4F0100
+0008EE: mpy x1,x0,b #$20,r5      ; 3520A8
+0008EF: mpy x0,y1,a l:(r7),y     ; 43E7C0
+0008F0: move ab,l:(r7)+          ; 4A5F00
+0008F1: sub y0,b #$ad,r0         ; 30AD5C
+0008F2: sub y1,a r5,r4           ; 22B474
+0008F3: tfr y0,a a,x1            ; 21C551
+0008F4: tfr y1,b b,x0            ; 21E479
+0008F5: move #$8,y0              ; 260800
+0008F6: do #<$10,>$8fa           ; 061080 0008F9
+0008F8: mac y0,x0,a a,y:(r5)+    ; 5E5DD2
+0008F9: mac x1,y0,b b,y:(r5)+    ; 5F5DEA
+0008FA: move y:(r6+$12),x0       ; 024EB4
+0008FB: mpyri #>$80,x0,a         ; 0141C1 000080
+0008FD: move x:(r6+$f),x0        ; 023ED4
+0008FE: jclr #$0,x0,func_000901  ; 0AC400 000901
+000900: move r1,r0               ; 223000
+000901: move #$0,r2              ; 320000
+000902: move a1,r5               ; 219500
+000903: move l:(r7),ab           ; 4AE700
+000904: do #<$10,>$910           ; 061080 00090F
+000906: move a,x:(r2)+ y:(r4)+,y1 ; F91A00
+000907: move b,x:(r3)+ y:(r4)+,y0 ; FC1B00
+000908: move l:(r1)+,x           ; 42D900
+000909: mpysu y0,x0,a            ; 012785
+00090A: dmac ss y0,x1,a          ; 01248E
+00090B: move l:(r0)+,x           ; 42D800
+00090C: mpysu y1,x0,b            ; 0127AC
+00090D: dmac ss y1,x1,b          ; 0124A7
+00090E: asl #$4,a,a              ; 0C1D08
+00090F: asl #$4,b,b              ; 0C1D89
+000910: move a,x:(r2)+           ; 565A00
+000911: move ab,l:(r7)+          ; 4A5F00
+000912: move y:(r5+$1448c6),y0   ; 0B75C6 1448C6
+000914: move y:(r5+$144946),y1   ; 0B75C7 144946
+000916: tfr y0,b b,x:(r3)+       ; 575B59
+000917: cmp #>$400000,b          ; 0140CD 400000
+000919: move l:(r7),a            ; 48E700
+00091A: asr a ifeq               ; 202A22
+00091B: move a,l:(r7)            ; 486700
+00091C: tfr y1,b #>$7fffff,x1    ; 45F479 7FFFFF
+00091E: asr #$10,b,b             ; 0C1CA1
+00091F: move y,l:?:>$fe          ; 437000 0000FE
+000921: move b0,a                ; 212E00
+000922: lsr a b1,y1              ; 21A723
+000923: move b0,y0               ; 212600
+000924: move a1,x0               ; 218400
+000925: move l:(r7)+,a           ; 48DF00
+000926: move a0,b                ; 210F00
+000927: lsr b #$80,r1            ; 31802B
+000928: move a1,r0               ; 219000
+000929: do #<$11,>$92e           ; 061180 00092D
+00092B: add y,a a,l:(r1)         ; 486130
+00092C: add x0,b b1,y:(r1)+      ; 5D5948
+00092D: and x1,b                 ; 20006E
+00092E: move y:>$80,y0           ; 4EF000 000080
+000930: move #$81,r4             ; 348100
+000931: move #$22,r2             ; 322200
+000932: move #$34,r3             ; 333400
+000933: move l:(r7)+,ab          ; 4ADF00
+000934: move x:(r0)+,x1          ; 45D800
+000935: move a,x:(r2)+           ; 565A00
+000936: move b,x:(r3)+           ; 575B00
+000937: move l:(r7)-,ab          ; 4AD700
+000938: jsr func_000397          ; 0D0397
+000939: move #>$10,b             ; 57F400 000010
+00093B: move l:-(r7),a           ; 48FF00
+00093C: sub a,b #$11,n0          ; 38111C
+00093D: move y:>$fe,y0           ; 4EF000 0000FE
+00093F: move b1,x1               ; 21A500
+000940: move b0,x0               ; 212400
+000941: mpysu y0,x0,b            ; 0127A5
+000942: dmac ss y0,x1,b          ; 0124AE
+000943: asl b #>$22,x1           ; 45F43A 000022
+000945: move #>$7fffff,x0        ; 44F400 7FFFFF
+000947: add x,b n0,n1            ; 231928
+000948: rnd b y:(r7)+,y0         ; 4EDF19
+000949: move b,r0                ; 21F000
+00094A: move x:>$fe,a            ; 56F000 0000FE
+00094C: asr #$10,a,a             ; 0C1C20
+00094D: move x:(r0)+,x1          ; 45D800
+00094E: move x:(r0)+n0,y1        ; 47C800
+00094F: move x:(r0)+,x0          ; 44D800
+000950: move x:(r0),y0           ; 46E000
+000951: move x,l:(r7)+           ; 425F00
+000952: move y,l:(r7)-           ; 435700
+000953: move x:(r0+$4b),b        ; 0A70CF 00004B
+000955: move y:(r0+$4b),b0       ; 0B70C9 00004B
+000957: sub #<$10,b              ; 01508C
+000958: cmp a,b y:>$fe,y0        ; 4EF00D 0000FE
+00095A: tfr a,b ifgt             ; 202709
+00095B: move #>$23,a             ; 56F400 000023
+00095D: move l:-(r7),x           ; 42FF00
+00095E: move b,l:(r7)            ; 496700
+00095F: mpysu y0,x0,b            ; 0127A5
+000960: dmac ss y0,x1,b          ; 0124AE
+000961: asl b #$f,r2             ; 320F3A
+000962: sub b,a r2,r3            ; 225314
+000963: move y:>$fe,b            ; 5FF000 0000FE
+000965: asr #$16,b,b             ; 0C1CAD
+000966: move b1,y1               ; 21A700
+000967: move b0,y0               ; 212600
+000968: asr b #>$7fffff,x1       ; 45F42A 7FFFFF
+00096A: move b0,x0               ; 212400
+00096B: move a0,b                ; 210F00
+00096C: lsr b #$80,r1            ; 31802B
+00096D: move a1,r0               ; 219000
+00096E: do #<$10,>$973           ; 061080 000972
+000970: add y,a a,l:(r1)         ; 486130
+000971: add x0,b b1,y:(r1)+      ; 5D5948
+000972: and x1,b                 ; 20006E
+000973: move y:>$80,y0           ; 4EF000 000080
+000975: move #$81,r4             ; 348100
+000976: move x:(r0)+,x1          ; 45D800
+000977: move #$f,m2              ; 050FA2
+000978: jsr func_000397          ; 0D0397
+000979: move #>$ffffff,m2        ; 05F422 FFFFFF
+00097B: lua (r6+$28),r6          ; 041686
+00097C: move x:(r6-$1c),a        ; 03969E
+00097D: tst a                    ; 200003
+00097E: beq func_000981          ; 05A403
+00097F: move a,r0                ; 21D000
+000980: jmp (r0)                 ; 0AE080
+000981: lua (r6-$28),r6          ; 042E86
+000982: move #>$15c,n6           ; 76F400 00015C
+000984: lua (r6)+n6,r7           ; 044E17
+000985: move y:(r6+$13),a        ; 024EFE
+000986: add #>$8000,a            ; 0140C0 008000
+000988: asr #$10,a,a             ; 0C1C20
+000989: move #>$1,b              ; 57F400 000001
+00098B: move a,r0                ; 21D000
+00098C: move b1,x:(r7-$8f)       ; 0A778D FFFF71
+00098E: move b0,y:(r7-$8f)       ; 0B7789 FFFF71
+000990: move x:(r0+$144bc9),x1   ; 0A70C5 144BC9
+000992: move x:(r0+$144c49),x0   ; 0A70C4 144C49
+000994: move y:(r6+$23),y0       ; 028EF6
+000995: mpyi #>$791fd0,y0,a      ; 0141D0 791FD0
+000997: asl #$5,a,a              ; 0C1D0A
+000998: move a,y0                ; 21C600
+000999: mpy x1,y0,a              ; 2000E0
+00099A: cmp #>$4000,a            ; 0140C5 004000
+00099C: blt func_0009ab          ; 05940F
+00099D: move y:(r6+$2a),y0       ; 02AEB6
+00099E: mpy y0,x0,b              ; 2000D8
+00099F: move #>$21d10,x1         ; 45F400 021D10
+0009A1: move b1,y1               ; 21A700
+0009A2: move b0,y0               ; 212600
+0009A3: mpysu x1,y0,b            ; 0127A6
+0009A4: dmac ss x1,y1,b          ; 0124AF
+0009A5: move #>$3ff0,a           ; 56F400 003FF0
+0009A7: move b1,x:(r7-$8f)       ; 0A778D FFFF71
+0009A9: move b0,y:(r7-$8f)       ; 0B7789 FFFF71
+0009AB: move a1,x:(r7-$8e)       ; 0A778C FFFF72
+0009AD: move a0,y:(r7-$8e)       ; 0B7788 FFFF72
+0009AF: move x:(r7-$8e),b        ; 0A77CF FFFF72
+0009B1: move y:(r7-$8e),b0       ; 0B77C9 FFFF72
+0009B3: move x:(r7-$8c),a        ; 0A77CE FFFF74
+0009B5: move y:(r7-$8c),a0       ; 0B77C8 FFFF74
+0009B7: move #$40,y1             ; 274000
+0009B8: move a,l:?:>$fc          ; 487000 0000FC
+0009BA: move y1,x:>$fe           ; 477000 0000FE
+0009BC: cmp b,a                  ; 200005
+0009BD: beq func_0009cb          ; 05A40E
+0009BE: bgt func_0009c5          ; 057407
+0009BF: sub a,b #>$4,y0          ; 46F41C 000004
+0009C1: cmpm y0,b                ; 20005F
+0009C2: tfr y0,b ifgt            ; 202759
+0009C3: add b,a #$30,y1          ; 273010
+0009C4: bra func_0009cb          ; 050C07
+0009C5: sub a,b #>$fffffc,y0     ; 46F41C FFFFFC
+0009C7: cmp y0,b                 ; 20005D
+0009C8: tfr y0,b iflt            ; 202959
+0009C9: add b,a #>$500000,y1     ; 47F410 500000
+0009CB: move x:(r7-$8d),b        ; 0A77CF FFFF73
+0009CD: move y:(r7-$8d),b0       ; 0B77C9 FFFF73
+0009CF: asl #$a,b,b              ; 0C1D95
+0009D0: cmp #>$3ff,b             ; 0140CD 0003FF
+0009D2: blt func_0009d7          ; 059405
+0009D3: move y1,x:>$fe           ; 477000 0000FE
+0009D5: move a,l:?:>$fc          ; 487000 0000FC
+0009D7: move y:(r7-$8f),y0       ; 0B77C6 FFFF71
+0009D9: move y:(r7-$8d),y1       ; 0B77C7 FFFF73
+0009DB: move #>$ccccd,x0         ; 44F400 0CCCCD
+0009DD: move #>$733333,x1        ; 45F400 733333
+0009DF: mpysu x0,y0,a            ; 01278D
+0009E0: macsu x1,y1,a            ; 01268F
+0009E1: move x:(r7-$8f),y0       ; 0A77C6 FFFF71
+0009E3: move x:(r7-$8d),y1       ; 0A77C7 FFFF73
+0009E5: dmac ss x0,y0,a          ; 01248D
+0009E6: mac y1,x1,a              ; 2000F2
+0009E7: move x:(r7-$8c),b        ; 0A77CF FFFF74
+0009E9: cmp #>$3ff0,b            ; 0140CD 003FF0
+0009EB: blt func_0009f0          ; 059405
+0009EC: move a1,x:(r7-$8d)       ; 0A778C FFFF73
+0009EE: move a0,y:(r7-$8d)       ; 0B7788 FFFF73
+0009F0: move #>$3fff,x0          ; 44F400 003FFF
+0009F2: move y:(r7-$8b),x1       ; 0B77C5 FFFF75
+0009F4: move x:(r7-$86),b        ; 0A77CF FFFF7A
+0009F6: move y:(r7-$86),b0       ; 0B77C9 FFFF7A
+0009F8: move l:?:>$fc,y          ; 43F000 0000FC
+0009FA: move y1,x:(r7-$8c)       ; 0A7787 FFFF74
+0009FC: move y0,y:(r7-$8c)       ; 0B7786 FFFF74
+0009FE: move y1,a                ; 20EE00
+0009FF: sub b,a                  ; 200014
+000A00: neg a                    ; 200036
+000A01: and x0,a                 ; 200046
+000A02: move #$0,a2              ; 2A0000
+000A03: add x1,a a,l:?:>$c2      ; 487060 0000C2
+000A05: add x1,b                 ; 200068
+000A06: move a1,r4               ; 219400
+000A07: move b,l:?:>$c4          ; 497000 0000C4
+000A09: add #>$4000,a            ; 0140C0 004000
+000A0B: add #>$4000,b            ; 0140C8 004000
+000A0D: move a1,r5               ; 219500
+000A0E: move b,l:?:>$c5          ; 497000 0000C5
+000A10: move x:(r7-$8d),a        ; 0A77CE FFFF73
+000A12: move y:(r7-$8d),a0       ; 0B77C8 FFFF73
+000A14: asl #$4,a,a              ; 0C1D08
+000A15: move x:(r7-$86),b        ; 0A77CF FFFF7A
+000A17: move y:(r7-$86),b0       ; 0B77C9 FFFF7A
+000A19: add a,b #$40,r0          ; 304018
+000A1A: and x0,b #$62,r1         ; 31624E
+000A1B: move #>$3fff,m4          ; 05F424 003FFF
+000A1D: move b1,x:(r7-$86)       ; 0A778D FFFF7A
+000A1F: move b0,y:(r7-$86)       ; 0B7789 FFFF7A
+000A21: move m4,m5               ; 0465A4
+000A22: move y:(r6+$14),a        ; 0256BE
+000A23: sub #>$400000,a          ; 0140C4 400000
+000A25: bmi func_000a29          ; 0D104B 000004
+000A27: move #$62,r0             ; 306200
+000A28: move #$40,r1             ; 314000
+000A29: move y:(r4)+,a           ; 5EDC00
+000A2A: move y:(r4)+,b           ; 5FDC00
+000A2B: do #<$10,>$a2f           ; 061080 000A2E
+000A2D: move a,x:(r0)+ y:(r4)+,a ; FA1800
+000A2E: move b,x:(r0)+ y:(r4)+,b ; FF1800
+000A2F: move a,x:(r0)+ y:(r5)+,a ; FA3800
+000A30: move b,x:(r0)+ y:(r5)+,b ; FF3800
+000A31: do #<$11,>$a35           ; 061180 000A34
+000A33: move a,x:(r1)+ y:(r5)+,a ; FA3900
+000A34: move b,x:(r1)+ y:(r5)+,b ; FF3900
+000A35: move #>$ffffff,m4        ; 05F424 FFFFFF
+000A37: move m4,m5               ; 0465A4
+000A38: move x:>$fe,y1           ; 47F000 0000FE
+000A3A: move x:(r7-$8d),x1       ; 0A77C5 FFFF73
+000A3C: move y:(r7-$8d),x0       ; 0B77C4 FFFF73
+000A3E: mpysu y1,x0,b            ; 0127AC
+000A3F: dmac ss y1,x1,b          ; 0124A7
+000A40: asl b #>$40,a            ; 56F43A 000040
+000A42: move y:>$c2,a0           ; 58F000 0000C2
+000A44: move b1,y1               ; 21A700
+000A45: move b0,y0               ; 212600
+000A46: asr b #>$7fffff,x1       ; 45F42A 7FFFFF
+000A48: move #$22,n0             ; 382200
+000A49: move n0,n1               ; 231900
+000A4A: move b0,x0               ; 212400
+000A4B: move a0,b                ; 210F00
+000A4C: lsr b a1,r0              ; 21902B
+000A4D: move #$e0,r1             ; 31E000
+000A4E: do #<$11,>$a53           ; 061180 000A52
+000A50: add y,a a,l:(r1)         ; 486130
+000A51: add x0,b b1,y:(r1)+      ; 5D5948
+000A52: and x1,b                 ; 20006E
+000A53: move #$2f,r2             ; 322F00
+000A54: move r2,r3               ; 225300
+000A55: move y:>$e0,y0           ; 4EF000 0000E0
+000A57: move #$e1,r4             ; 34E100
+000A58: move x:(r0)+,x1          ; 45D800
+000A59: move #$f,m2              ; 050FA2
+000A5A: jsr func_000397          ; 0D0397
+000A5B: move #>$ffffff,m2        ; 05F422 FFFFFF
+000A5D: move y:(r6+$16),b        ; 025EBF
+000A5E: asr #$10,b,b             ; 0C1CA1
+000A5F: move #>$144ac7,r3        ; 63F400 144AC7
+000A61: move b,n3                ; 21FB00
+000A62: move #$20,r1             ; 312000
+000A63: move x:(r3+n3),b         ; 57EB00
+000A64: asr b b,y0               ; 21E62A
+000A65: add #>$800000,b          ; 0140C8 800000
+000A67: move #$62,r4             ; 346200
+000A68: neg b #$30,r0            ; 30303E
+000A69: move y:(r7-$88),a        ; 0B77CE FFFF78
+000A6B: move y:(r7-$89),x0       ; 0B77C4 FFFF77
+000A6D: move x:(r7-$89),x1       ; 0A77C5 FFFF77
+000A6F: move x:(r1+$1f),y1       ; 0279D7
+000A70: move y1,y:(r7-$89)       ; 0B7787 FFFF77
+000A72: move x:(r1+$f),y1        ; 0239D7
+000A73: move y1,x:(r7-$89)       ; 0A7787 FFFF77
+000A75: move b,y1                ; 21E700
+000A76: move x:(r7-$88),b        ; 0A77CF FFFF78
+000A78: do #<$10,>$a80           ; 061080 000A7F
+000A7A: mac -x0,y1,a a,x0 a,y:(r4)+ ; 125CC6
+000A7B: mac -y1,x1,b b,x1 b,y:(r4)+ ; 1F5CFE
+000A7C: mac -y0,x0,a x:(r0),x0   ; 44E0D6
+000A7D: mac -x1,y0,b x:(r1),x1   ; 45E1EE
+000A7E: mac x0,y1,a x:(r0)+,x0   ; 44D8C2
+000A7F: mac y1,x1,b x:(r1)+,x1   ; 45D9FA
+000A80: move a,y:(r7-$88)        ; 0B778E FFFF78
+000A82: move b,x:(r7-$88)        ; 0A778F FFFF78
+000A84: move y:(r6+$17),a        ; 025EFE
+000A85: move y:(r6+$16),x0       ; 025EB4
+000A86: add x0,a #>$144ac7,r2    ; 62F440 144AC7
+000A88: move #$20,r4             ; 342000
+000A89: move #$62,r5             ; 356200
+000A8A: move a,b                 ; 21CF00
+000A8B: asr #$10,b,b             ; 0C1CA1
+000A8C: move y:(r7-$87),a        ; 0B77CE FFFF79
+000A8E: move b,n2                ; 21FA00
+000A8F: move x:(r7-$87),b        ; 0A77CF FFFF79
+000A91: move y:(r5)+,x1          ; 4DDD00
+000A92: move x:(r2+n2),y0        ; 46EA00
+000A93: do #<$10,>$a99           ; 061080 000A98
+000A95: mac x1,y0,a a,x0 a,y:(r4)+ ; 125CE2
+000A96: mac -y0,x0,a y:(r5)+,x1  ; 4DDDD6
+000A97: mac x1,y0,b b,x0 b,y:(r4)+ ; 1B5CEA
+000A98: mac -y0,x0,b y:(r5)+,x1  ; 4DDDDE
+000A99: move a,y:(r7-$87)        ; 0B778E FFFF79
+000A9B: move b,x:(r7-$87)        ; 0A778F FFFF79
+000A9D: move #$62,r4             ; 346200
+000A9E: move #$0,r1              ; 310000
+000A9F: move x:(r7-$8d),b        ; 0A77CF FFFF73
+000AA1: move y:(r7-$8d),b0       ; 0B77C9 FFFF73
+000AA3: asr #$11,b,b             ; 0C1CA3
+000AA4: move y:(r7-$90),a        ; 0B77CE FFFF70
+000AA6: move b0,r2               ; 213200
+000AA7: move x:(r7-$90),b        ; 0A77CF FFFF70
+000AA9: move x:(r2+$144b48),y0   ; 0A72C6 144B48
+000AAB: move #$10,r3             ; 331000
+000AAC: move x:(r3)+,x1          ; 45DB00
+000AAD: do #<$10,>$ab3           ; 061080 000AB2
+000AAF: mac x1,y0,a a,x0 a,y:(r4)+ ; 125CE2
+000AB0: mac -y0,x0,a x:(r1)+,x1  ; 45D9D6
+000AB1: mac x1,y0,b b,x0 b,y:(r4)+ ; 1B5CEA
+000AB2: mac -y0,x0,b x:(r3)+,x1  ; 45DBDE
+000AB3: move a,y:(r7-$90)        ; 0B778E FFFF70
+000AB5: move b,x:(r7-$90)        ; 0A778F FFFF70
+000AB7: move y:(r6+$14),b        ; 0256BF
+000AB8: sub #>$400000,b          ; 0140CC 400000
+000ABA: abs b #$62,r4            ; 34622E
+000ABB: asl b #$20,r1            ; 31203A
+000ABC: move #$51,r2             ; 325100
+000ABD: move b,x0                ; 21E400
+000ABE: mpy x0,x0,a #$40,r3      ; 334080
+000ABF: move y:(r6+$15),y0       ; 0256F6
+000AC0: move x:(r7-$84),b        ; 0A77CF FFFF7C
+000AC2: cmp #<$4,b               ; 01448D
+000AC3: bne func_000ac5          ; 052402
+000AC4: move #$0,y0              ; 260000
+000AC5: move a,x1                ; 21C500
+000AC6: move y:(r1)+,x0          ; 4CD900
+000AC7: do #<$10,>$acf           ; 061080 000ACE
+000AC9: mpy y0,x0,a a,x:(r2)+ y:(r4)+,y1 ; F91AD0
+000ACA: asl #$1,a,a              ; 0C1D02
+000ACB: mac y1,x1,a y:(r1)+,x0   ; 4CD9F2
+000ACC: mpy y0,x0,b b,x:(r3)+ y:(r4)+,y1 ; FD1BD8
+000ACD: asl #$1,b,b              ; 0C1D83
+000ACE: mac y1,x1,b y:(r1)+,x0   ; 4CD9FA
+000ACF: move a,x:(r2)+           ; 565A00
+000AD0: move b,x:(r3)+           ; 575B00
+000AD1: move x:(r7-$8d),b        ; 0A77CF FFFF73
+000AD3: move y:(r7-$8d),b0       ; 0B77C9 FFFF73
+000AD5: asr #$2,b,b              ; 0C1C85
+000AD6: move #$1,a               ; 2E0100
+000AD7: move b0,y0               ; 212600
+000AD8: andi #$fe,ccr            ; 00FEB9
+000AD9: do #<$18,>$adc           ; 061880 000ADB
+000ADB: div y0,a                 ; 018050
+000ADC: move a0,b                ; 210F00
+000ADD: asr #$11,b,b             ; 0C1CA3
+000ADE: move y:>$c4,x0           ; 4CF000 0000C4
+000AE0: move b1,y1               ; 21A700
+000AE1: move b0,y0               ; 212600
+000AE2: mpyuu y0,x0,a            ; 0127C5
+000AE3: dmac su y1,x0,a          ; 01258C
+000AE4: asr a                    ; 200022
+000AE5: clr b ifeq               ; 202A1B
+000AE6: sub a,b                  ; 20001C
+000AE7: tfr b,a                  ; 200001
+000AE8: cmp #<$10,b              ; 01508D
+000AE9: bge func_000b1e          ; 051455
+000AEA: move #>$3fff,m2          ; 05F422 003FFF
+000AEC: add #>$40,a              ; 0140C0 000040
+000AEE: move #$90,r1             ; 319000
+000AEF: tfr y0,b x:>$c4,r2       ; 62F059 0000C4
+000AF1: asr b #>$7fffff,x1       ; 45F42A 7FFFFF
+000AF3: move b1,x0               ; 21A400
+000AF4: move a0,b                ; 210F00
+000AF5: lsr b a1,r0              ; 21902B
+000AF6: do #<$11,>$afb           ; 061180 000AFA
+000AF8: add y,a a,l:(r1)         ; 486130
+000AF9: add x0,b b1,y:(r1)+      ; 5D5948
+000AFA: and x1,b                 ; 20006E
+000AFB: move y:(r7-$91),x0       ; 0B77C4 FFFF6F
+000AFD: move x0,x:>$40           ; 447000 000040
+000AFF: move x:(r7-$91),x0       ; 0A77C4 FFFF6F
+000B01: move x0,x:>$51           ; 447000 000051
+000B03: move x:>$50,x0           ; 44F000 000050
+000B05: move x0,y:(r7-$91)       ; 0B7784 FFFF6F
+000B07: move x:>$61,x0           ; 44F000 000061
+000B09: move x0,x:(r7-$91)       ; 0A7784 FFFF6F
+000B0B: move x:-(r2),a           ; 56FA00
+000B0C: move #$10,n0             ; 381000
+000B0D: move n0,n1               ; 231900
+000B0E: move y:>$90,y0           ; 4EF000 000090
+000B10: move x:(r0)+,x1          ; 45D800
+000B11: move #$91,r4             ; 349100
+000B12: move #$70,r3             ; 337000
+000B13: jsr func_000397          ; 0D0397
+000B14: move #$71,r0             ; 307100
+000B15: move x:>$c5,r4           ; 64F000 0000C5
+000B17: move m2,m4               ; 0464A2
+000B18: move x:(r0)+,a           ; 56D800
+000B19: move x:(r0)+,b           ; 57D800
+000B1A: do #<$8,>$b1e            ; 060880 000B1D
+000B1C: move x:(r0)+,a a,y:(r4)+ ; BA9800
+000B1D: move x:(r0)+,b b,y:(r4)+ ; BF9800
+000B1E: move y:(r6+$1f),x0       ; 027EF4
+000B1F: mpy x0,x0,a              ; 200080
+000B20: move y:>$4ff,y0          ; 4EF000 0004FF
+000B22: mpy y0,y0,b a,x0         ; 21C498
+000B23: move y:(r7-$5d),y1       ; 0B77C7 FFFFA3
+000B25: move b,x1                ; 21E500
+000B26: mpy x1,x0,a              ; 2000A0
+000B27: move #$10,r5             ; 351000
+000B28: move a,y:(r7-$5d)        ; 0B778E FFFFA3
+000B2A: sub y1,a                 ; 200074
+000B2B: tfr y1,b #$10,y0         ; 261079
+000B2C: tfr y1,a a,x0            ; 21C471
+000B2D: maci #>$80000,x0,b       ; 0141CA 080000
+000B2F: do #<$8,>$b33            ; 060880 000B32
+000B31: mac y0,x0,a a,y:(r5)+    ; 5E5DD2
+000B32: mac y0,x0,b b,y:(r5)+    ; 5F5DDA
+000B33: move #$20,r4             ; 342000
+000B34: move #$10,r5             ; 351000
+000B35: move #$0,r2              ; 320000
+000B36: move x:>$2c9,r3          ; 63F000 0002C9
+000B38: move x:>$ff,r1           ; 61F000 0000FF
+000B3A: move #>$ffffff,m2        ; 05F422 FFFFFF
+000B3C: move m2,m4               ; 0464A2
+000B3D: move #$0,r6              ; 360000
+000B3E: move l:(r5)+,x           ; 42DD00
+000B3F: mpy x1,x0,a x:(r2)+,x1 y:(r4)+,y0 ; F49AA0
+000B40: mpy x1,x0,b y:(r4)+,y1   ; 4FDCA8
+000B41: do #<$10,>$b49           ; 061080 000B48
+000B43: mac x0,y1,b              ; 2000CA
+000B44: mac y0,x0,a l:(r5)+,x    ; 42DDD2
+000B45: add a,b b,x:(r1)+ b,y:(r6)+ ; BF5918
+000B46: asr b a,x:(r1)+ a,y:(r6)+ ; BA592A
+000B47: mpy x1,x0,a x:(r2)+,x1 y:(r4)+,y0 ; F49AA0
+000B48: mpy x1,x0,b b,x:(r3)+ y:(r4)+,y1 ; FD1BA8
+000B49: move r3,x:>$2c9          ; 637000 0002C9
+000B4B: pflush                   ; 000003
+000B4C: jmp func_000143          ; 0C0143
+000B4D: nop                      ; 000000
