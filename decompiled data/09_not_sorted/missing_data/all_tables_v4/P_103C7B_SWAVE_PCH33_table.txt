@@ -1,0 +1,38 @@
+# Table: SWAVE_PCH33_table
+# Address: P:$103C7B
+# Size: 256 words (24-bit BE)
+# Non-zero: 256/256
+# Source: HI08_stream
+
++$0000: 22b2f0 2b12ce 31d315 32f36a 371389 3bc3c8 3df40d 41d433
++$0008: 45e46f 4844ac 4bf4d3 4f950c 51f543 557569 58a59f 5af5cf
++$0010: 5e45f4 612626 635652 666673 68f6a2 6af6c9 6dc6e8 700713
++$0018: 71e735 747752 767779 782796 7a77b0 7c27d3 7da7ec 7fb7fc
++$0020: 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7fe7ff 7fe7fe
++$0028: 7ff7fe 7fe7ff 7fe7fe 7ff7fe 7fd7ff 7fe7fd 7ff7ff 7fd7ff
++$0030: 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7ff7ff
++$0038: 7fd7ff 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fd7ff 7ff7fd
++$0040: 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fd7ff
++$0048: 7ff7fd 7ff7ff 7fd7ff 7ff7fd 7ff7ff 7fe7fe 7ff7fe 7fe7ff
++$0050: 7fe7fe 7ff7fe 7fe7ff 7fe7fd 7ff7fe 7fd7ff 7ff7fd 7ff7ff
++$0058: 7fd7ff 7fe7f7 7f47e9 7de7db 7d17c6 7c37b9 7ad7a9 79f793
++$0060: 78f786 779775 76b75e 75a750 74373e 735727 721719 70a704
++$0068: 6fc6ed 6e76de 6cf6c8 6c06b1 6a96a1 69268a 682672 66a662
++$0070: 652649 641631 627620 610605 5fe5ee 5e35db 5cb5bf 5b85a8
++$0078: 59c594 584577 570560 55254b 53b52d 526516 507500 4f04e0
++$0080: 4d94c9 4b94b2 4a2492 48a47b 46a462 453441 43942a 41840f
++$0088: 4013ee 3e53d7 3c43bb 3ad39a 390383 36f365 358343 33932c
++$0090: 31830d 3002ec 2e02d4 2bf2b3 2a8292 28627b 265258 24d238
++$0098: 22b220 20b1fc 1f21dd 1ce1c4 1af1a0 196181 171168 153143
++$00a0: 13a125 11410b 0f70e5 0dd0c9 0b70ae 09b088 08006d 05a052
++$00a8: 03f02b 023011 ffdff5 fe3fcf fc7fb6 fa1f98 f88f73 f6af5b
++$00b0: f45f3d f2ef18 f0ff01 eeaee2 ed4ebd eb4ea8 e91e87 e7ce64
++$00b8: e5be50 e39e2e e24e0d e02df9 de2dd7 dcedb7 dabda4 d8dd81
++$00c0: d7ad63 d56d51 d3ad2d d28d12 d03cff ceacdb cd7cc2 cb3cb0
++$00c8: c9bc8b c89c75 c64c63 c50c3e c3dc2b c19c19 c08bf5 bf4be5
++$00d0: bd1bd1 bc3bae bafba1 b8db8d b81b6c b6db62 b4cb4d b44b2d
++$00d8: b2fb27 b10b11 b0baf3 af4af0 ad8ad9 ad6abe abeabe aa5aa5
++$00e0: aa7a8e a8da91 a78a76 a7ca63 a61a68 a4fa4c a56a3d a39a45
++$00e8: a2da27 a36a1e a17a28 a10a07 a1ba04 9f9a10 9f99ec a069f0
++$00f0: 9e09fd 9e99d6 9f69e4 9cc9f0 9e09c3 9ec9de 9bc9e9 9df9b4
++$00f8: 9e89e2 9ac9e8 9e89a3 9eb9f4 9959ef a0b979 9f8a46 90ea49

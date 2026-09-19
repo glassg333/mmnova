@@ -1,0 +1,829 @@
+{
+  "source": "dsp1_pmem.bin (HI08 stream section 3, all 133 records)",
+  "extraction_method": "Read 24-bit BE words from P-image at HI08-record addresses",
+  "total_records": 136,
+  "stats": {
+    "extracted": 76,
+    "out_of_image": 0,
+    "all_zero": 25,
+    "partial": 35
+  },
+  "tables": [
+    {
+      "bank": "P",
+      "addr": "0x140000",
+      "size": 2048,
+      "name": "pitch_wavetable_2048"
+    },
+    {
+      "bank": "P",
+      "addr": "0x140800",
+      "size": 4096,
+      "name": "SID_wavetable_0_1_full"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x141800",
+      "size": 128,
+      "name": "LFO_speed_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x141880",
+      "size": 128,
+      "name": "FM_DYN_wavetable"
+    },
+    {
+      "bank": "P",
+      "addr": "0x141900",
+      "size": 128,
+      "name": "PHASER_stage0"
+    },
+    {
+      "bank": "P",
+      "addr": "0x141980",
+      "size": 128,
+      "name": "PHASER_stage1"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x141A00",
+      "size": 128,
+      "name": "LFO_mult_table"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x141A80",
+      "size": 24,
+      "name": "LFO_extra_24words"
+    },
+    {
+      "bank": "P",
+      "addr": "0x141A98",
+      "size": 11822,
+      "name": "big_block_141a98"
+    },
+    {
+      "bank": "X",
+      "addr": "0x143F95",
+      "size": 107,
+      "name": "div_table_1"
+    },
+    {
+      "bank": "X",
+      "addr": "0x144446",
+      "size": 128,
+      "name": "div_table_2"
+    },
+    {
+      "bank": "X",
+      "addr": "0x1444C6",
+      "size": 1024,
+      "name": "unknown_1444c6_1024words"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x1448C6",
+      "size": 256,
+      "name": "unknown_1448c6_256words"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x1449C6",
+      "size": 128,
+      "name": "kernel_curve_table"
+    },
+    {
+      "bank": "Y",
+      "addr": "0x144A46",
+      "size": 129,
+      "name": "unknown_144a46_129words"
+    },
+    {
+      "bank": "P",
+      "addr": "0x144AC7",
+      "size": 258,
+      "name": "LP_filter_coeffs"
+    },
+    {
+      "bank": "P",
+      "addr": "0x144BC9",
+      "size": 256,
+      "name": "unknown_144bc9_256words"
+    },
+    {
+      "bank": "P",
+      "addr": "0x144CC9",
+      "size": 209,
+      "name": "m32_helper_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x144D9A",
+      "size": 231,
+      "name": "unknown_144d9a_231"
+    },
+    {
+      "bank": "P",
+      "addr": "0x144E81",
+      "size": 437,
+      "name": "FX_FLANGER_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145036",
+      "size": 213,
+      "name": "unknown_145036_213"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14510B",
+      "size": 53,
+      "name": "unknown_14510b_53"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145140",
+      "size": 590,
+      "name": "unknown_145140_590"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14538E",
+      "size": 670,
+      "name": "FX_REVERB_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14562C",
+      "size": 384,
+      "name": "unknown_14562c_384"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1457AC",
+      "size": 6,
+      "name": "unknown_1457ac_6"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1457B2",
+      "size": 384,
+      "name": "unknown_1457b2_384"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145932",
+      "size": 387,
+      "name": "FX_PHASER_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145AB5",
+      "size": 537,
+      "name": "unknown_145ab5_537"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145CCE",
+      "size": 68,
+      "name": "unknown_145cce_68"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145D12",
+      "size": 439,
+      "name": "unknown_145d12_439"
+    },
+    {
+      "bank": "P",
+      "addr": "0x145EC9",
+      "size": 724,
+      "name": "unknown_145ec9_724"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14619D",
+      "size": 466,
+      "name": "FX_DYN_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14636F",
+      "size": 397,
+      "name": "unknown_14636f_397"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1464FC",
+      "size": 3352,
+      "name": "unknown_1464fc_3352"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147214",
+      "size": 398,
+      "name": "unknown_147214_398"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1473A2",
+      "size": 327,
+      "name": "DPRO_WAVE_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1474E9",
+      "size": 354,
+      "name": "DPRO_BBOX_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147641",
+      "size": 22,
+      "name": "unknown_147641_22"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147661",
+      "size": 381,
+      "name": "FX_CHORUS_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1477DE",
+      "size": 192,
+      "name": "FX_DYNAMIX_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14789E",
+      "size": 648,
+      "name": "FX_RINGMOD_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147B26",
+      "size": 18,
+      "name": "unknown_147b26_18"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147B38",
+      "size": 457,
+      "name": "unknown_147b38_457"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147D01",
+      "size": 204,
+      "name": "unknown_147d01_204"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147DCD",
+      "size": 397,
+      "name": "unknown_147dcd_397"
+    },
+    {
+      "bank": "P",
+      "addr": "0x147F5A",
+      "size": 213,
+      "name": "unknown_147f5a_213"
+    },
+    {
+      "bank": "P",
+      "addr": "0x14802F",
+      "size": 53,
+      "name": "unknown_14802f_53"
+    },
+    {
+      "bank": "P",
+      "addr": "0x100000",
+      "size": 465,
+      "name": "monitor_init"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1001D1",
+      "size": 1568,
+      "name": "VO6_dispatch_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1007F1",
+      "size": 1568,
+      "name": "VO6_table2"
+    },
+    {
+      "bank": "P",
+      "addr": "0x100E11",
+      "size": 1568,
+      "name": "VO6_table3"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101431",
+      "size": 1568,
+      "name": "VO6_table4"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101A51",
+      "size": 42,
+      "name": "unknown_101a51_42"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101A7B",
+      "size": 768,
+      "name": "SWAVE_wavetable_main"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101D7B",
+      "size": 256,
+      "name": "SWAVE_PCH2_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101E7B",
+      "size": 256,
+      "name": "SWAVE_PCH3_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x101F7B",
+      "size": 256,
+      "name": "SWAVE_PCH4_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10207B",
+      "size": 256,
+      "name": "SWAVE_PCH5_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10217B",
+      "size": 256,
+      "name": "SWAVE_PCH6_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10227B",
+      "size": 256,
+      "name": "SWAVE_PCH7_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10237B",
+      "size": 256,
+      "name": "SWAVE_PCH8_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10247B",
+      "size": 256,
+      "name": "SWAVE_PCH9_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10257B",
+      "size": 256,
+      "name": "SWAVE_PCH10_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10267B",
+      "size": 256,
+      "name": "SWAVE_PCH11_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10277B",
+      "size": 256,
+      "name": "SWAVE_PCH12_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10287B",
+      "size": 256,
+      "name": "SWAVE_PCH13_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10297B",
+      "size": 256,
+      "name": "SWAVE_PCH14_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102A7B",
+      "size": 256,
+      "name": "SWAVE_PCH15_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102B7B",
+      "size": 256,
+      "name": "SWAVE_PCH16_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102C7B",
+      "size": 256,
+      "name": "SWAVE_PCH17_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102D7B",
+      "size": 256,
+      "name": "SWAVE_PCH18_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102E7B",
+      "size": 256,
+      "name": "SWAVE_PCH19_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x102F7B",
+      "size": 256,
+      "name": "SWAVE_PCH20_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10307B",
+      "size": 256,
+      "name": "SWAVE_PCH21_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10317B",
+      "size": 256,
+      "name": "SWAVE_PCH22_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10327B",
+      "size": 256,
+      "name": "SWAVE_PCH23_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10337B",
+      "size": 256,
+      "name": "SWAVE_PCH24_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10347B",
+      "size": 256,
+      "name": "SWAVE_PCH25_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10357B",
+      "size": 256,
+      "name": "SWAVE_PCH26_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10367B",
+      "size": 256,
+      "name": "SWAVE_PCH27_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10377B",
+      "size": 256,
+      "name": "SWAVE_PCH28_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10387B",
+      "size": 256,
+      "name": "SWAVE_PCH29_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10397B",
+      "size": 256,
+      "name": "SWAVE_PCH30_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x103A7B",
+      "size": 256,
+      "name": "SWAVE_PCH31_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x103B7B",
+      "size": 256,
+      "name": "SWAVE_PCH32_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x103C7B",
+      "size": 256,
+      "name": "SWAVE_PCH33_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x103D7B",
+      "size": 256,
+      "name": "SWAVE_PCH34_table"
+    },
+    {
+      "bank": "P",
+      "addr": "0x103E7B",
+      "size": 917,
+      "name": "unknown_103e7b_917"
+    },
+    {
+      "bank": "P",
+      "addr": "0x104210",
+      "size": 1,
+      "name": "marker_104210"
+    },
+    {
+      "bank": "P",
+      "addr": "0x104211",
+      "size": 1058,
+      "name": "wavetable_data_104211"
+    },
+    {
+      "bank": "P",
+      "addr": "0x104633",
+      "size": 1,
+      "name": "marker_104633"
+    },
+    {
+      "bank": "P",
+      "addr": "0x104634",
+      "size": 4950,
+      "name": "wavetable_data_104634"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10598A",
+      "size": 1,
+      "name": "marker_10598a"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10598B",
+      "size": 4032,
+      "name": "wavetable_data_10598b"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10694B",
+      "size": 1,
+      "name": "marker_10694b"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10694C",
+      "size": 3007,
+      "name": "wavetable_data_10694c"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10750B",
+      "size": 1,
+      "name": "marker_10750b"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10750C",
+      "size": 2048,
+      "name": "DPRO_BBOX_table1"
+    },
+    {
+      "bank": "P",
+      "addr": "0x107D0C",
+      "size": 1,
+      "name": "marker_107d0c"
+    },
+    {
+      "bank": "P",
+      "addr": "0x107D0D",
+      "size": 1024,
+      "name": "DPRO_BBOX_table2"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10810D",
+      "size": 1,
+      "name": "marker_10810d"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10810E",
+      "size": 1434,
+      "name": "wavetable_data_10810e"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1086A8",
+      "size": 1,
+      "name": "marker_1086a8"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1086A9",
+      "size": 1024,
+      "name": "wavetable_data_1086a9"
+    },
+    {
+      "bank": "P",
+      "addr": "0x108AA9",
+      "size": 1,
+      "name": "marker_108aa9"
+    },
+    {
+      "bank": "P",
+      "addr": "0x108AAA",
+      "size": 5000,
+      "name": "wavetable_data_108aaa"
+    },
+    {
+      "bank": "P",
+      "addr": "0x109E32",
+      "size": 1,
+      "name": "marker_109e32"
+    },
+    {
+      "bank": "P",
+      "addr": "0x109E33",
+      "size": 5000,
+      "name": "wavetable_data_109e33"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10B1BB",
+      "size": 1,
+      "name": "marker_10b1bb"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10B1BC",
+      "size": 8174,
+      "name": "wavetable_data_10b1bc"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10D1AA",
+      "size": 1,
+      "name": "marker_10d1aa"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10D1AB",
+      "size": 1599,
+      "name": "wavetable_data_10d1ab"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10D7EA",
+      "size": 1,
+      "name": "marker_10d7ea"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10D7EB",
+      "size": 2049,
+      "name": "wavetable_data_10d7eb"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10DFEC",
+      "size": 1,
+      "name": "marker_10dfec"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10DFED",
+      "size": 4018,
+      "name": "wavetable_data_10dfed"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10EF9F",
+      "size": 1,
+      "name": "marker_10ef9f"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10EFA0",
+      "size": 2048,
+      "name": "wavetable_data_10efa0"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10F7A0",
+      "size": 1,
+      "name": "marker_10f7a0"
+    },
+    {
+      "bank": "P",
+      "addr": "0x10F7A1",
+      "size": 6001,
+      "name": "wavetable_data_10f7a1"
+    },
+    {
+      "bank": "P",
+      "addr": "0x110F12",
+      "size": 1,
+      "name": "marker_110f12"
+    },
+    {
+      "bank": "P",
+      "addr": "0x110F13",
+      "size": 987,
+      "name": "wavetable_data_110f13"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1112EE",
+      "size": 1,
+      "name": "marker_1112ee"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1112EF",
+      "size": 714,
+      "name": "wavetable_data_1112ef"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1115B9",
+      "size": 1,
+      "name": "marker_1115b9"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1115BA",
+      "size": 1792,
+      "name": "wavetable_data_1115ba"
+    },
+    {
+      "bank": "P",
+      "addr": "0x111CBA",
+      "size": 1,
+      "name": "marker_111cba"
+    },
+    {
+      "bank": "P",
+      "addr": "0x111CBB",
+      "size": 1926,
+      "name": "wavetable_data_111cbb"
+    },
+    {
+      "bank": "P",
+      "addr": "0x112441",
+      "size": 1,
+      "name": "marker_112441"
+    },
+    {
+      "bank": "P",
+      "addr": "0x112442",
+      "size": 2049,
+      "name": "wavetable_data_112442"
+    },
+    {
+      "bank": "P",
+      "addr": "0x112C43",
+      "size": 1,
+      "name": "marker_112c43"
+    },
+    {
+      "bank": "P",
+      "addr": "0x112C44",
+      "size": 1482,
+      "name": "wavetable_data_112c44"
+    },
+    {
+      "bank": "P",
+      "addr": "0x11320E",
+      "size": 1,
+      "name": "marker_11320e"
+    },
+    {
+      "bank": "P",
+      "addr": "0x11320F",
+      "size": 692,
+      "name": "wavetable_data_11320f"
+    },
+    {
+      "bank": "P",
+      "addr": "0x1134C3",
+      "size": 1,
+      "name": "marker_1134c3"
+    }
+  ]
+}

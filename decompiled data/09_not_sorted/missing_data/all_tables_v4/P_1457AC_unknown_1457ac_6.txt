@@ -1,0 +1,7 @@
+# Table: unknown_1457ac_6
+# Address: P:$1457AC
+# Size: 6 words (24-bit BE)
+# Non-zero: 0/6
+# Source: HI08_stream
+
++$0000: 000000 000000 000000 000000 000000 000000

@@ -1,0 +1,38 @@
+# Table: SWAVE_PCH23_table
+# Address: P:$10327B
+# Size: 256 words (24-bit BE)
+# Non-zero: 256/256
+# Source: HI08_stream
+
++$0000: fea040 0910da 11c155 18a1c4 1ff235 26829f 2d8312 348377
++$0008: 3a83e5 420456 4954d3 50c554 5a05d9 611658 69f6db 713741
++$0010: 769794 7b27c1 7d47e2 7df7d9 7cf7b3 79f7a9 7c17ce 7d37d6
++$0018: 7da7d6 7c27b4 7c07d5 7e57f8 7ff7e1 7a3765 72e6f6 6c1694
++$0020: 66261d 5d1588 53b4e9 4ad496 493482 45b430 4093d2 38c34f
++$0028: 3182d3 28a241 1e2170 1060a7 043fdf f8ff52 f14ec9 e76e2c
++$0030: df4dc8 db1db7 dbcda1 d73d43 d13cf1 ce2cd3 cbbc96 c4abd6
++$0038: b74b46 b3bb46 b57b4e b24af3 acdab7 ab2ac1 adfaf6 ae9ac7
++$0040: ab3ab4 ac4ae0 afeb11 b1bb29 b48b74 b97bb3 be3c0e c18c25
++$0048: c4ec6d c7eca6 cd0cd8 cdacee cfdcf7 ce8ce8 d0ad3e d68d8f
++$0050: db4dbc db7dca de9e0b e43e85 eaeeb8 eafe9d e92e8e e8fea1
++$0058: eb2ea2 e84e6a e47e24 e1ee28 e29e31 e44e52 e5ce6f e8bea1
++$0060: ea0e8e e7fe71 e4ce13 ddbdaa d83d65 d42d13 ceccd3 cbbca1
++$0068: c92c99 cb2cc5 cd1ce4 cf2cee cedcf6 cf7cfb d05cff cefcdb
++$0070: cb4c81 c5dc4d c5ec88 c9bc95 c91c8a c93cd6 d1bd22 d19d26
++$0078: d30d42 d70da1 dd7e23 e73eb8 ef2f0f f14f11 f07efe f01f00
++$0080: efbf00 effef8 f03f0d effef1 ef8f17 f4cf8a fce025 0860ec
++$0088: 1671ec 273301 3753b0 3dc41d 459490 4cf50b 54d599 5d760d
++$0090: 65569e 6d770f 741768 7927b4 7c17cf 7e17e1 7d77ce 7b679d
++$0098: 7a37bf 7cf7d4 7d77da 7d57c3 7b37bc 7d47e6 7f47fa 7e07a5
++$00a0: 767730 6f86c1 695665 6225d4 58953d 4ec4ae 497494 48245b
++$00a8: 43140b 3d7393 350318 2d728d 2431e9 178109 0aa047 fe2f93
++$00b0: f55f15 ecbe7a e2edf4 dccdb6 db4db7 da2d75 d44d15 cf0ce0
++$00b8: cd4cbc c95c4d bdeb77 b45b3b b45b56 b51b28 af4acc ab5ab1
++$00c0: ac1adf af7aec ac8ab2 ab7ac6 addafd b11b18 b27b49 b73b95
++$00c8: bb0bdc c0cc1c c24c49 c6dc7d ca0cd2 cdfcda cebcfc cf5ce8
++$00d0: cecd0a d3ad66 d8cdb2 dc1db9 dc5de9 e0ce3c e84eb3 eb6eaa
++$00d8: e9fe93 e8ce90 ea0eaf ea3e85 e6ce4d e26e19 e26e2b e2ee42
++$00e0: e53e5b e6ce8a ea1ea3 e90e7f e72e4f e14ddc dadd84 d64d44
++$00e8: d16ced cd3cbc ca3c93 c98caf cc6cd2 ce2cf1 cf1cec cf3cf8
++$00f0: cfad02 d02cf0 cd8cb7 c84c59 c4ec60 c81c99 c97c8c c8cc97
++$00f8: cc0d21 d9cdf7 e27e36 e28e1e e41e88 ed5f22 f67f8c f8ff92

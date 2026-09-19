@@ -1,0 +1,7 @@
+# Table: marker_10d1aa
+# Address: P:$10D1AA
+# Size: 1 words (24-bit BE)
+# Non-zero: 0/1
+# Source: HI08_stream
+
++$0000: 000000

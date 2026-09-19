@@ -1,0 +1,883 @@
+{
+  "title": "Monomachine OS 1.32B \u2014 Final Recovery (Iteration 4)",
+  "date": "2026-09-19",
+  "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+  "total_files": 174,
+  "categories": {
+    "all_tables_v4": "136 tables extracted from dsp1_pmem.bin via HI08 stream (section 3 of BIN)",
+    "hi08_extracted": "14 key tables (previously RUNTIME-ONLY or ZERO-IN-IMAGE) \u2014 extracted with verification",
+    "zero_in_image_recovered": "11 hypothetical tables for ZERO-IN-IMAGE addresses + 2 math-recovered (sine, cos)"
+  },
+  "files": [
+    {
+      "path": "all_tables_v4/P_100000_monitor_init.bin",
+      "size_bytes": 1395,
+      "words": 465
+    },
+    {
+      "path": "all_tables_v4/P_1001D1_VO6_dispatch_table.bin",
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    {
+      "path": "all_tables_v4/P_1007F1_VO6_table2.bin",
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    {
+      "path": "all_tables_v4/P_100E11_VO6_table3.bin",
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    {
+      "path": "all_tables_v4/P_101431_VO6_table4.bin",
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    {
+      "path": "all_tables_v4/P_101A51_unknown_101a51_42.bin",
+      "size_bytes": 126,
+      "words": 42
+    },
+    {
+      "path": "all_tables_v4/P_101A7B_SWAVE_wavetable_main.bin",
+      "size_bytes": 2304,
+      "words": 768
+    },
+    {
+      "path": "all_tables_v4/P_101D7B_SWAVE_PCH2_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_101E7B_SWAVE_PCH3_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_101F7B_SWAVE_PCH4_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10207B_SWAVE_PCH5_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10217B_SWAVE_PCH6_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10227B_SWAVE_PCH7_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10237B_SWAVE_PCH8_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10247B_SWAVE_PCH9_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10257B_SWAVE_PCH10_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10267B_SWAVE_PCH11_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10277B_SWAVE_PCH12_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10287B_SWAVE_PCH13_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10297B_SWAVE_PCH14_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102A7B_SWAVE_PCH15_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102B7B_SWAVE_PCH16_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102C7B_SWAVE_PCH17_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102D7B_SWAVE_PCH18_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102E7B_SWAVE_PCH19_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_102F7B_SWAVE_PCH20_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10307B_SWAVE_PCH21_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10317B_SWAVE_PCH22_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10327B_SWAVE_PCH23_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10337B_SWAVE_PCH24_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10347B_SWAVE_PCH25_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10357B_SWAVE_PCH26_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10367B_SWAVE_PCH27_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10377B_SWAVE_PCH28_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10387B_SWAVE_PCH29_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_10397B_SWAVE_PCH30_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_103A7B_SWAVE_PCH31_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_103B7B_SWAVE_PCH32_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_103C7B_SWAVE_PCH33_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_103D7B_SWAVE_PCH34_table.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_103E7B_unknown_103e7b_917.bin",
+      "size_bytes": 2751,
+      "words": 917
+    },
+    {
+      "path": "all_tables_v4/P_104210_marker_104210.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_104211_wavetable_data_104211.bin",
+      "size_bytes": 3174,
+      "words": 1058
+    },
+    {
+      "path": "all_tables_v4/P_104633_marker_104633.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_104634_wavetable_data_104634.bin",
+      "size_bytes": 14850,
+      "words": 4950
+    },
+    {
+      "path": "all_tables_v4/P_10598A_marker_10598a.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10598B_wavetable_data_10598b.bin",
+      "size_bytes": 12096,
+      "words": 4032
+    },
+    {
+      "path": "all_tables_v4/P_10694B_marker_10694b.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10694C_wavetable_data_10694c.bin",
+      "size_bytes": 9021,
+      "words": 3007
+    },
+    {
+      "path": "all_tables_v4/P_10750B_marker_10750b.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10750C_DPRO_BBOX_table1.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "all_tables_v4/P_107D0C_marker_107d0c.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_107D0D_DPRO_BBOX_table2.bin",
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    {
+      "path": "all_tables_v4/P_10810D_marker_10810d.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10810E_wavetable_data_10810e.bin",
+      "size_bytes": 4302,
+      "words": 1434
+    },
+    {
+      "path": "all_tables_v4/P_1086A8_marker_1086a8.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_1086A9_wavetable_data_1086a9.bin",
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    {
+      "path": "all_tables_v4/P_108AA9_marker_108aa9.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_108AAA_wavetable_data_108aaa.bin",
+      "size_bytes": 15000,
+      "words": 5000
+    },
+    {
+      "path": "all_tables_v4/P_109E32_marker_109e32.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_109E33_wavetable_data_109e33.bin",
+      "size_bytes": 15000,
+      "words": 5000
+    },
+    {
+      "path": "all_tables_v4/P_10B1BB_marker_10b1bb.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10B1BC_wavetable_data_10b1bc.bin",
+      "size_bytes": 24522,
+      "words": 8174
+    },
+    {
+      "path": "all_tables_v4/P_10D1AA_marker_10d1aa.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10D1AB_wavetable_data_10d1ab.bin",
+      "size_bytes": 4797,
+      "words": 1599
+    },
+    {
+      "path": "all_tables_v4/P_10D7EA_marker_10d7ea.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10D7EB_wavetable_data_10d7eb.bin",
+      "size_bytes": 6147,
+      "words": 2049
+    },
+    {
+      "path": "all_tables_v4/P_10DFEC_marker_10dfec.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10DFED_wavetable_data_10dfed.bin",
+      "size_bytes": 12054,
+      "words": 4018
+    },
+    {
+      "path": "all_tables_v4/P_10EF9F_marker_10ef9f.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10EFA0_wavetable_data_10efa0.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "all_tables_v4/P_10F7A0_marker_10f7a0.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_10F7A1_wavetable_data_10f7a1.bin",
+      "size_bytes": 18003,
+      "words": 6001
+    },
+    {
+      "path": "all_tables_v4/P_110F12_marker_110f12.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_110F13_wavetable_data_110f13.bin",
+      "size_bytes": 2961,
+      "words": 987
+    },
+    {
+      "path": "all_tables_v4/P_1112EE_marker_1112ee.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_1112EF_wavetable_data_1112ef.bin",
+      "size_bytes": 2142,
+      "words": 714
+    },
+    {
+      "path": "all_tables_v4/P_1115B9_marker_1115b9.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_1115BA_wavetable_data_1115ba.bin",
+      "size_bytes": 5376,
+      "words": 1792
+    },
+    {
+      "path": "all_tables_v4/P_111CBA_marker_111cba.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_111CBB_wavetable_data_111cbb.bin",
+      "size_bytes": 5778,
+      "words": 1926
+    },
+    {
+      "path": "all_tables_v4/P_112441_marker_112441.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_112442_wavetable_data_112442.bin",
+      "size_bytes": 6147,
+      "words": 2049
+    },
+    {
+      "path": "all_tables_v4/P_112C43_marker_112c43.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_112C44_wavetable_data_112c44.bin",
+      "size_bytes": 4446,
+      "words": 1482
+    },
+    {
+      "path": "all_tables_v4/P_11320E_marker_11320e.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_11320F_wavetable_data_11320f.bin",
+      "size_bytes": 2076,
+      "words": 692
+    },
+    {
+      "path": "all_tables_v4/P_1134C3_marker_1134c3.bin",
+      "size_bytes": 3,
+      "words": 1
+    },
+    {
+      "path": "all_tables_v4/P_140000_pitch_wavetable_2048.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "all_tables_v4/P_140800_SID_wavetable_0_1_full.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "all_tables_v4/P_141880_FM_DYN_wavetable.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/P_141900_PHASER_stage0.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/P_141980_PHASER_stage1.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/P_141A98_big_block_141a98.bin",
+      "size_bytes": 35466,
+      "words": 11822
+    },
+    {
+      "path": "all_tables_v4/P_144AC7_LP_filter_coeffs.bin",
+      "size_bytes": 774,
+      "words": 258
+    },
+    {
+      "path": "all_tables_v4/P_144BC9_unknown_144bc9_256words.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/P_144CC9_m32_helper_table.bin",
+      "size_bytes": 627,
+      "words": 209
+    },
+    {
+      "path": "all_tables_v4/P_144D9A_unknown_144d9a_231.bin",
+      "size_bytes": 693,
+      "words": 231
+    },
+    {
+      "path": "all_tables_v4/P_144E81_FX_FLANGER_table.bin",
+      "size_bytes": 1311,
+      "words": 437
+    },
+    {
+      "path": "all_tables_v4/P_145036_unknown_145036_213.bin",
+      "size_bytes": 639,
+      "words": 213
+    },
+    {
+      "path": "all_tables_v4/P_14510B_unknown_14510b_53.bin",
+      "size_bytes": 159,
+      "words": 53
+    },
+    {
+      "path": "all_tables_v4/P_145140_unknown_145140_590.bin",
+      "size_bytes": 1770,
+      "words": 590
+    },
+    {
+      "path": "all_tables_v4/P_14538E_FX_REVERB_table.bin",
+      "size_bytes": 2010,
+      "words": 670
+    },
+    {
+      "path": "all_tables_v4/P_14562C_unknown_14562c_384.bin",
+      "size_bytes": 1152,
+      "words": 384
+    },
+    {
+      "path": "all_tables_v4/P_1457AC_unknown_1457ac_6.bin",
+      "size_bytes": 18,
+      "words": 6
+    },
+    {
+      "path": "all_tables_v4/P_1457B2_unknown_1457b2_384.bin",
+      "size_bytes": 1152,
+      "words": 384
+    },
+    {
+      "path": "all_tables_v4/P_145932_FX_PHASER_table.bin",
+      "size_bytes": 1161,
+      "words": 387
+    },
+    {
+      "path": "all_tables_v4/P_145AB5_unknown_145ab5_537.bin",
+      "size_bytes": 1611,
+      "words": 537
+    },
+    {
+      "path": "all_tables_v4/P_145CCE_unknown_145cce_68.bin",
+      "size_bytes": 204,
+      "words": 68
+    },
+    {
+      "path": "all_tables_v4/P_145D12_unknown_145d12_439.bin",
+      "size_bytes": 1317,
+      "words": 439
+    },
+    {
+      "path": "all_tables_v4/P_145EC9_unknown_145ec9_724.bin",
+      "size_bytes": 2172,
+      "words": 724
+    },
+    {
+      "path": "all_tables_v4/P_14619D_FX_DYN_table.bin",
+      "size_bytes": 1398,
+      "words": 466
+    },
+    {
+      "path": "all_tables_v4/P_14636F_unknown_14636f_397.bin",
+      "size_bytes": 1191,
+      "words": 397
+    },
+    {
+      "path": "all_tables_v4/P_1464FC_unknown_1464fc_3352.bin",
+      "size_bytes": 10056,
+      "words": 3352
+    },
+    {
+      "path": "all_tables_v4/P_147214_unknown_147214_398.bin",
+      "size_bytes": 1194,
+      "words": 398
+    },
+    {
+      "path": "all_tables_v4/P_1473A2_DPRO_WAVE_table.bin",
+      "size_bytes": 981,
+      "words": 327
+    },
+    {
+      "path": "all_tables_v4/P_1474E9_DPRO_BBOX_table.bin",
+      "size_bytes": 1062,
+      "words": 354
+    },
+    {
+      "path": "all_tables_v4/P_147641_unknown_147641_22.bin",
+      "size_bytes": 66,
+      "words": 22
+    },
+    {
+      "path": "all_tables_v4/P_147661_FX_CHORUS_table.bin",
+      "size_bytes": 1143,
+      "words": 381
+    },
+    {
+      "path": "all_tables_v4/P_1477DE_FX_DYNAMIX_table.bin",
+      "size_bytes": 576,
+      "words": 192
+    },
+    {
+      "path": "all_tables_v4/P_14789E_FX_RINGMOD_table.bin",
+      "size_bytes": 1944,
+      "words": 648
+    },
+    {
+      "path": "all_tables_v4/P_147B26_unknown_147b26_18.bin",
+      "size_bytes": 54,
+      "words": 18
+    },
+    {
+      "path": "all_tables_v4/P_147B38_unknown_147b38_457.bin",
+      "size_bytes": 1371,
+      "words": 457
+    },
+    {
+      "path": "all_tables_v4/P_147D01_unknown_147d01_204.bin",
+      "size_bytes": 612,
+      "words": 204
+    },
+    {
+      "path": "all_tables_v4/P_147DCD_unknown_147dcd_397.bin",
+      "size_bytes": 1191,
+      "words": 397
+    },
+    {
+      "path": "all_tables_v4/P_147F5A_unknown_147f5a_213.bin",
+      "size_bytes": 639,
+      "words": 213
+    },
+    {
+      "path": "all_tables_v4/P_14802F_unknown_14802f_53.bin",
+      "size_bytes": 159,
+      "words": 53
+    },
+    {
+      "path": "all_tables_v4/X_143F95_div_table_1.bin",
+      "size_bytes": 321,
+      "words": 107
+    },
+    {
+      "path": "all_tables_v4/X_144446_div_table_2.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/X_1444C6_unknown_1444c6_1024words.bin",
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    {
+      "path": "all_tables_v4/Y_141800_LFO_speed_table.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/Y_141A00_LFO_mult_table.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/Y_141A80_LFO_extra_24words.bin",
+      "size_bytes": 72,
+      "words": 24
+    },
+    {
+      "path": "all_tables_v4/Y_1448C6_unknown_1448c6_256words.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "all_tables_v4/Y_1449C6_kernel_curve_table.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "all_tables_v4/Y_144A46_unknown_144a46_129words.bin",
+      "size_bytes": 387,
+      "words": 129
+    },
+    {
+      "path": "hi08_extracted/P_140000_pitch_wavetable_2048_FROM_PMEM.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "hi08_extracted/P_140800_SID_wavetable_0_1_full_FROM_PMEM.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "hi08_extracted/P_140800_SID_wavetable_1_FROM_HI08.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "hi08_extracted/P_141800_LFO_speed_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_141880_FM_DYN_wavetable_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_141900_PHASER_stage0_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_141980_PHASER_stage1_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_141A00_LFO_mult_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_141A80_unknown_141a80_FROM_PMEM.bin",
+      "size_bytes": 72,
+      "words": 24
+    },
+    {
+      "path": "hi08_extracted/P_141A98_big_block_141a98_11822_FROM_PMEM.bin",
+      "size_bytes": 35466,
+      "words": 11822
+    },
+    {
+      "path": "hi08_extracted/P_1448C6_unknown_1448c6_FROM_PMEM.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "hi08_extracted/P_1449C6_kernel_curve_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/P_144A46_unknown_144a46_FROM_PMEM.bin",
+      "size_bytes": 387,
+      "words": 129
+    },
+    {
+      "path": "hi08_extracted/P_144AC7_LP_filter_coeffs_FROM_PMEM.bin",
+      "size_bytes": 774,
+      "words": 258
+    },
+    {
+      "path": "hi08_extracted/X_140000_pitch_wavetable_2048_FROM_PMEM.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "hi08_extracted/X_143F95_div_table_1_FROM_PMEM.bin",
+      "size_bytes": 321,
+      "words": 107
+    },
+    {
+      "path": "hi08_extracted/X_144446_div_table_2_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/Y_141800_LFO_speed_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/Y_141A00_LFO_mult_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/Y_141A80_LFO_extra_24words_FROM_PMEM.bin",
+      "size_bytes": 72,
+      "words": 24
+    },
+    {
+      "path": "hi08_extracted/Y_1448C6_unknown_1448c6_256words_FROM_PMEM.bin",
+      "size_bytes": 768,
+      "words": 256
+    },
+    {
+      "path": "hi08_extracted/Y_1449C6_kernel_curve_table_FROM_PMEM.bin",
+      "size_bytes": 384,
+      "words": 128
+    },
+    {
+      "path": "hi08_extracted/Y_144A46_unknown_144a46_129words_FROM_PMEM.bin",
+      "size_bytes": 387,
+      "words": 129
+    },
+    {
+      "path": "hi08_extracted/sec1_decompressed.bin",
+      "size_bytes": 11226,
+      "words": 3742
+    },
+    {
+      "path": "hi08_extracted/sec2_decompressed.bin",
+      "size_bytes": 11022,
+      "words": 3674
+    },
+    {
+      "path": "hi08_extracted/sec3_decompressed.bin",
+      "size_bytes": 336945,
+      "words": 112315
+    },
+    {
+      "path": "zero_in_image_recovered/P_11b451_DPRO_wavetable_main_HYPOTHESIS_saw1024.bin",
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    {
+      "path": "zero_in_image_recovered/P_11b451_DPRO_wavetable_main_HYPOTHESIS_sine1024.bin",
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    {
+      "path": "zero_in_image_recovered/P_123ef5_FXREV_decay_HYPOTHESIS_expdecay_h1024.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "zero_in_image_recovered/P_123ef5_FXREV_decay_HYPOTHESIS_linear.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "zero_in_image_recovered/P_133191_FXREV_damp_HYPOTHESIS_complementary.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "zero_in_image_recovered/P_133191_FXREV_damp_HYPOTHESIS_lowpass.bin",
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    {
+      "path": "zero_in_image_recovered/P_140800_SID_wavetable_1_HYPOTHESIS_pulse50.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "zero_in_image_recovered/P_140800_SID_wavetable_1_HYPOTHESIS_sawtooth.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "zero_in_image_recovered/P_140800_SID_wavetable_1_HYPOTHESIS_triangle.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "zero_in_image_recovered/P_140800_SID_wavetable_1_PARTIAL_FROM_PMEM.bin",
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    {
+      "path": "zero_in_image_recovered/X_14A000_sine_table_8K_MATH.bin",
+      "size_bytes": 24576,
+      "words": 8192
+    },
+    {
+      "path": "zero_in_image_recovered/X_14A800_width_table_chorus_B_MATH.bin",
+      "size_bytes": 24576,
+      "words": 8192
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Table: unknown_147b26_18
+# Address: P:$147B26
+# Size: 18 words (24-bit BE)
+# Non-zero: 18/18
+# Source: HI08_stream
+
++$0000: 00000c 240000 039ec4 022ef4 200080 45d800 21c400 45d8a0
++$0008: 0c1d04 45d8a8 0c1d85 061080 147b36 b6f8a0 0c1d04 b7f8a8
++$0010: 0c1d85 00000c

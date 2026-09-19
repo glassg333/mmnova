@@ -1,0 +1,9 @@
+# Table: unknown_147641_22
+# Address: P:$147641
+# Size: 22 words (24-bit BE)
+# Non-zero: 22/22
+# Source: HI08_stream
+
++$0000: 10efa0 10f7a1 110f13 1112ef 1115ba 111cbb 112442 112c44
++$0008: 11320f 1134c4 00000c 240000 039ec4 022ef4 200080 45d800
++$0010: 21c400 45d8a0 0c1d04 45d8a8 0c1d85 061080
