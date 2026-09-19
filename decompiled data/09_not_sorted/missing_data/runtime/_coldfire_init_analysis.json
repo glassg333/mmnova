@@ -1,0 +1,104 @@
+{
+  "coldfire_main_size": 425858,
+  "runtime_targets": {
+    "0x14a000": [
+      "X",
+      "sine_table_8K",
+      8192
+    ],
+    "0x14a800": [
+      "X",
+      "width_table_chorus_B",
+      8192
+    ],
+    "0x114000": [
+      "X",
+      "delay_buffer_2x2048",
+      4096
+    ],
+    "0x140000": [
+      "X",
+      "pitch_wavetable_2048",
+      2048
+    ],
+    "0x143f95": [
+      "X",
+      "div_table_1",
+      107
+    ],
+    "0x144446": [
+      "X",
+      "div_table_2",
+      128
+    ],
+    "0x141800": [
+      "Y",
+      "LFO_speed_table",
+      128
+    ],
+    "0x141a00": [
+      "Y",
+      "LFO_mult_table",
+      128
+    ],
+    "0x1449c6": [
+      "Y",
+      "kernel_curve_table",
+      257
+    ]
+  },
+  "zero_targets": {
+    "0x11b451": [
+      "P",
+      "DPRO_wavetable_main",
+      1024
+    ],
+    "0x123ef5": [
+      "P",
+      "FXREV_decay_table",
+      2048
+    ],
+    "0x133191": [
+      "P",
+      "FXREV_damp_table",
+      2048
+    ],
+    "0x140800": [
+      "P",
+      "SID_wavetable_1",
+      2048
+    ]
+  },
+  "byte_pattern_hits_count": 42,
+  "hits_by_address": {
+    "0x114000": 20,
+    "0x140000": 22
+  },
+  "hi08_port_refs_count": 0,
+  "hi08_port_refs_first_50": [],
+  "data_candidates": {
+    "pitch_wavetable_2048": {
+      "name": "pitch_wavetable_2048",
+      "addr": 1310720,
+      "expected_size": 2048,
+      "candidates": [
+        {
+          "cf_addr": 2449936,
+          "pattern": "HI08_record_cmd0",
+          "count": 3072,
+          "data_size_bytes": 9216,
+          "data_hex_first_32_bytes": "000016000c000000a0b40bdb01001a000c0000001c000c0000001e000c000000",
+          "data_hex_last_32_bytes": "4d2b00000000000450415200000000000131465251000031454e560000324652"
+        },
+        {
+          "cf_addr": 2451856,
+          "pattern": "HI08_record_cmd0",
+          "count": 3072,
+          "data_size_bytes": 9216,
+          "data_hex_first_32_bytes": "000016000c00000018000c0000001a000c0000001c000c0000001e000c000000",
+          "data_hex_last_32_bytes": "0000000000000000000050151111204450524f00000000034444525700000000"
+        }
+      ]
+    }
+  }
+}

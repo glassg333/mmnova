@@ -1,0 +1,103 @@
+{
+  "title": "Monomachine OS 1.32B — Недостающие декомпилированные данные",
+  "generated": "2026-09-19",
+  "source_repo": "github.com/glassg333/mmnova/decompiled data",
+  "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+  "hardware": "Elektron Monomachine SFX-60 (ColdFire MCF5206e + 2×DSP56303, 44.1 kHz)",
+  "files_total": 43,
+  "categories": {
+    "recovered": {
+      "description": "Таблицы, извлечённые из образов DSP (dsp1_pmem.bin / dsp1_xmem.bin / dsp1_ymem.bin) — это верифицированные данные из BIN прошивки. 5 VERIFIED (были верны изначально) + 28 FIXED (извлечены корректно после аудита бага −0x100000 в extract_tables.py).",
+      "file_count": 33,
+      "verified_count": 5,
+      "fixed_count": 28
+    },
+    "runtime": {
+      "description": "RUNTIME-ONLY таблицы — адреса вне образов BIN (X:$140000+, Y:$141800+ и т.д.). Восстановлены двумя способами: (a) математически по формулам из kernel-реверса (3 таблицы, точное восстановление), (b) теоретически по гипотезам (3 таблицы, требуют проверки на железе).",
+      "file_count": 5,
+      "math_recovered_count": 3,
+      "theoretical_count": 2
+    },
+    "zero_in_image": {
+      "description": "ZERO-IN-IMAGE таблицы — в P-образе по этим адресам нули. В прошивке они не хранятся, а заполняются динамически ColdFire при старте или при редактировании патчей пользователем. Восстановление невозможно без реверса ColdFire-инициализации или съёма дампа с живого устройства.",
+      "file_count": 4,
+      "note": "P:$140800 содержит 439 non-zero байт — это краевые маркеры, которые не были замечены в аудите 2026-09-18. Полная таблица требует реверса ColdFire init."
+    },
+    "verification_reports": {
+      "description": "JSON-отчёты о поиске инициализаций runtime-таблиц в coldfire_main.bin и оригинальном BIN.",
+      "file_count": 4
+    }
+  },
+  "files": [
+    {"name": "recovered/P_1001d1_VO6_dispatch_table.bin", "bank": "P", "addr": "0x1001D1", "size": 1568, "status": "VERIFIED", "role": "VO6 dispatch"},
+    {"name": "recovered/P_1007f1_VO6_table2.bin", "bank": "P", "addr": "0x1007F1", "size": 1568, "status": "VERIFIED", "role": "VO6 table2"},
+    {"name": "recovered/P_101a7b_SWAVE_wavetable_main.bin", "bank": "P", "addr": "0x101A7B", "size": 1568, "status": "FIXED", "role": "SWAVE wavetable main"},
+    {"name": "recovered/P_101afb_SWAVE_PCH2_table.bin", "bank": "P", "addr": "0x101AFB", "size": 1568, "status": "FIXED", "role": "SWAVE PCH2 table"},
+    {"name": "recovered/P_101b7b_SWAVE_PCH3_table.bin", "bank": "P", "addr": "0x101B7B", "size": 1568, "status": "FIXED", "role": "SWAVE PCH3 table"},
+    {"name": "recovered/P_101bfb_SWAVE_PCH4_table.bin", "bank": "P", "addr": "0x101BFB", "size": 1568, "status": "FIXED", "role": "SWAVE PCH4 table"},
+    {"name": "recovered/P_101cfb_SWAVE_PCH5_table.bin", "bank": "P", "addr": "0x101CFB", "size": 1568, "status": "FIXED", "role": "SWAVE PCH5 table"},
+    {"name": "recovered/P_101d7b_DPRO_wavetable_ref.bin", "bank": "P", "addr": "0x101D7B", "size": 1568, "status": "FIXED", "role": "DPRO wavetable ref"},
+    {"name": "recovered/P_10750c_DPRO_BBOX_table1.bin", "bank": "P", "addr": "0x10750C", "size": 1024, "status": "FIXED", "role": "DPRO BBOX table1"},
+    {"name": "recovered/P_10b1bc_DPRO_BBOX_table2.bin", "bank": "P", "addr": "0x10B1BC", "size": 1024, "status": "FIXED", "role": "DPRO BBOX table2"},
+    {"name": "recovered/P_10b5c7_GND_NOIS_table.bin", "bank": "P", "addr": "0x10B5C7", "size": 512, "status": "FIXED", "role": "GND-NOIS table"},
+    {"name": "recovered/P_10f7a1_DPRO_BBOX_table3.bin", "bank": "P", "addr": "0x10F7A1", "size": 1024, "status": "FIXED", "role": "DPRO BBOX table3"},
+    {"name": "recovered/P_11320f_DPRO_BBOX_table4.bin", "bank": "P", "addr": "0x11320F", "size": 1024, "status": "FIXED", "role": "DPRO BBOX table4"},
+    {"name": "recovered/P_140000_SID_wavetable_0.bin", "bank": "P", "addr": "0x140000", "size": 2048, "status": "VERIFIED", "role": "SID wavetable 0"},
+    {"name": "recovered/P_141900_PHASER_stage0_table.bin", "bank": "P", "addr": "0x141900", "size": 128, "status": "FIXED", "role": "PHASER stage0"},
+    {"name": "recovered/P_141980_PHASER_stage1_table.bin", "bank": "P", "addr": "0x141980", "size": 128, "status": "FIXED", "role": "PHASER stage1"},
+    {"name": "recovered/P_141a00_PHASER_stage2_table.bin", "bank": "P", "addr": "0x141A00", "size": 128, "status": "FIXED", "role": "PHASER stage2"},
+    {"name": "recovered/P_141b18_PHASER_stage3_table.bin", "bank": "P", "addr": "0x141B18", "size": 128, "status": "FIXED", "role": "PHASER stage3"},
+    {"name": "recovered/P_142f06_PHASER_helper_table.bin", "bank": "P", "addr": "0x142F06", "size": 128, "status": "FIXED", "role": "PHASER helper"},
+    {"name": "recovered/P_143546_PHASER_cntr_table.bin", "bank": "P", "addr": "0x143546", "size": 128, "status": "FIXED", "role": "PHASER cntr"},
+    {"name": "recovered/P_1435c6_SID_helper_table.bin", "bank": "P", "addr": "0x1435C6", "size": 128, "status": "FIXED", "role": "SID helper"},
+    {"name": "recovered/P_143d06_SID_filter_table.bin", "bank": "P", "addr": "0x143D06", "size": 128, "status": "FIXED", "role": "SID filter"},
+    {"name": "recovered/P_1444c6_FXDYN_attack_table.bin", "bank": "P", "addr": "0x1444C6", "size": 128, "status": "FIXED", "role": "FXDYN attack"},
+    {"name": "recovered/P_1446c6_FXDYN_release_table.bin", "bank": "P", "addr": "0x1446C6", "size": 128, "status": "FIXED", "role": "FXDYN release"},
+    {"name": "recovered/P_144746_FXDYN_rms_table.bin", "bank": "P", "addr": "0x144746", "size": 128, "status": "FIXED", "role": "FXDYN rms"},
+    {"name": "recovered/P_144ac7_LP_filter_coeffs.bin", "bank": "P", "addr": "0x144AC7", "size": 258, "status": "VERIFIED", "role": "LP filter coeffs"},
+    {"name": "recovered/P_144c49_m32_helper_table.bin", "bank": "P", "addr": "0x144C49", "size": 128, "status": "FIXED", "role": "m32 (FX-DLY) helper"},
+    {"name": "recovered/P_145c48_m33_helper_table.bin", "bank": "P", "addr": "0x145C48", "size": 128, "status": "FIXED", "role": "m33 (FX-EXT) helper"},
+    {"name": "recovered/X_0002c0_audio_buffer_bases.bin", "bank": "X", "addr": "0x02C0", "size": 4, "status": "VERIFIED", "role": "audio buffer bases"},
+    {"name": "recovered/X_000394_pitch_table_1.bin", "bank": "X", "addr": "0x0394", "size": 32, "status": "VERIFIED", "role": "pitch table 1"},
+    {"name": "recovered/X_0003f4_pitch_table_2.bin", "bank": "X", "addr": "0x03F4", "size": 32, "status": "VERIFIED", "role": "pitch table 2"},
+    {"name": "recovered/Y_000132_sine_table_FM.bin", "bank": "Y", "addr": "0x0132", "size": 512, "status": "VERIFIED", "role": "sine table FM"},
+    {"name": "recovered/Y_000334_LFO_wave_triangle.bin", "bank": "Y", "addr": "0x0334", "size": 256, "status": "VERIFIED", "role": "LFO wave triangle"},
+    {"name": "recovered/X_140000_pitch_wavetable_2048.bin", "bank": "X", "addr": "0x140000", "size": 2048, "status": "MATH-RECOVERED", "role": "pitch-wavetable: wt[i] = 0.5·2^(i/2048), verified 1e-9 на корпусе", "method": "Mathematical generation from kernel-reverse formula (KERNEL_VOICE_CHAIN.md §3.3)"},
+    {"name": "recovered/X_14A000_sine_table_8K.bin", "bank": "X", "addr": "0x14A000", "size": 8192, "status": "MATH-RECOVERED", "role": "sine 8K: sin(2π·i/8192)·0x7FFFFF", "method": "Mathematical generation (standard sine, 13-bit phase)"},
+    {"name": "recovered/X_14A800_width_table_chorus_B.bin", "bank": "X", "addr": "0x14A800", "size": 8192, "status": "MATH-RECOVERED", "role": "width table B: cos(2π·i/8192)·0x7FFFFF (quadrature pair with sine)", "method": "Mathematical generation (quadrature cos for stereo chorus)"},
+    {"name": "runtime/Y_141800_LFO_speed_table.bin", "bank": "Y", "addr": "0x141800", "size": 128, "status": "THEORETICAL", "role": "LFO speed: SPD→inc[SPD], f=inc·2756.25/2^24, ratio 0.919846/шаг", "method": "Theoretical: inc[SPD] = round(0x7FFFFF · 0.919846^SPD). Проверка: SPD=0→1378Hz (OK), SPD=127→0.0187Hz (ожидаемое 0.0166Hz, небольшое расхождение). Требует верификации на железе."},
+    {"name": "runtime/Y_141A00_LFO_mult_table.bin", "bank": "Y", "addr": "0x141A00", "size": 128, "status": "THEORETICAL", "role": "LFO mult: длина цикла LFO, точка сброса фазы", "method": "ГИПОТЕТИЧЕСКАЯ: mult[SPD] = round(0x7FFFFF · (1 − 0.919846^SPD)). Реальный формат требует реверса P:$52B (state 2: phase -= TBL[$141A00 + idx])."},
+    {"name": "runtime/X_143f95_div_table.bin", "bank": "X", "addr": "0x143F95", "size": 107, "status": "STUB", "role": "div table 1 (фильтр/деление питча)", "method": "ЗАГЛУШКА из нулей. Требует реверса функции деления P:$586-$588 (24-bit div)."},
+    {"name": "runtime/X_144446_div_table2.bin", "bank": "X", "addr": "0x144446", "size": 128, "status": "STUB", "role": "div table 2 (фильтр/деление питча)", "method": "ЗАГЛУШКА из нулей. Требует реверса P:$586-$588."},
+    {"name": "runtime/Y_1449c6_kernel_curve_table.bin", "bank": "Y", "addr": "0x1449C6", "size": 257, "status": "THEORETICAL", "role": "kernel curve: множители для ramp-аккумуляторов (portamento)", "method": "ГИПОТЕТИЧЕСКАЯ: curve[i] = round(0x7FFFFF · (i/256)^2). Требует калибровки portamento rate на железе или реверса func_000262 P:$27F-$294."},
+    {"name": "zero_in_image/P_11b451_DPRO_wavetable_main.bin", "bank": "P", "addr": "0x11B451", "size": 1024, "status": "ZERO-IN-IMAGE", "role": "DPRO wavetable main (редактируется пользователем)", "method": "В образе нули. Дефолт восстанавливается реверсом ColdFire init или съёмом дампа сразу после factory reset."},
+    {"name": "zero_in_image/P_123ef5_FXREV_decay_table.bin", "bank": "P", "addr": "0x123EF5", "size": 2048, "status": "ZERO-IN-IMAGE", "role": "Reverb decay table", "method": "В образе нули. Заполняется ColdFire при старте."},
+    {"name": "zero_in_image/P_133191_FXREV_damp_table.bin", "bank": "P", "addr": "0x133191", "size": 2048, "status": "ZERO-IN-IMAGE", "role": "Reverb damp table", "method": "В образе нули. Заполняется ColdFire при старте."},
+    {"name": "zero_in_image/P_140800_SID_wavetable_1.bin", "bank": "P", "addr": "0x140800", "size": 2048, "status": "ZERO-IN-IMAGE", "role": "SID wavetable 1 (заполняется при старте)", "method": "В образе нули + 439 non-zero байт (краевые маркеры 0x200000, 0x400000, 0x600000). Полная таблица требует реверса ColdFire init."}
+  ],
+  "verification_summary": {
+    "fully_recovered": 36,
+    "mathematically_recovered": 3,
+    "theoretical_or_stub": 5,
+    "still_missing_requires_hardware_dump": 4,
+    "total": 48
+  },
+  "what_is_still_missing": [
+    "Точные значения Y:$141800 LFO speed table (требует дампа или глубокого реверса ColdFire init)",
+    "Точные значения Y:$141A00 LFO mult table (требует реверса P:$52B kernel code)",
+    "Полные значения X:$143F95 div table 1 (требует реверса P:$586-$588 div function)",
+    "Полные значения X:$144446 div table 2 (требует реверса P:$586-$588 div function)",
+    "Точные значения Y:$1449C6 kernel curve table (требует калибровки portamento rate на железе)",
+    "Заводские дефолты P:$11B451 DPRO_wavetable_main (требует дампа после factory reset)",
+    "Заводские дефолты P:$123EF5 FXREV_decay_table (требует дампа или реверса ColdFire init)",
+    "Заводские дефолты P:$133191 FXREV_damp_table (требует дампа или реверса ColdFire init)",
+    "Заводские дефолты P:$140800 SID_wavetable_1 (требует дампа или реверса ColdFire init; краевые маркеры уже извлечены)",
+    "Полный дизассемблинг coldfire_main.bin (425858 байт) для нахождения процедуры инициализации runtime-таблиц"
+  ],
+  "next_steps_for_full_recovery": [
+    "P0-1: Реверс coldfire_main.bin через capstone m68k — найти функцию инициализации runtime-таблиц (5-7 дней)",
+    "P0-2: Сборка/коммит dis56300_tool (C++ дизассемблер из dsp56k-emulator) — 1 день",
+    "P1-2: Декодирование параметрических кривых в дескрипторах ColdFire (3-5 дней)",
+    "P2-1: Дампы X/Y runtime с живого Monomachine через HI08-монитор (1 день при наличии железа)"
+  ]
+}
