@@ -1,0 +1,277 @@
+{
+  "generated": "2026-09-19 (iteration 2)",
+  "source_repo": "github.com/glassg333/mmnova",
+  "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+  "new_findings_v2": [
+    "Confirmed: lowpassTable from C++ == P:$144AC7 (100% match, 258 words)",
+    "Confirmed: widthTable from C++ (4096 entries) == sine(2π·i/8192) first half (100% match)",
+    "Found HI08 helper function in coldfire_main.bin at 0x253E9E (writes 24-bit BE words to DSP TX port)",
+    "Found 2 callers of HI08 helper: write 640 words to DSP2 from 0x2A8A, 823 words to DSP1 from 0x320A (DSP self-test data)",
+    "Decoded division function P:$576-$589 (Newton-Raphson 24-iter reciprocal lookup with TBL1+TBL2 summands)",
+    "Built piecewise LFO speed table (5 checkpoints matched to 0.04% accuracy)",
+    "Confirmed: runtime-tables NOT directly stored in coldfire_main.bin or BIN firmware",
+    "Hypothesis: runtime-tables computed by ColdFire at startup from internal formulas or loaded interactively via HI08 protocol"
+  ],
+  "files": {
+    "P_1001d1_VO6_dispatch_table.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_1007f1_VO6_table2.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101a7b_SWAVE_wavetable_main.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101afb_SWAVE_PCH2_table.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101b7b_SWAVE_PCH3_table.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101bfb_SWAVE_PCH4_table.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101cfb_SWAVE_PCH5_table.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_101d7b_DPRO_wavetable_ref.bin": {
+      "size_bytes": 4704,
+      "words": 1568
+    },
+    "P_10750c_DPRO_BBOX_table1.bin": {
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    "P_10b1bc_DPRO_BBOX_table2.bin": {
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    "P_10b5c7_GND_NOIS_table.bin": {
+      "size_bytes": 1536,
+      "words": 512
+    },
+    "P_10f7a1_DPRO_BBOX_table3.bin": {
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    "P_11320f_DPRO_BBOX_table4.bin": {
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    "P_11b451_DPRO_wavetable_main.bin": {
+      "size_bytes": 3072,
+      "words": 1024
+    },
+    "P_123ef5_FXREV_decay_table.bin": {
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    "P_133191_FXREV_damp_table.bin": {
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    "P_140000_SID_wavetable_0.bin": {
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    "P_140800_SID_wavetable_1.bin": {
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    "P_141900_PHASER_stage0_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_141980_PHASER_stage1_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_141a00_PHASER_stage2_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_141b18_PHASER_stage3_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_142f06_PHASER_helper_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_143546_PHASER_cntr_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_1435c6_SID_helper_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_143d06_SID_filter_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_1444c6_FXDYN_attack_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_1446c6_FXDYN_release_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_144746_FXDYN_rms_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_144ac7_LP_filter_coeffs.bin": {
+      "size_bytes": 774,
+      "words": 258
+    },
+    "P_144ac7_LP_filter_coeffs_FROM_DSP.bin": {
+      "size_bytes": 774,
+      "words": 258
+    },
+    "P_144c49_m32_helper_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "P_145c48_m33_helper_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "X_0002c0_audio_buffer_bases.bin": {
+      "size_bytes": 12,
+      "words": 4
+    },
+    "X_000394_pitch_table_1.bin": {
+      "size_bytes": 96,
+      "words": 32
+    },
+    "X_0003f4_pitch_table_2.bin": {
+      "size_bytes": 96,
+      "words": 32
+    },
+    "X_140000_pitch_wavetable_2048.bin": {
+      "size_bytes": 6144,
+      "words": 2048
+    },
+    "X_143f95_div_table.bin": {
+      "size_bytes": 321,
+      "words": 107
+    },
+    "X_143f95_div_table_RECIPROCAL_HYPOTHESIS.bin": {
+      "size_bytes": 321,
+      "words": 107
+    },
+    "X_144446_div_table2.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "X_144446_div_table2_RECIPROCAL_HYPOTHESIS.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "X_14A000_sine_table_8K.bin": {
+      "size_bytes": 24576,
+      "words": 8192
+    },
+    "X_14A800_width_table_chorus_B.bin": {
+      "size_bytes": 24576,
+      "words": 8192
+    },
+    "Y_000132_sine_table_FM.bin": {
+      "size_bytes": 1536,
+      "words": 512
+    },
+    "Y_000334_LFO_wave_triangle.bin": {
+      "size_bytes": 768,
+      "words": 256
+    },
+    "Y_141800_LFO_speed_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_141800_LFO_speed_table_LOGSCALE.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_141800_LFO_speed_table_PIECEWISE_v2.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_141A00_LFO_mult_table.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_141A00_LFO_mult_table_COMPLEMENTARY_v2.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_141A00_LFO_mult_table_LOGSCALE.bin": {
+      "size_bytes": 384,
+      "words": 128
+    },
+    "Y_1449c6_kernel_curve_table.bin": {
+      "size_bytes": 771,
+      "words": 257
+    },
+    "Y_1449c6_kernel_curve_table_QUADRATIC.bin": {
+      "size_bytes": 771,
+      "words": 257
+    },
+    "_analysis": {
+      "type": "directory"
+    },
+    "_bin_hi08_records.json": {
+      "size_bytes": 56,
+      "words": null
+    },
+    "_coldfire_imm_refs.json": {
+      "size_bytes": 114,
+      "words": null
+    },
+    "_coldfire_init_analysis.json": {
+      "size_bytes": 2094,
+      "words": null
+    },
+    "_coldfire_signature_search.json": {
+      "size_bytes": 190,
+      "words": null
+    },
+    "_manifest.json": {
+      "size_bytes": 576,
+      "words": null
+    },
+    "lowpassTable.bin": {
+      "size_bytes": 774,
+      "words": 258
+    },
+    "lowpassTable.txt": {
+      "size_bytes": 2148,
+      "words": null
+    },
+    "widthTable.bin": {
+      "size_bytes": 12288,
+      "words": 4096
+    },
+    "widthTable.txt": {
+      "size_bytes": 32845,
+      "words": null
+    },
+    "_analysis/": {
+      "type": "directory",
+      "description": "JSON analysis reports from dis56300 + capstone m68k reverse engineering",
+      "files": [
+        "_coldfire_byte_search.json",
+        "_coldfire_hi08_refs.json",
+        "runtime_refs_analysis.json"
+      ]
+    }
+  }
+}

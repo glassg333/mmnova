@@ -1,0 +1,35 @@
+{
+  "source": "ChorusTables.h (08_cpp_reference/chorus_plugin/)",
+  "tables": {
+    "widthTable": {
+      "size": 4096,
+      "first_4": [
+        "0x0",
+        "0x1921",
+        "0x3243",
+        "0x4b65"
+      ],
+      "last_4": [
+        "0x6487",
+        "0x4b65",
+        "0x3243",
+        "0x1921"
+      ]
+    },
+    "lowpassTable": {
+      "size": 258,
+      "first_4": [
+        "0x4876",
+        "0x4ce3",
+        "0x5196",
+        "0x5692"
+      ],
+      "last_4": [
+        "0x74a239",
+        "0x74aba6",
+        "0x74b470",
+        "0x74bc9a"
+      ]
+    }
+  }
+}

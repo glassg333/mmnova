@@ -1,0 +1,830 @@
+{
+  "cf_size": 425858,
+  "hi08_hits_count": 90,
+  "hi08_by_port": {
+    "DSP1 base": 16,
+    "DSP1 HCR": 14,
+    "DSP1 HSR": 2,
+    "DSP1 ???": 12,
+    "DSP2 base": 46
+  },
+  "hi08_hits_first_50": [
+    {
+      "cf_offset": 344690,
+      "cf_addr": 2441842,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "42a72f3c",
+      "ctx_at": "005000004ebafc26",
+      "ctx_after": "4ebafc262f3c0050"
+    },
+    {
+      "cf_offset": 344700,
+      "cf_addr": 2441852,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "fc262f3c",
+      "ctx_at": "0050000045fafc0a",
+      "ctx_after": "45fafc0a4e922639"
+    },
+    {
+      "cf_offset": 344718,
+      "cf_addr": 2441870,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00042f3c",
+      "ctx_at": "005000004e922a39",
+      "ctx_after": "4e922a3900500004"
+    },
+    {
+      "cf_offset": 349946,
+      "cf_addr": 2447098,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "01002f3c",
+      "ctx_at": "005000004e922478",
+      "ctx_after": "4e922478400045ea"
+    },
+    {
+      "cf_offset": 350006,
+      "cf_addr": 2447158,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00002f3c",
+      "ctx_at": "0050000047fae7de",
+      "ctx_after": "47fae7de4e93200a"
+    },
+    {
+      "cf_offset": 350136,
+      "cf_addr": 2447288,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00002f3c",
+      "ctx_at": "005000004e934280",
+      "ctx_after": "4e9342804fef0018"
+    },
+    {
+      "cf_offset": 352528,
+      "cf_addr": 2449680,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00300180",
+      "ctx_at": "00500000f000203c",
+      "ctx_after": "f000203c000010f7"
+    },
+    {
+      "cf_offset": 360735,
+      "cf_addr": 2457887,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00000000",
+      "ctx_at": "005000000002474e",
+      "ctx_after": "0002474e44000000"
+    },
+    {
+      "cf_offset": 368323,
+      "cf_addr": 2465475,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "d8200000",
+      "ctx_at": "0050000000880000",
+      "ctx_after": "0088000000500000"
+    },
+    {
+      "cf_offset": 368331,
+      "cf_addr": 2465483,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00880000",
+      "ctx_at": "0050000000500000",
+      "ctx_after": "0050000000500000"
+    },
+    {
+      "cf_offset": 368335,
+      "cf_addr": 2465487,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00500000",
+      "ctx_at": "0050000000500000",
+      "ctx_after": "0050000000f80000"
+    },
+    {
+      "cf_offset": 368339,
+      "cf_addr": 2465491,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00500000",
+      "ctx_at": "0050000000f80000",
+      "ctx_after": "00f8000000f80000"
+    },
+    {
+      "cf_offset": 368459,
+      "cf_addr": 2465611,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "60500000",
+      "ctx_at": "0050000000500000",
+      "ctx_after": "0050000000880000"
+    },
+    {
+      "cf_offset": 368463,
+      "cf_addr": 2465615,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00500000",
+      "ctx_at": "0050000000880000",
+      "ctx_after": "0088000000500000"
+    },
+    {
+      "cf_offset": 368471,
+      "cf_addr": 2465623,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "00880000",
+      "ctx_at": "0050000000200000",
+      "ctx_after": "0020000000f80000"
+    },
+    {
+      "cf_offset": 402820,
+      "cf_addr": 2499972,
+      "port": "0x500000",
+      "port_name": "DSP1 base",
+      "ctx_before": "ff500000",
+      "ctx_at": "00500000ff5fc000",
+      "ctx_after": "ff5fc000ff400000"
+    },
+    {
+      "cf_offset": 276760,
+      "cf_addr": 2373912,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "508013c0",
+      "ctx_at": "0050000172808081",
+      "ctx_after": "7280808113c00050"
+    },
+    {
+      "cf_offset": 276770,
+      "cf_addr": 2373922,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "808113c0",
+      "ctx_at": "0050000110390050",
+      "ctx_after": "1039005000016df8"
+    },
+    {
+      "cf_offset": 276776,
+      "cf_addr": 2373928,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "00011039",
+      "ctx_at": "005000016df8207c",
+      "ctx_after": "6df8207c00500004"
+    },
+    {
+      "cf_offset": 276994,
+      "cf_addr": 2374146,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "700b13c0",
+      "ctx_at": "00500001708b13c0",
+      "ctx_after": "708b13c000500001"
+    },
+    {
+      "cf_offset": 277002,
+      "cf_addr": 2374154,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "708b13c0",
+      "ctx_at": "0050000110390050",
+      "ctx_after": "1039005000016df8"
+    },
+    {
+      "cf_offset": 277008,
+      "cf_addr": 2374160,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "00011039",
+      "ctx_at": "005000016df823c1",
+      "ctx_after": "6df823c100600004"
+    },
+    {
+      "cf_offset": 277136,
+      "cf_addr": 2374288,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "700b13c0",
+      "ctx_at": "00500001708b13c0",
+      "ctx_after": "708b13c000500001"
+    },
+    {
+      "cf_offset": 277144,
+      "cf_addr": 2374296,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "708b13c0",
+      "ctx_at": "0050000110390050",
+      "ctx_after": "1039005000016df8"
+    },
+    {
+      "cf_offset": 277150,
+      "cf_addr": 2374302,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "00011039",
+      "ctx_at": "005000016df823c1",
+      "ctx_after": "6df823c100600004"
+    },
+    {
+      "cf_offset": 295570,
+      "cf_addr": 2392722,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "720613c1",
+      "ctx_at": "00500001708613c0",
+      "ctx_after": "708613c000500001"
+    },
+    {
+      "cf_offset": 295578,
+      "cf_addr": 2392730,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "708613c0",
+      "ctx_at": "0050000110390050",
+      "ctx_after": "1039005000016df8"
+    },
+    {
+      "cf_offset": 295584,
+      "cf_addr": 2392736,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "00011039",
+      "ctx_at": "005000016df82039",
+      "ctx_after": "6df8203900259114"
+    },
+    {
+      "cf_offset": 349894,
+      "cf_addr": 2447046,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "420013c0",
+      "ctx_at": "0050000113c00060",
+      "ctx_after": "13c0006000014878"
+    },
+    {
+      "cf_offset": 360911,
+      "cf_addr": 2458063,
+      "port": "0x500001",
+      "port_name": "DSP1 HCR",
+      "ctx_before": "00000000",
+      "ctx_at": "0050000111035349",
+      "ctx_after": "1103534944000000"
+    },
+    {
+      "cf_offset": 295612,
+      "cf_addr": 2392764,
+      "port": "0x500002",
+      "port_name": "DSP1 HSR",
+      "ctx_before": "00001039",
+      "ctx_at": "0050000208000000",
+      "ctx_after": "0800000067f42039"
+    },
+    {
+      "cf_offset": 344418,
+      "cf_addr": 2441570,
+      "port": "0x500002",
+      "port_name": "DSP1 HSR",
+      "ctx_before": "1c3c1039",
+      "ctx_at": "00500002720fc081",
+      "ctx_after": "720fc081123c0006"
+    },
+    {
+      "cf_offset": 177378,
+      "cf_addr": 2274530,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "67182568",
+      "ctx_at": "005000044a8867e6",
+      "ctx_after": "4a8867e62f084eba"
+    },
+    {
+      "cf_offset": 177810,
+      "cf_addr": 2274962,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "67242568",
+      "ctx_at": "005000044a886724",
+      "ctx_after": "4a8867242f084eba"
+    },
+    {
+      "cf_offset": 276784,
+      "cf_addr": 2373936,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "6df8207c",
+      "ctx_at": "0050000470332099",
+      "ctx_after": "7033209920992099"
+    },
+    {
+      "cf_offset": 276912,
+      "cf_addr": 2374064,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "0000207c",
+      "ctx_at": "0050000420102010",
+      "ctx_after": "201020102010227c"
+    },
+    {
+      "cf_offset": 276986,
+      "cf_addr": 2374138,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "000023c1",
+      "ctx_at": "00500004700b13c0",
+      "ctx_after": "700b13c000500001"
+    },
+    {
+      "cf_offset": 277052,
+      "cf_addr": 2374204,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "0004247c",
+      "ctx_at": "00500004203c0000",
+      "ctx_after": "203c000003ff2242"
+    },
+    {
+      "cf_offset": 277128,
+      "cf_addr": 2374280,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "000023c1",
+      "ctx_at": "00500004700b13c0",
+      "ctx_after": "700b13c000500001"
+    },
+    {
+      "cf_offset": 277194,
+      "cf_addr": 2374346,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "0004247c",
+      "ctx_at": "00500004203c0000",
+      "ctx_after": "203c000003ff227c"
+    },
+    {
+      "cf_offset": 295600,
+      "cf_addr": 2392752,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "528023c0",
+      "ctx_at": "0050000420390070",
+      "ctx_after": "2039007000001039"
+    },
+    {
+      "cf_offset": 295624,
+      "cf_addr": 2392776,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "67f42039",
+      "ctx_at": "0050000423c00100",
+      "ctx_after": "23c001000af02039"
+    },
+    {
+      "cf_offset": 344712,
+      "cf_addr": 2441864,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "4e922639",
+      "ctx_at": "005000042f3c0050",
+      "ctx_after": "2f3c005000004e92"
+    },
+    {
+      "cf_offset": 344726,
+      "cf_addr": 2441878,
+      "port": "0x500004",
+      "port_name": "DSP1 ???",
+      "ctx_before": "4e922a39",
+      "ctx_at": "005000044fef001c",
+      "ctx_after": "4fef001c4a836764"
+    },
+    {
+      "cf_offset": 113469,
+      "cf_addr": 2210621,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "88487801",
+      "ctx_at": "0060000092487800",
+      "ctx_after": "92487800202f062f"
+    },
+    {
+      "cf_offset": 113519,
+      "cf_addr": 2210671,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "93487801",
+      "ctx_at": "006000009a487801",
+      "ctx_after": "9a487801102f062f"
+    },
+    {
+      "cf_offset": 161787,
+      "cf_addr": 2258939,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "2effec2f",
+      "ctx_at": "00600000d02f2eff",
+      "ctx_after": "d02f2efffc2f2eff"
+    },
+    {
+      "cf_offset": 161813,
+      "cf_addr": 2258965,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "2effec2f",
+      "ctx_at": "00600000da49c32f",
+      "ctx_after": "da49c32f032f044e"
+    },
+    {
+      "cf_offset": 162831,
+      "cf_addr": 2259983,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "f0118108",
+      "ctx_at": "00600000a80c8300",
+      "ctx_after": "a80c83000000f766"
+    },
+    {
+      "cf_offset": 208025,
+      "cf_addr": 2305177,
+      "port": "0x600000",
+      "port_name": "DSP2 base",
+      "ctx_before": "1842a902",
+      "ctx_at": "006000008c101849",
+      "ctx_after": "8c101849c0ba806c"
+    }
+  ],
+  "runtime_target_hits": {
+    "0x140000": [
+      {
+        "cf_offset": 352784,
+        "cf_addr": 2449936,
+        "pattern": "HI08_record_cmd0",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "count": 3072,
+        "data_first_24": "000016000c000000a0b40bdb01001a000c0000001c000c00"
+      },
+      {
+        "cf_offset": 354704,
+        "cf_addr": 2451856,
+        "pattern": "HI08_record_cmd0",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "count": 3072,
+        "data_first_24": "000016000c00000018000c0000001a000c0000001c000c00"
+      },
+      {
+        "cf_offset": 354013,
+        "cf_addr": 2451165,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000007054daffff00c30c"
+      },
+      {
+        "cf_offset": 356152,
+        "cf_addr": 2453304,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000007054daffff00c30c"
+      },
+      {
+        "cf_offset": 370861,
+        "cf_addr": 2468013,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "14000087e40000404400003f"
+      },
+      {
+        "cf_offset": 372687,
+        "cf_addr": 2469839,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000000000000000000"
+      },
+      {
+        "cf_offset": 381423,
+        "cf_addr": 2478575,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000f0000000b000000"
+      },
+      {
+        "cf_offset": 392503,
+        "cf_addr": 2489655,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000700000007000000"
+      },
+      {
+        "cf_offset": 393143,
+        "cf_addr": 2490295,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000700000007000000"
+      },
+      {
+        "cf_offset": 393783,
+        "cf_addr": 2490935,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000700000007000000"
+      },
+      {
+        "cf_offset": 394423,
+        "cf_addr": 2491575,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000700000007000000"
+      },
+      {
+        "cf_offset": 406223,
+        "cf_addr": 2503375,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "pitch_wavetable_2048",
+        "size": 2048,
+        "ctx_at": "140000000f00000005000000"
+      }
+    ],
+    "0x143f95": [],
+    "0x144446": [],
+    "0x14a000": [],
+    "0x14a800": [
+      {
+        "cf_offset": 266090,
+        "cf_addr": 2363242,
+        "pattern": "BE24",
+        "bank": "X",
+        "name": "width_table_chorus_B",
+        "size": 8192,
+        "ctx_at": "14a8000712a8000b1768000f"
+      }
+    ],
+    "0x114000": [
+      {
+        "cf_offset": 717,
+        "cf_addr": 2097869,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "71639e421042",
+        "ctx_at": "001140000111400003707f11",
+        "ctx_after": "0111400003707f11"
+      },
+      {
+        "cf_offset": 42685,
+        "cf_addr": 2139837,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "0000ab664a42",
+        "ctx_at": "001140000c1039007fffef49",
+        "ctx_after": "0c1039007fffef49"
+      },
+      {
+        "cf_offset": 184853,
+        "cf_addr": 2282005,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "0c4284421042",
+        "ctx_at": "00114000061140000c114000",
+        "ctx_after": "061140000c114000"
+      },
+      {
+        "cf_offset": 184953,
+        "cf_addr": 2282105,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "10b28066f442",
+        "ctx_at": "00114000a8114000ae114000",
+        "ctx_after": "a8114000ae114000"
+      },
+      {
+        "cf_offset": 205021,
+        "cf_addr": 2302173,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "0e1382a80142",
+        "ctx_at": "001140000241f90026d03812",
+        "ctx_after": "0241f90026d03812"
+      },
+      {
+        "cf_offset": 231801,
+        "cf_addr": 2328953,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "ca1144000142",
+        "ctx_at": "00114000021d45ffff528927",
+        "ctx_after": "021d45ffff528927"
+      },
+      {
+        "cf_offset": 265235,
+        "cf_addr": 2362387,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "101142006042",
+        "ctx_at": "0011400080114000a0068100",
+        "ctx_after": "80114000a0068100"
+      },
+      {
+        "cf_offset": 265411,
+        "cf_addr": 2362563,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "101142006042",
+        "ctx_at": "0011400080114000a0068100",
+        "ctx_after": "80114000a0068100"
+      },
+      {
+        "cf_offset": 279129,
+        "cf_addr": 2376281,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "184218421042",
+        "ctx_at": "00114000012f024e9342011b",
+        "ctx_after": "012f024e9342011b"
+      },
+      {
+        "cf_offset": 279215,
+        "cf_addr": 2376367,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "0210aa000342",
+        "ctx_at": "0011400001486a00042f024e",
+        "ctx_after": "01486a00042f024e"
+      },
+      {
+        "cf_offset": 279583,
+        "cf_addr": 2376735,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "d110a9000142",
+        "ctx_at": "0011400001486a00082f024e",
+        "ctx_after": "01486a00082f024e"
+      },
+      {
+        "cf_offset": 281643,
+        "cf_addr": 2378795,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "184218421042",
+        "ctx_at": "00114000012f0a4e93420115",
+        "ctx_after": "012f0a4e93420115"
+      },
+      {
+        "cf_offset": 281801,
+        "cf_addr": 2378953,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "0210aa000342",
+        "ctx_at": "0011400001486a00042f024e",
+        "ctx_after": "01486a00042f024e"
+      },
+      {
+        "cf_offset": 282605,
+        "cf_addr": 2379757,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "071152000342",
+        "ctx_at": "001140000412951354000113",
+        "ctx_after": "0412951354000113"
+      },
+      {
+        "cf_offset": 282735,
+        "cf_addr": 2379887,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "071152000342",
+        "ctx_at": "001140000412951354000113",
+        "ctx_after": "0412951354000113"
+      },
+      {
+        "cf_offset": 282871,
+        "cf_addr": 2380023,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "071152000342",
+        "ctx_at": "001140000412951354000113",
+        "ctx_after": "0412951354000113"
+      },
+      {
+        "cf_offset": 282969,
+        "cf_addr": 2380121,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "d110a9000142",
+        "ctx_at": "0011400001486e00082f024e",
+        "ctx_after": "01486e00082f024e"
+      },
+      {
+        "cf_offset": 283021,
+        "cf_addr": 2380173,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "184218421042",
+        "ctx_at": "00114000012f024ebae8d441",
+        "ctx_after": "012f024ebae8d441"
+      },
+      {
+        "cf_offset": 322579,
+        "cf_addr": 2419731,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "75206f000442",
+        "ctx_at": "00114000022f2f00082f084e",
+        "ctx_after": "022f2f00082f084e"
+      },
+      {
+        "cf_offset": 323405,
+        "cf_addr": 2420557,
+        "pattern": "BE32",
+        "bank": "X",
+        "name": "delay_buffer_2x2048",
+        "size": 4096,
+        "ctx_before": "2c01ae421042",
+        "ctx_at": "001140000111400002114000",
+        "ctx_after": "0111400002114000"
+      }
+    ],
+    "0x141800": [],
+    "0x141a00": [],
+    "0x1449c6": [],
+    "0x11b451": [],
+    "0x123ef5": [],
+    "0x133191": [],
+    "0x140800": [
+      {
+        "cf_offset": 351735,
+        "cf_addr": 2448887,
+        "pattern": "BE24",
+        "bank": "P",
+        "name": "SID_wavetable_1",
+        "size": 2048,
+        "ctx_at": "140800000038445424580000"
+      }
+    ]
+  }
+}
