@@ -1,0 +1,1 @@
+it samples the ram 5/sec and shows hex/bit dump, ability to autoscroll and to react to user clicking. It seems to help identifying RAM area that changes when you modify a pattern for example.
