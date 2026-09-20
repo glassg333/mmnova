@@ -1,0 +1,73 @@
+{
+ "package": "mmnova_firmware_mining_v8",
+ "firmware": "elektron_sfx6-60_os1.32b.bin",
+ "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+ "file_count": 13,
+ "files": [
+  {
+   "path": "01_map/grid_slot_map.json",
+   "size": 775,
+   "sha256": "a1ca7dea1431851869733e0ecae53c5651cf8a11228704ffd5e00f22dace38dd"
+  },
+  {
+   "path": "01_map/pattern_slot_map.json",
+   "size": 8202,
+   "sha256": "e6640175fdcf503adc347d7a77eade98c84c557db505e1c9a014eddfd971e754"
+  },
+  {
+   "path": "02_evidence/disasm_field554.asm",
+   "size": 712,
+   "sha256": "da50fa59874bd238d6a27ec66f506427267454a8d0fef0dfa57191c1c59ea853"
+  },
+  {
+   "path": "02_evidence/disasm_field_writer.asm",
+   "size": 1948,
+   "sha256": "1ed71f7ea452dc9f6ece8f809aa3a039e63bfee0bd9a8224fdfc37551deaeb72"
+  },
+  {
+   "path": "02_evidence/disasm_insert_step.asm",
+   "size": 2760,
+   "sha256": "4bf24baa5accbba23f0bcbd02775f1d0778a123307a90f09ff8c642b50beb1b2"
+  },
+  {
+   "path": "02_evidence/disasm_loader.asm",
+   "size": 268,
+   "sha256": "77780210b9fb1344bac7209222149bf236d2bb17f2db5a15b833c1ae54252c0d"
+  },
+  {
+   "path": "02_evidence/disasm_track_swap.asm",
+   "size": 3369,
+   "sha256": "2c68d6aa5f347abe64634b53d121f953433c62c11185951bc5a0828a6bc8418e"
+  },
+  {
+   "path": "02_evidence/evidence.md",
+   "size": 6771,
+   "sha256": "7bc869ee664d2ad6b4838ce4d495e32da38d47968c50821328d339591172fcd1"
+  },
+  {
+   "path": "03_decoded/empty_template.bin",
+   "size": 6520,
+   "sha256": "dc71cb79482a566bf3bb8da75ee64a32148cfca9f740bfb4701ec80bae3907e2"
+  },
+  {
+   "path": "03_decoded/patterns_decoded.json",
+   "size": 309546,
+   "sha256": "067175a3250dc81127835e0c214dd096d9b004e046a46ebd4132060b8d0e5324"
+  },
+  {
+   "path": "03_decoded/patterns_readable.txt",
+   "size": 69408,
+   "sha256": "5fcc54ac803015c1100cb3404740aff60a70857432254f8b0d7fcf73ab0080f1"
+  },
+  {
+   "path": "04_stats/slot_regions.json",
+   "size": 27552,
+   "sha256": "e962f0674271e13ad811e04b927702b58dd2cd3b9ee5a0b33112c019e972ab55"
+  },
+  {
+   "path": "README.md",
+   "size": 14108,
+   "sha256": "17f264a9dd3f59a7f9b06c605f6a73ad56ec34c6b32948c06e882996b77db08c"
+  }
+ ]
+}
