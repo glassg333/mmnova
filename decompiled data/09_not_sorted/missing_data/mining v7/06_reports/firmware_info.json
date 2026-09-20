@@ -1,0 +1,18 @@
+{
+ "firmware_bin": {
+  "path": "01_firmware/elektron_sfx6-60_os1.32b.bin",
+  "size": 8388608,
+  "sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e"
+ },
+ "firmware_syx": {
+  "path": "01_firmware/Elektron_SFX6-60_OS1.32B.syx",
+  "size": 903066,
+  "sha256": "fe13c09f661cdba5fe57813240fa1574de1ee0a3ddd7047fc39d0318cba1a710"
+ },
+ "device": "Elektron Monomachine SFX-60 / SFX-60+MK2",
+ "os_version": "1.32B",
+ "cpu": "Freescale ColdFire MCF5206e + 2x Motorola DSP56303",
+ "container": "пре-ELE контейнер (Machinedrum/Monomachine), 5 секций, APLIB-подобное сжатие",
+ "tool": "elektron-firmware-tool (независимая MIT-реализация, из репо glassg333/mmnova, upload/eft)",
+ "extracted_utc": "2026-09-19T18:55:40+00:00"
+}
