@@ -1,0 +1,75 @@
+{
+ "package": "mmnova_firmware_mining_v9",
+ "date": "2026-09-20",
+ "firmware_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+ "files": {
+  "README.md": {
+   "size": 13443,
+   "sha256": "bb7dbea25507fe2e8698b610b2bc5ca6b221979cc1f640ed89473705a15a9cf2"
+  },
+  "02_evidence/disasm_field554.asm": {
+   "size": 1109,
+   "sha256": "fb43042a623d4ed93ba2e0b533bc977f1ed3c41cde2f757bfd248b169fe87c92"
+  },
+  "02_evidence/disasm_field554_accessors.asm": {
+   "size": 1634,
+   "sha256": "05be9378d3e7f6e7ab0ff3207846a0c10e83ec797c9599084b1e005b8515f869"
+  },
+  "02_evidence/disasm_global_bank.asm": {
+   "size": 1091,
+   "sha256": "2f2e9c6da7f99c0ac603aaab26fb70d5633d534aa6c622e8be5e11c052ae6ec1"
+  },
+  "02_evidence/disasm_global_copy2.asm": {
+   "size": 1539,
+   "sha256": "da3d68c2df8399e8bfae24bdb29d6330d871a3c9ba7d96fc3bf971ca2529cd10"
+  },
+  "02_evidence/disasm_global_init.asm": {
+   "size": 4553,
+   "sha256": "9edbc4601dee9794afd9b21ab2137dd14b7186ab6690120fe22fbbd3acc6339c"
+  },
+  "02_evidence/disasm_lock_player_expand.asm": {
+   "size": 3944,
+   "sha256": "caf7e213d2cbab489a048a2726c67bef8ca2bf2d838e819a72f241d827f61ed7"
+  },
+  "02_evidence/disasm_lock_player_main.asm": {
+   "size": 3969,
+   "sha256": "38c88df07317441d2a100fc992ee8f9a687fda515d8fbd7f34302611c53343a5"
+  },
+  "02_evidence/disasm_lock_player_rows.asm": {
+   "size": 7411,
+   "sha256": "aa52710be210b77dae888fb94645006e8405e37a8b77cc11f741ff41f136a839"
+  },
+  "02_evidence/disasm_pattern_clear.asm": {
+   "size": 3563,
+   "sha256": "73744f8be426d8116e5658f1ba0a9b90dacf889c75cc423349848b4734acc9d2"
+  },
+  "04_stats/stats_v9.json": {
+   "size": 1869,
+   "sha256": "7c31da7d8f8b8cca60535c00c95d4423aa98cb9b8ab382be246d83410ac639a7"
+  },
+  "01_map/global_slot_map.json": {
+   "size": 1278,
+   "sha256": "bdaab485a08bd2cbfc4020440a961fbfc455d8e597003e2009d570d79a9127d3"
+  },
+  "01_map/pattern_slot_map_v9.json": {
+   "size": 4088,
+   "sha256": "882bc914aa0a45454eebd48c71cc67b0cddccce71d7b84fc404e93216db034b2"
+  },
+  "03_decoded/empty_template.bin": {
+   "size": 6520,
+   "sha256": "dc71cb79482a566bf3bb8da75ee64a32148cfca9f740bfb4701ec80bae3907e2"
+  },
+  "03_decoded/global_slots.json": {
+   "size": 4869,
+   "sha256": "40c82f12e7b9d861899e2b25352b63704eec019bf97c586ac6cbd5ecc66078e6"
+  },
+  "03_decoded/locks_decoded.json": {
+   "size": 148056,
+   "sha256": "e79d212fcb57ce8a6461e2897beaaecafc3d75b4ff8dd1bca1e92ab78a0674de"
+  },
+  "03_decoded/patterns_decoded.json": {
+   "size": 309546,
+   "sha256": "067175a3250dc81127835e0c214dd096d9b004e046a46ebd4132060b8d0e5324"
+  }
+ }
+}

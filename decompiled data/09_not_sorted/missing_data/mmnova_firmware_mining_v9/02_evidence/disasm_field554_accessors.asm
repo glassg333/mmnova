@@ -1,0 +1,40 @@
+; Аксессоры +0x554: getter (0x307E8), инвертированный getter 0xC0-x (0x30818), очистка (0x30852). Значение знаковое (ext.w в 0x2C3BC).
+; OS 0x307E8..0x30852 (section_0_MAIN_OS.bin)
+
+0307e8: 2f02           move.l d2, -(a7)
+0307ea: 2439002bda2e   move.l $2bda2e.l, d2
+0307f0: 2202           move.l d2, d1
+0307f2: e989           lsl.l #$4, d1
+0307f4: 2002           move.l d2, d0
+0307f6: ed88           lsl.l #$6, d0
+0307f8: 9081           sub.l d1, d0
+0307fa: 2200           move.l d0, d1
+0307fc: e989           lsl.l #$4, d1
+0307fe: d081           add.l d1, d0
+030800: 9082           sub.l d2, d0
+030802: e788           lsl.l #$3, d0
+030804: 41f900717038   lea.l $717038.l, a0
+03080a: 10300800       move.b (a0, d0.l), d0
+03080e: 0280000000ff   andi.l #$ff, d0
+030814: 241f           move.l (a7)+, d2
+030816: 4e75           rts 
+030818: 2f02           move.l d2, -(a7)
+03081a: 2439002bda2e   move.l $2bda2e.l, d2
+030820: 2202           move.l d2, d1
+030822: e989           lsl.l #$4, d1
+030824: 2002           move.l d2, d0
+030826: ed88           lsl.l #$6, d0
+030828: 9081           sub.l d1, d0
+03082a: 2200           move.l d0, d1
+03082c: e989           lsl.l #$4, d1
+03082e: d081           add.l d1, d0
+030830: 9082           sub.l d2, d0
+030832: e788           lsl.l #$3, d0
+030834: 41f900717038   lea.l $717038.l, a0
+03083a: 10300800       move.b (a0, d0.l), d0
+03083e: 0280000000ff   andi.l #$ff, d0
+030844: 223c000000c0   move.l #$c0, d1
+03084a: 9280           sub.l d0, d1
+03084c: 2001           move.l d1, d0
+03084e: 241f           move.l (a7)+, d2
+030850: 4e75           rts 
