@@ -1,0 +1,155 @@
+[
+  {
+    "region": "P",
+    "base": "$144446",
+    "length": 128,
+    "name": "Q_resonance_table1",
+    "notes": "Q-resonance table 1 for SVF multimode filter (kernel func_0004A8, line 0x57F). Stride 0x80 per Q step.",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$1444c6",
+    "length": 128,
+    "name": "Q_resonance_table2",
+    "notes": "Q-resonance table 2 for SVF multimode filter (kernel line 0x595). WAS mislabeled FXDYN_attack.",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$144546",
+    "length": 128,
+    "name": "Q_resonance_table3_NEW",
+    "notes": "Q-resonance table 3 for SVF multimode filter (kernel line 0x597). NEW, never extracted before!",
+    "bytes": 384,
+    "nonzero_words": 127
+  },
+  {
+    "region": "P",
+    "base": "$144446",
+    "length": 1024,
+    "name": "Q_resonance_extended",
+    "notes": "Extended Q-resonance region covering all 3 tables (384 + extras).",
+    "bytes": 3072,
+    "nonzero_words": 1022
+  },
+  {
+    "region": "P",
+    "base": "$1446c6",
+    "length": 128,
+    "name": "FXDYN_release_OR_Q_table4",
+    "notes": "Used by FX-DYN, VO-6, possibly a 4th Q-table.",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$144746",
+    "length": 64,
+    "name": "FXDYN_rms_table",
+    "notes": "FX-DYNAMIX RMS averaging coefficient table.",
+    "bytes": 192,
+    "nonzero_words": 64
+  },
+  {
+    "region": "P",
+    "base": "$143f95",
+    "length": 107,
+    "name": "cutoff_divisor_table",
+    "notes": "Divisor table for cutoff -> filter coefficient mapping.",
+    "bytes": 321,
+    "nonzero_words": 107
+  },
+  {
+    "region": "P",
+    "base": "$141ca7",
+    "length": 258,
+    "name": "LP_filter_coeffs_KERNEL_ref",
+    "notes": "LP filter coefficients referenced by SVF kernel at P:$58B. Distinct from $144ac7 — values are near-saturated ramp (0x7FFFAB..).",
+    "bytes": 774,
+    "nonzero_words": 258
+  },
+  {
+    "region": "P",
+    "base": "$144ac7",
+    "length": 258,
+    "name": "LP_filter_coeffs_main",
+    "notes": "Main LP filter coefficient table (curve 1: 0..128, curve 2: 129..257) for HP+LP dual filter.",
+    "bytes": 774,
+    "nonzero_words": 258
+  },
+  {
+    "region": "P",
+    "base": "$141900",
+    "length": 128,
+    "name": "PHASER_stage0_table",
+    "notes": "FX-PHASER stage-0 all-pass coefficient table.",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$141980",
+    "length": 128,
+    "name": "PHASER_stage1_table",
+    "notes": "FX-PHASER stage-1 all-pass coefficient table.",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$141a00",
+    "length": 128,
+    "name": "PHASER_stage2_table",
+    "notes": "FX-PHASER stage-2 all-pass coefficient table.",
+    "bytes": 384,
+    "nonzero_words": 127
+  },
+  {
+    "region": "P",
+    "base": "$141b18",
+    "length": 64,
+    "name": "PHASER_stage3_table",
+    "notes": "FX-PHASER stage-3 all-pass coefficient table.",
+    "bytes": 192,
+    "nonzero_words": 64
+  },
+  {
+    "region": "P",
+    "base": "$142f06",
+    "length": 64,
+    "name": "PHASER_helper_table",
+    "notes": "FX-PHASER helper/modulation table.",
+    "bytes": 192,
+    "nonzero_words": 64
+  },
+  {
+    "region": "P",
+    "base": "$143546",
+    "length": 64,
+    "name": "PHASER_cntr_table",
+    "notes": "FX-PHASER CNTR parameter mapping table.",
+    "bytes": 192,
+    "nonzero_words": 64
+  },
+  {
+    "region": "P",
+    "base": "$141800",
+    "length": 128,
+    "name": "LFO_speed_table",
+    "notes": "LFO speed table at $141800 (used by phaser LFO and other machines).",
+    "bytes": 384,
+    "nonzero_words": 128
+  },
+  {
+    "region": "P",
+    "base": "$141a00",
+    "length": 128,
+    "name": "LFO_mult_table",
+    "notes": "LFO multiplier table at $141a00 (overlaps with phaser stage2).",
+    "bytes": 384,
+    "nonzero_words": 127
+  }
+]

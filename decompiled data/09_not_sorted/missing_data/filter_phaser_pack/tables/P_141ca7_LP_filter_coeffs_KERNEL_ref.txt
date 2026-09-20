@@ -1,0 +1,39 @@
+# Table: LP_filter_coeffs_KERNEL_ref
+# Source: dsp1_pmem.bin (P-memory, flat-mapped: word index = P-address)
+# Base address: P:$141ca7 (byte offset 3954165, word offset 1318055)
+# Length: 258 words (774 bytes)
+# Notes: LP filter coefficients referenced by SVF kernel at P:$58B. Distinct from $144ac7 — values are near-saturated ramp (0x7FFFAB..).
+#
+  +$0000: 7fffab 7fffaa 7fffa9 7fffa8 7fffa7 7fffa6 7fffa5 7fffa4
+  +$0008: 7fffa3 7fffa2 7fffa1 7fffa0 7fff9f 7fff9e 7fff9d 7fff9c
+  +$0010: 7fff9b 7fff9a 7fff99 7fff98 7fff96 7fff95 7fff94 7fff93
+  +$0018: 7fff92 7fff91 7fff8f 7fff8e 7fff8d 7fff8c 7fff8a 7fff89
+  +$0020: 7fff88 7fff86 7fff85 7fff84 7fff82 7fff81 7fff80 7fff7e
+  +$0028: 7fff7d 7fff7b 7fff7a 7fff79 7fff77 7fff76 7fff74 7fff73
+  +$0030: 7fff71 7fff6f 7fff6e 7fff6c 7fff6b 7fff69 7fff67 7fff66
+  +$0038: 7fff64 7fff62 7fff61 7fff5f 7fff5d 7fff5b 7fff5a 7fff58
+  +$0040: 7fff56 7fff54 7fff52 7fff50 7fff4e 7fff4c 7fff4b 7fff49
+  +$0048: 7fff47 7fff45 7fff43 7fff40 7fff3e 7fff3c 7fff3a 7fff38
+  +$0050: 7fff36 7fff34 7fff31 7fff2f 7fff2d 7fff2b 7fff28 7fff26
+  +$0058: 7fff23 7fff21 7fff1f 7fff1c 7fff1a 7fff17 7fff15 7fff12
+  +$0060: 7fff10 7fff0d 7fff0a 7fff08 7fff05 7fff02 7ffeff 7ffefd
+  +$0068: 7ffefa 7ffef7 7ffef4 7ffef1 7ffeee 7ffeeb 7ffee8 7ffee5
+  +$0070: 7ffee2 7ffedf 7ffedc 7ffed9 7ffed5 7ffed2 7ffecf 7ffecb
+  +$0078: 7ffec8 7ffec5 7ffec1 7ffebe 7ffeba 7ffeb7 7ffeb3 7ffeb0
+  +$0080: 7ffeac 7ffea8 7ffea4 7ffea1 7ffe9d 7ffe99 7ffe95 7ffe91
+  +$0088: 7ffe8d 7ffe89 7ffe85 7ffe81 7ffe7d 7ffe78 7ffe74 7ffe70
+  +$0090: 7ffe6c 7ffe67 7ffe63 7ffe5e 7ffe5a 7ffe55 7ffe50 7ffe4c
+  +$0098: 7ffe47 7ffe42 7ffe3d 7ffe38 7ffe33 7ffe2e 7ffe29 7ffe24
+  +$00a0: 7ffe1f 7ffe1a 7ffe15 7ffe0f 7ffe0a 7ffe04 7ffdff 7ffdf9
+  +$00a8: 7ffdf4 7ffdee 7ffde8 7ffde2 7ffddc 7ffdd6 7ffdd0 7ffdca
+  +$00b0: 7ffdc4 7ffdbe 7ffdb8 7ffdb1 7ffdab 7ffda4 7ffd9e 7ffd97
+  +$00b8: 7ffd90 7ffd89 7ffd83 7ffd7c 7ffd75 7ffd6e 7ffd66 7ffd5f
+  +$00c0: 7ffd58 7ffd50 7ffd49 7ffd41 7ffd3a 7ffd32 7ffd2a 7ffd22
+  +$00c8: 7ffd1a 7ffd12 7ffd0a 7ffd02 7ffcf9 7ffcf1 7ffce8 7ffce0
+  +$00d0: 7ffcd7 7ffcce 7ffcc5 7ffcbc 7ffcb3 7ffcaa 7ffca1 7ffc97
+  +$00d8: 7ffc8e 7ffc84 7ffc7b 7ffc71 7ffc67 7ffc5d 7ffc53 7ffc48
+  +$00e0: 7ffc3e 7ffc34 7ffc29 7ffc1e 7ffc14 7ffc09 7ffbfe 7ffbf2
+  +$00e8: 7ffbe7 7ffbdc 7ffbd0 7ffbc4 7ffbb9 7ffbad 7ffba1 7ffb94
+  +$00f0: 7ffb88 7ffb7c 7ffb6f 7ffb62 7ffb55 7ffb48 7ffb3b 7ffb2e
+  +$00f8: 7ffb21 7ffb13 7ffb05 7ffaf7 7ffae9 7ffadb 7ffacd 7ffabe
+  +$0100: 7ffab0 7ffaa1

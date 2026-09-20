@@ -1,0 +1,22 @@
+# Table: Q_resonance_table1
+# Source: dsp1_pmem.bin (P-memory, flat-mapped: word index = P-address)
+# Base address: P:$144446 (byte offset 3984594, word offset 1328198)
+# Length: 128 words (384 bytes)
+# Notes: Q-resonance table 1 for SVF multimode filter (kernel func_0004A8, line 0x57F). Stride 0x80 per Q step.
+#
+  +$0000: 0438fb 047522 04b4a1 04f7aa 053e6d 058920 05d7fb 062b39
+  +$0008: 06831a 06dfde 0741cb 07a92c 08164d 088981 09031e 09837f
+  +$0010: 0a0b05 0a9a16 0b311c 0bd08a 0c78d7 0d2a82 0de60f 0eac0c
+  +$0018: 0f7d0e 1059b1 11429b 12387a 133c09 144e08 156f47 16a09e
+  +$0020: 17e2f3 193738 1a9e6b 1c199c 1da9e6 1f5076 210e8a 22e570
+  +$0028: 24d68b 26e34e 290d45 2b5610 2dbf64 304b13 32fb05 35d13f
+  +$0030: 38cfe2 3bf92e 3f4f83 42d562 468d70 4a7a78 4e9f6d 52ff6b
+  +$0038: 579dbc 5c7dd8 61a366 671246 6cce8b 72dc83 7940bc 7fffff
+  +$0040: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0048: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0050: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0058: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0060: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0068: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0070: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
+  +$0078: 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff 7fffff
