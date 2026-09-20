@@ -1,0 +1,62 @@
+{
+ "package": "mmnova_firmware_mining_v10",
+ "date": "2026-09-20",
+ "files": {
+  "README.md": {
+   "size": 8818,
+   "sha256": "e856bfc8bbf46a8488c9ce70d948a8f71ad4fff07e2fec6a819aef2a80f1ce02"
+  },
+  "02_evidence/disasm_3090C_table.asm": {
+   "size": 5646,
+   "sha256": "d14bc7c8229e58b7e40e4ccd060935f7b3074390bbbe3b5a919bebc3ea6bc3b6"
+  },
+  "02_evidence/disasm_35338_undo_delete.asm": {
+   "size": 5944,
+   "sha256": "4b92a479d8ece3bc818d901f04a6396eef25288aba4b2b27bfaf32a45044b484"
+  },
+  "02_evidence/disasm_4d0_vectors.asm": {
+   "size": 2137,
+   "sha256": "728a5dac6d901608bb2e71ff89e765d87116d0b202d5d0bc3f5615e51a1af8ee"
+  },
+  "02_evidence/disasm_554_accessors.asm": {
+   "size": 1955,
+   "sha256": "ba6d230f8d6680df237f9bc70b4f49163774599c4f3210d3333d38ec35c7cfe5"
+  },
+  "02_evidence/disasm_editor_2C400.asm": {
+   "size": 4532,
+   "sha256": "0f8c5e5cd3c4e8e4f9413800e6148d870e136581f945755f5a674ff902eaa471"
+  },
+  "02_evidence/disasm_player1_clearlocks.asm": {
+   "size": 7991,
+   "sha256": "a2f56af6a7796e12d4c7aedeac78c25edd2ccc6041636eb1e2fba7a06f5bbb39"
+  },
+  "02_evidence/disasm_player2_cell_unpack.asm": {
+   "size": 7465,
+   "sha256": "5916c6b1efe0d5fef78f892091be9e69b34a36311cf2da94fa66dc645298d236"
+  },
+  "02_evidence/disasm_track_current.asm": {
+   "size": 3148,
+   "sha256": "d896ce3b6ea564b83dc2e9056e56141e5901a2c63e432ebe4401cbbe3f39af50"
+  },
+  "02_evidence/disasm_undo_menu_strings.asm": {
+   "size": 261,
+   "sha256": "3373c8395988cc801c199f67e0b3b54d5253ff0a1d090b376ac88d7f84f9b6a0"
+  },
+  "04_stats/stats_v10.json": {
+   "size": 2850,
+   "sha256": "850d18e95f90c59376ad2fba78de50c40436ebc82b035f0e3dedc093617e5a37"
+  },
+  "01_map/global_table_correction.json": {
+   "size": 451,
+   "sha256": "7bedb12cdc7b06b7af6c6856b749ea9cee74c901ff8ae1d96cbba59007406c60"
+  },
+  "01_map/pattern_slot_map_v10.json": {
+   "size": 2135,
+   "sha256": "6183c0c96040ff77a54dc2eb047cf2513c69c8de461cd4a3fd66f0c5ab0a960d"
+  },
+  "03_decoded/cells_decoded.json": {
+   "size": 163873,
+   "sha256": "208e9b6796e59a8a70fbcd7cd347e729c6b7eada8ee79307c1e7c05e9f77c80a"
+  }
+ }
+}
