@@ -158,6 +158,7 @@ class DSP56300:
 
     def acc_part_for_dst(self, src_name, sval):
         """Return the value to store given the SOURCE register name.
+        sval is the RAW 56-bit accumulator value.
         a/b -> A1 (24-bit main part); a0/b0 -> A0; a1/b1 -> A1; a2/b2 -> A2."""
         if src_name in ("a", "b"):
             return (sval >> 24) & MASK24
@@ -166,7 +167,7 @@ class DSP56300:
         if src_name in ("a1", "b1"):
             return (sval >> 24) & MASK24
         if src_name in ("a2", "b2"):
-            return sval & 0xFF
+            return (sval >> 48) & 0xFF
         return sval & MASK24
 
     def compose_acc(self, sval):
@@ -672,10 +673,10 @@ class DSP56300:
                     sval = self.compose_acc(sval)
                 elif dst in ("a", "b") and src in ("a0", "b0"):
                     acc = self.A if dst == "a" else self.B
-                    sval = (acc & ~(MASK24 << 24)) | ((sval & MASK24) << 24)
+                    sval = (acc & ~(MASK24 << 24)) | (self.acc_part_for_dst(src, sval) << 24)
                 elif dst in ("a", "b") and src in ("a1", "b1"):
                     acc = self.A if dst == "a" else self.B
-                    sval = (acc & ~MASK48) | ((sval & MASK24) << 24)
+                    sval = (acc & ~MASK48) | (self.acc_part_for_dst(src, sval) << 24)
                 elif re.match(r"^[rn]\d$|^[rn][0-7]$", dst) and self.is_acc_src(src):
                     sval = self.acc_part_for_dst(src, sval)
                 elif dst in ("x0", "x1", "y0", "y1") and self.is_acc_src(src):
@@ -696,7 +697,7 @@ class DSP56300:
                         elif src in ("a1", "b1"):
                             self.wr("x", ev[1], (sval >> 24) & MASK24)
                         else:
-                            self.wr("x", ev[1], sval & 0xFF)
+                            self.wr("x", ev[1], self.acc_part_for_dst(src, sval))
                     else:
                         self.wrL(ev[1], sval)
                 else:
@@ -726,8 +727,14 @@ class DSP56300:
             if src.startswith("#"):
                 sval = self.abs_val(src) & MASK24
                 srckind = "imm"
-            elif re.match(r"^(x0|x1|y0|y1|x|y|a|b|a\d|b\d|r\d|n\d|m\d)$", src):
-                sval = self.get_reg(src)
+            elif re.match(r"^(x0|x1|y0|y1|x|y|a|b|r\d|n\d|m\d)$", src) \
+                    or re.match(r"^[ab]\d$", src):
+                # a0/a1/a2/b0/b1/b2 latch the RAW 56-bit accumulator; the
+                # part extraction happens once, in commit_writes.
+                if re.match(r"^[ab]\d$", src):
+                    sval = self.get_reg(src[0])
+                else:
+                    sval = self.get_reg(src)
                 srckind = "reg"
             elif src in ("ba", "ab"):
                 sval = ((self.B >> 24) & MASK24) << 24 | (self.A >> 24) & MASK24
@@ -788,8 +795,14 @@ class DSP56300:
             elif src in ("ba", "ab"):
                 sval = ((self.B >> 24) & MASK24) << 24 | (self.A >> 24) & MASK24
                 srckind = "reg48"
-            elif re.match(r"^(x0|x1|y0|y1|x|y|a|b|a\d|b\d|r\d|n\d|m\d)$", src):
-                sval = self.get_reg(src)
+            elif re.match(r"^(x0|x1|y0|y1|x|y|a|b|r\d|n\d|m\d)$", src) \
+                    or re.match(r"^[ab]\d$", src):
+                # a0/a1/a2/b0/b1/b2 latch the RAW 56-bit accumulator; the
+                # part extraction happens once, in commit_writes.
+                if re.match(r"^[ab]\d$", src):
+                    sval = self.get_reg(src[0])
+                else:
+                    sval = self.get_reg(src)
                 srckind = "reg"
             else:
                 ea = self.parse_ea(src)

@@ -209,5 +209,37 @@ try:
 except Exception as ex:
     check("func_000340 executes", False, str(ex))
 
+# --- acc sub-register sources latch raw accumulator (a1/b1/a2 double-shift fix) ---
+prog = """
+000000: move   a1,r1            ; 219100
+000001: move   b1,y:(r0)+       ; 4C5853
+000002: move   a2,x0            ; 210430
+000003: move   a0,x1            ; 210540
+000004: move   a,x0             ; 200430
+000005: move   b0,y0            ; 210640
+000006: rts                     ; 00000C
+"""
+e = DSP56300([l for l in prog.strip().split("\n")])
+e.A = (0xFF << 48) | (0xFFFFF2 << 24) | 0x123456   # A2=FF A1=FFFFF2 A0=123456
+e.B = (0x00 << 48) | (0x345678 << 24) | 0x9ABCDE
+e.R[0] = 0x40
+e.pc = 0
+e.step(); check("move a1,r1 = A1 (no double shift)", e.R[1] == 0xFFFFF2,
+                "R1=%06X" % e.R[1])
+e.step(); check("move b1,y:(r0)+ = B1", e.Y.get(0x40) == 0x345678,
+                "Y:40=%06X" % e.Y.get(0x40))
+e.step(); check("move a2,x0 = A2", e.x0 == 0xFF, "x0=%06X" % e.x0)
+e.step(); check("move a0,x1 = A0", e.x1 == 0x123456, "x1=%06X" % e.x1)
+e.step(); check("move a,x0 = A1", e.x0 == 0xFFFFF2, "x0=%06X" % e.x0)
+e.step(); check("move b0,y0 = B0", e.y0 == 0x9ABCDE, "y0=%06X" % e.y0)
+
+# move a1,x0 explicit check (independent)
+e2 = DSP56300(["000000: move a1,x0            ; 2104E0",
+               "000001: rts                     ; 00000C"])
+e2.A = (0x12 << 48) | (0x345678 << 24) | 1
+e2.pc = 0
+e2.step()
+check("move a1,x0 = A1", e2.x0 == 0x345678, "x0=%06X" % e2.x0)
+
 print("\n%d passed, %d failed" % (PASS, FAIL))
 sys.exit(1 if FAIL else 0)

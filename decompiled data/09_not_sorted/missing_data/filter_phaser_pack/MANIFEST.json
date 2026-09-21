@@ -1,15 +1,15 @@
 {
  "pack": "filter_phaser_pack",
- "iteration": 13,
+ "iteration": 16,
  "date": "2026-09-21",
  "firmware": "elektron_sfx6-60_os1.32b.bin",
- "file_count": 81,
- "total_bytes": 652388,
+ "file_count": 103,
+ "total_bytes": 927889,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
-   "size": 9636,
-   "sha256": "b11535b76e07339c44912c0fde1ec302e12bb250d18ac6819bad210dce75bc07"
+   "size": 11067,
+   "sha256": "5d014890afbb8b424c8633a8b812bd9e12354e00831150736d032cefe7918b3e"
   },
   {
    "path": "01_filter/disasm_kernel_amp_resonance_P0859-0A88.txt",
@@ -35,6 +35,11 @@
    "path": "01_filter/monomachine_track_filter.hpp",
    "size": 7575,
    "sha256": "78a62ebb78140a3e284ff29454f807a2de0bffe4c69a5413809f641892adce27"
+  },
+  {
+   "path": "01_filter/svf_recursion_proven.md",
+   "size": 10159,
+   "sha256": "f75eb5373dfecfd595dec86c773c4f0d1b47a244c9f4b28ea0b0719632941604"
   },
   {
    "path": "01_filter/tables/P_141800_env_shape_tbl_A.bin",
@@ -288,8 +293,8 @@
   },
   {
    "path": "03_voice_page/voice_page_map.md",
-   "size": 12444,
-   "sha256": "fc93210cc82209222da710c8ab48653c67b918cb9b271556f4746aa91e98d20e"
+   "size": 13016,
+   "sha256": "a73dcef73b84f7941e68ca8e9571d99b61ee38f5af69c3d37e8e8e20ceedde07"
   },
   {
    "path": "04_evidence/corrections_to_previous_mining.md",
@@ -313,8 +318,8 @@
   },
   {
    "path": "04_evidence/what_is_missing_for_full_port.md",
-   "size": 5892,
-   "sha256": "a246644d96c0e1aa73fb6d109c69b08c9e3e21f8bce231ea02f22f60cd4d0017"
+   "size": 5473,
+   "sha256": "10fdc5850583649831647b64df1b3cd5ffc7500f0b04d78e93507c831c285307"
   },
   {
    "path": "05_emulator/06_measured/exp_A.json",
@@ -348,8 +353,8 @@
   },
   {
    "path": "05_emulator/dsp_emu.py",
-   "size": 41213,
-   "sha256": "5e818e69b611c3e17e0d732801cf957965578325334693c74b4fbb553acea3aa"
+   "size": 41936,
+   "sha256": "1bb16dd8e2cff71a9609985c8c53ce101d9f9f6c2fb5fc9d21d3a6db51fea5f2"
   },
   {
    "path": "05_emulator/experiments.py",
@@ -373,8 +378,8 @@
   },
   {
    "path": "05_emulator/test_dsp_emu.py",
-   "size": 9933,
-   "sha256": "8ba42804f73c77552847c5d19711b6fbcd100897fd367c77f9775cdaedbad521"
+   "size": 11310,
+   "sha256": "4f7074a3fc67ffa4ceb7a1b108fbcced0859dc5c46b3877e21c5f732757a7656"
   },
   {
    "path": "05_emulator/track_harness.py",
@@ -402,14 +407,119 @@
    "sha256": "91252c3762a54bb987af41716f1d35c205b5de39333ba88628e2dc3ab250f782"
   },
   {
+   "path": "07_svf_fit/svf397_access_sample.json",
+   "size": 9853,
+   "sha256": "78a2f391a1f2fba092a13538c04a0715c487b7a5868b2753e1bbdbe26f0555c3"
+  },
+  {
+   "path": "07_svf_fit/svf_fit.py",
+   "size": 4168,
+   "sha256": "62ce81f4af3c49f7ea0eb5aaf07e655acca0e1dd04cf098fc9c20bf0c542e9d2"
+  },
+  {
+   "path": "07_svf_fit/svf_fit340.py",
+   "size": 4700,
+   "sha256": "73415ac3015373b917e93574e0d21914c3020b5aa7f88649a7f883e9ddb2bc73"
+  },
+  {
+   "path": "07_svf_fit/svf_live.py",
+   "size": 1304,
+   "sha256": "ca6426576def47744f9bafa06508b5e962a411d06013ebda65643a317d9da815"
+  },
+  {
+   "path": "07_svf_fit/svf_trace.py",
+   "size": 6043,
+   "sha256": "42fe4a522b9d6329af91cd5beb003a37aaa22af7fce3e0a8179ba2d390f1d83b"
+  },
+  {
+   "path": "07_svf_fit/svf_trace_calls.json",
+   "size": 48531,
+   "sha256": "6a6efc56334a6406c4761dfd3136ef6cc0b00abd3ddeb4c1de97ec4f03ff725d"
+  },
+  {
+   "path": "08_env_verdict/README_env_verdict.md",
+   "size": 7658,
+   "sha256": "c462339e54d8119acdc782f51391436356c3b7a7656a5b05f0e5fba47ef19829"
+  },
+  {
+   "path": "08_env_verdict/exp_f2c_coeff_ring.py",
+   "size": 5120,
+   "sha256": "f8fc523a54672a07b3c98f6deac8384c553aac3e34a5b242b86cc5c4ea6718ca"
+  },
+  {
+   "path": "08_env_verdict/exp_f2e_audio_level.py",
+   "size": 3595,
+   "sha256": "a58879496f6e85d78df86b866ec6ddd368131da1e7b084c3d926c3b8803d671f"
+  },
+  {
+   "path": "08_env_verdict/exp_f2f_multiframe.py",
+   "size": 3305,
+   "sha256": "3999265e85580ac60c5660097afa914bad98275eae76049796dc69ca4f0ccf18"
+  },
+  {
+   "path": "08_env_verdict/exp_f2g_sterile_frame.py",
+   "size": 3356,
+   "sha256": "c823378be4ff9af6c6f1929e58a3531fb3e2a8578c1919142c2987bab0c1389b"
+  },
+  {
+   "path": "08_env_verdict/results_audio_level.json",
+   "size": 1609,
+   "sha256": "f844b6a244238878c9cdc5bc5903d1205e14399e9be60de5fae9d2e3497d46cb"
+  },
+  {
+   "path": "08_env_verdict/results_coeff_ring.json",
+   "size": 2482,
+   "sha256": "dbfacf4e1dbd7ccd00e497595adf6e50f8b78fce0cddb0d24c0b2c9b8290b446"
+  },
+  {
+   "path": "08_env_verdict/results_multiframe.json",
+   "size": 24895,
+   "sha256": "e7d5124b4ac04e1082d24a59d270e2a9745630ce2ae5fe196f0cb7beca1a1cbe"
+  },
+  {
+   "path": "09_juce_port/Example/MnmFilterPluginExample.h",
+   "size": 6464,
+   "sha256": "91ea438672e24fe5b9a92a953c60d9bbefa7b4a8dc4b3d638991fce631779220"
+  },
+  {
+   "path": "09_juce_port/README_JUCE.md",
+   "size": 7523,
+   "sha256": "bb2c00608d2a7a64be30e85b99604d63a739fbaecaf0945ca3bdf6567fa03547"
+  },
+  {
+   "path": "09_juce_port/Source/mnm_amp_env.h",
+   "size": 5742,
+   "sha256": "9c62c58a560ddbb56779b7de37d3c7875a80b389415d47f95e7c8d3d61148d0f"
+  },
+  {
+   "path": "09_juce_port/Source/mnm_dual_filter.h",
+   "size": 18458,
+   "sha256": "ab20ddaeb62246db49e8bf151d446cc8290bccb2c8358cfda08f1c6d2bfaf966"
+  },
+  {
+   "path": "09_juce_port/Source/mnm_tables.h",
+   "size": 71917,
+   "sha256": "dac93b77810438f7fde70d139ee4ae23e3f5040d0fb5d4b8dfdb0c44a24e834d"
+  },
+  {
+   "path": "09_juce_port/Source/mnm_voice_example.h",
+   "size": 4577,
+   "sha256": "4c3fb13121cc97634ac0141bb52c9f53f69859a780c2748df3241eb690256b7d"
+  },
+  {
+   "path": "09_juce_port/tests/test_mnm_filter.cpp",
+   "size": 6754,
+   "sha256": "5abfcc827d5a4efae2143cf7b89e2ab9bc7bf2aca354dd9c2f936602b2d8d6d2"
+  },
+  {
    "path": "MANIFEST.json",
-   "size": 12462,
-   "sha256": "2a8b72614a50baea54114e95432b520628393d9069cdaafd8c301c0695df9589"
+   "size": 16861,
+   "sha256": "8f28a4b8ce8dce2f420590a27c70c2e1661eb8aeba391e33bc17e3d78be4d578"
   },
   {
    "path": "README.md",
-   "size": 12462,
-   "sha256": "c3ee7a6cd927c5a4ec873b8b792043e4845c10c9cc97ed0e07e33d9d29014f67"
+   "size": 21667,
+   "sha256": "5fbfae9b8bfa43022df200348b5fd994bdaeef41bfd664bff5c99e5583412f3b"
   }
  ]
 }
