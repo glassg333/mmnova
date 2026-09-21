@@ -1,5 +1,5 @@
   
-  orig routing synth-dist-eq srr-filt-env-dsnd проверил на слух через эмуляцию
+  orig routing synth → dist → srr → filt → eq → amplitude synth env (may be used by filter too) → dsndпроверил на слух через эмуляцию
   а это надо проверить
   │
         ▼
@@ -31,3 +31,8 @@ static std::size_t parameterPageOffset(Parameter parameter) noexcept;
 
 grep -n -A60 "parameterPageOffset" core/monomachine_engine.cpp
 Файл 44 КБ — мой загрузчик его обрежет, а у тебя прочитается целиком. Кидай вывод, разберу.
+
+
+возможно энвелоуп из послед  цепи может влиять на  фильтр в пред этапе цепи но это не точно
+мне нужно узнать это точно. когда крутишь atk dec на филтьре там можно сделать так что будет 
+зап или кик получаться очень резко срабатывает хотя на амплитудный энвелоуп может не быть резким из-за этогоо сомнения
