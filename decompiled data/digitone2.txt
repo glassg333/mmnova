@@ -37,3 +37,9 @@ https://github.com/mischa85/elektron-firmware-tool
 
 
 https://github.com/sambanks/octabam/blob/main/dsp/alias_probe.asm
+
+
+https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main
+
+digitone 2 recreate
+https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main/docs/architecture
