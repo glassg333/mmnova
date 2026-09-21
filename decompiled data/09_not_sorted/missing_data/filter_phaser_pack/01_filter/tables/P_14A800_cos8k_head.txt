@@ -1,0 +1,11 @@
+# P:$14A800  cos8k_head  (8 words)
+# cos 8192 words (quadrature), head sample
+#  idx | hex     signed24   fraction(24-bit)
+     0 | 7FFFFF   8388607   0.9999999
+     1 | 7FFFFD   8388605   0.9999996
+     2 | 7FFFF5   8388597   0.9999987
+     3 | 7FFFE9   8388585   0.9999973
+     4 | 7FFFD8   8388568   0.9999952
+     5 | 7FFFC1   8388545   0.9999925
+     6 | 7FFFA6   8388518   0.9999893
+     7 | 7FFF86   8388486   0.9999855

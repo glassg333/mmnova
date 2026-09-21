@@ -1,0 +1,11 @@
+# P:$14A000  sine8k_head  (8 words)
+# sine 8192 words, head sample (full table math-recovered already)
+#  idx | hex     signed24   fraction(24-bit)
+     0 | 000000         0   0.0000000
+     1 | 001922      6434   0.0007670
+     2 | 003244     12868   0.0015340
+     3 | 004B66     19302   0.0023010
+     4 | 006488     25736   0.0030680
+     5 | 007DAA     32170   0.0038350
+     6 | 0096CC     38604   0.0046020
+     7 | 00AFEE     45038   0.0053689

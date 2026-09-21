@@ -1,0 +1,54 @@
+[
+ {
+  "spd": 0,
+  "hi_steps_2blk": 0
+ },
+ {
+  "spd": 1,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 4,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 8,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 16,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 24,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 32,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 48,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 64,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 80,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 96,
+  "hi_steps_2blk": 4294967294
+ },
+ {
+  "spd": 112,
+  "hi_steps_2blk": 4294967292
+ },
+ {
+  "spd": 127,
+  "hi_steps_2blk": 4294967291
+ }
+]

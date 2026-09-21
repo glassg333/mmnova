@@ -1,0 +1,415 @@
+{
+ "pack": "filter_phaser_pack",
+ "iteration": 13,
+ "date": "2026-09-21",
+ "firmware": "elektron_sfx6-60_os1.32b.bin",
+ "file_count": 81,
+ "total_bytes": 652388,
+ "files": [
+  {
+   "path": "01_filter/README_filter_algorithm.md",
+   "size": 9636,
+   "sha256": "b11535b76e07339c44912c0fde1ec302e12bb250d18ac6819bad210dce75bc07"
+  },
+  {
+   "path": "01_filter/disasm_kernel_amp_resonance_P0859-0A88.txt",
+   "size": 16345,
+   "sha256": "68353299373fa900b92781250a536a7e77f64644ea3a2fd1b071c8cacfe132b0"
+  },
+  {
+   "path": "01_filter/disasm_kernel_env_plus_coeffcalc_P04A8-05A1.txt",
+   "size": 17794,
+   "sha256": "fc0237281394c22e6e0463a07bd60f9377a7e8177c6b83839796bfd8e7e9629b"
+  },
+  {
+   "path": "01_filter/disasm_kernel_filterenv_delay_P0960-0B49.txt",
+   "size": 18935,
+   "sha256": "2b4eedd65f48c08e37f1482c090323d6fbfdff5f4184bb9f11f4a9fe56a91af6"
+  },
+  {
+   "path": "01_filter/disasm_kernel_process_funcs.txt",
+   "size": 18639,
+   "sha256": "29a364971d5f09a755959196fb4329ed79198fda6f01019596e72a2cc7d09c62"
+  },
+  {
+   "path": "01_filter/monomachine_track_filter.hpp",
+   "size": 7575,
+   "sha256": "78a62ebb78140a3e284ff29454f807a2de0bffe4c69a5413809f641892adce27"
+  },
+  {
+   "path": "01_filter/tables/P_141800_env_shape_tbl_A.bin",
+   "size": 384,
+   "sha256": "0537c715ab95b4700b88078761a72b3394b2a9c1961944e1e5c09ac16b6b98f3"
+  },
+  {
+   "path": "01_filter/tables/P_141800_env_shape_tbl_A.txt",
+   "size": 5036,
+   "sha256": "59ba82c188e2e1b2f1897dccca483ceb8eb3131cfe79ed2de28c2a0f5f8b5078"
+  },
+  {
+   "path": "01_filter/tables/P_141880_env_shape_tbl_B.bin",
+   "size": 384,
+   "sha256": "13a518a3879930f38bec68cbc50407b5d841664d811cde1528e3c9fbae3cb42b"
+  },
+  {
+   "path": "01_filter/tables/P_141880_env_shape_tbl_B.txt",
+   "size": 5051,
+   "sha256": "28092fc1bef949072734f546b8af49ca591238b451638de1dd7e3c4d2d4fea7b"
+  },
+  {
+   "path": "01_filter/tables/P_141900_env_shape_tbl_C.bin",
+   "size": 384,
+   "sha256": "e7518ae86804e8c014dee3cdb24873c9f219dc7099eeed086a6fcb736e0beec3"
+  },
+  {
+   "path": "01_filter/tables/P_141900_env_shape_tbl_C.txt",
+   "size": 5008,
+   "sha256": "7290e1246f41698ea71d30d12a92bb77bf92c73b4a4768954bf92938002bb8fd"
+  },
+  {
+   "path": "01_filter/tables/P_141980_env_shape_tbl_D.bin",
+   "size": 384,
+   "sha256": "c5c48fa8300a2d0036f0448b3a5aae2af1f94b9cef8c9aa9dacad537a0b12ea4"
+  },
+  {
+   "path": "01_filter/tables/P_141980_env_shape_tbl_D.txt",
+   "size": 4994,
+   "sha256": "6cffad541517b7cac41032c14968606cd9b3595281266b75af216a7ff74d136e"
+  },
+  {
+   "path": "01_filter/tables/P_141A00_env_shape_tbl_E.bin",
+   "size": 384,
+   "sha256": "2717ac39610f528e53ee434b8a72a12c173770696009300d060b4bc502793320"
+  },
+  {
+   "path": "01_filter/tables/P_141A00_env_shape_tbl_E.txt",
+   "size": 4994,
+   "sha256": "b930cbd70df746c3e46d2622b2c41a08e1b09e345dff9773ea311fc586b5a187"
+  },
+  {
+   "path": "01_filter/tables/P_141A80_powers_of_2.bin",
+   "size": 72,
+   "sha256": "a5e03e83d062e87a5c50fc4f8faf2c9b3bd50b3ea02d957a425be51b21cbbb83"
+  },
+  {
+   "path": "01_filter/tables/P_141A80_powers_of_2.txt",
+   "size": 1032,
+   "sha256": "c9926bc74651e483c6e8b86a73fa386216e45afb8a3c23c625e5b0cc8c8a956c"
+  },
+  {
+   "path": "01_filter/tables/P_141B18_env_shape_tbl_F.bin",
+   "size": 384,
+   "sha256": "a2b29ef6afb2fad9a501a960a0c06c88b8ec7763cb1d87cd63eb230ae8f798c1"
+  },
+  {
+   "path": "01_filter/tables/P_141B18_env_shape_tbl_F.txt",
+   "size": 5002,
+   "sha256": "45b9fba3f5da75aeda4019d30cf6ea544e9377a72391e2d7d1080365348a1b82"
+  },
+  {
+   "path": "01_filter/tables/P_141CA7_filter_coeff_base_tbl.bin",
+   "size": 3603,
+   "sha256": "d390d7bf8b6cdbb4cdbc5ce399d811c8a78b96ef7225348779beae54842989b0"
+  },
+  {
+   "path": "01_filter/tables/P_141CA7_filter_coeff_base_tbl.txt",
+   "size": 45844,
+   "sha256": "2ec610760f4aa2cd975f537f3c7a6a651e07560a46a8be0c49c60717b594bac5"
+  },
+  {
+   "path": "01_filter/tables/P_142158_filter_tbl_142158.bin",
+   "size": 4800,
+   "sha256": "fe67ca2fdb13de69ff445cd88b3e0dc05ef0b26ac87fce707e9877d8a6690493"
+  },
+  {
+   "path": "01_filter/tables/P_142158_filter_tbl_142158.txt",
+   "size": 60977,
+   "sha256": "14cc5dd753e2c51aa723e571908f1d0d88d4351691e26a1562c035f4ea5d7f2b"
+  },
+  {
+   "path": "01_filter/tables/P_142F06_kernel_tbl_142F06.bin",
+   "size": 1152,
+   "sha256": "d10c886fc10a68f83035047429534bcf8515e6a405b8a72715b6f2e8ff62128c"
+  },
+  {
+   "path": "01_filter/tables/P_142F06_kernel_tbl_142F06.txt",
+   "size": 14750,
+   "sha256": "f064574aecb27461ae983f8040b85fa773a7845f4852f1152cce4c6e9951eb3d"
+  },
+  {
+   "path": "01_filter/tables/P_143546_kernel_tbl_143546.bin",
+   "size": 384,
+   "sha256": "a7f2a9c476a7340846497785b4c388e4aa7d279be30b592c6c2274fddef1ae22"
+  },
+  {
+   "path": "01_filter/tables/P_143546_kernel_tbl_143546.txt",
+   "size": 5049,
+   "sha256": "99a59f53c6a522c6d13ec097bc225becf00edd447cc2efc37705484a1e7234c3"
+  },
+  {
+   "path": "01_filter/tables/P_143C06_kernel_tbl_143C06.bin",
+   "size": 2733,
+   "sha256": "15c60c37f85356a025c84322e8886bccfa8863bd63bd6325e92b86a088a6bb61"
+  },
+  {
+   "path": "01_filter/tables/P_143C06_kernel_tbl_143C06.txt",
+   "size": 34779,
+   "sha256": "a6c8fc7c2bedb2232994e027930cf0fa272c58bfe9b8375d930f6efc69918ccb"
+  },
+  {
+   "path": "01_filter/tables/P_143F95_filter_div_table_1.bin",
+   "size": 3603,
+   "sha256": "6f107cfb79d44dbbdb5adfcdec1c5b3ecbaf1f303df5fdceed2ef545c7704675"
+  },
+  {
+   "path": "01_filter/tables/P_143F95_filter_div_table_1.txt",
+   "size": 45820,
+   "sha256": "307c6463f11e461f3dfad3620596d49b564d4db86157947599824ebd98c99353"
+  },
+  {
+   "path": "01_filter/tables/P_144446_filter_div_table_2.bin",
+   "size": 384,
+   "sha256": "7bd2fee7e07d170645705af60f566e65fcf433c08edcb03545265644f46320b8"
+  },
+  {
+   "path": "01_filter/tables/P_144446_filter_div_table_2.txt",
+   "size": 5037,
+   "sha256": "98c87da578568bac5bd1ec8b45432e7eff09fd3a1da74279082386330c316c88"
+  },
+  {
+   "path": "01_filter/tables/P_1444C6_filter_width_tbl_1.bin",
+   "size": 384,
+   "sha256": "c4e61d418598ee89a9b0e7c2564837d4545d962ac63d0d1b086d2517c0323a21"
+  },
+  {
+   "path": "01_filter/tables/P_1444C6_filter_width_tbl_1.txt",
+   "size": 5047,
+   "sha256": "058196c4fba3569cf7d5e5bfc248a5a6fd9e5f0d94d3f5bddce597c861defba6"
+  },
+  {
+   "path": "01_filter/tables/P_144546_filter_width_tbl_2.bin",
+   "size": 384,
+   "sha256": "bead5dc79f45e857fc756b1679dff007e1ef0722c71507b218cbef8332d40548"
+  },
+  {
+   "path": "01_filter/tables/P_144546_filter_width_tbl_2.txt",
+   "size": 5029,
+   "sha256": "b097971c91e6efb1d4118329f4255485dfa515026895662f22998de92bf38b98"
+  },
+  {
+   "path": "01_filter/tables/P_1448C6_resonance_hp_tbl.bin",
+   "size": 384,
+   "sha256": "4f7ec3b9034163d9b6b6e5edfd6ee77fe0f6d71932877be4a917879ea8a56d11"
+  },
+  {
+   "path": "01_filter/tables/P_1448C6_resonance_hp_tbl.txt",
+   "size": 5051,
+   "sha256": "5c576368aae43f0fbae9bbde8e494484f874eb15ba75d26e32e47f238b5d8c3f"
+  },
+  {
+   "path": "01_filter/tables/P_144946_resonance_hp_tbl2.bin",
+   "size": 384,
+   "sha256": "92fdef8b5a498b0c79473856a7186f8c09a5079abcadd0e053c250196e1de057"
+  },
+  {
+   "path": "01_filter/tables/P_144946_resonance_hp_tbl2.txt",
+   "size": 5024,
+   "sha256": "50f3dd1c8c97a73eecd67cd92e7fcf2d2167f5d47ee27c871b833b943239e222"
+  },
+  {
+   "path": "01_filter/tables/P_144AC7_lp_filter_coeffs.bin",
+   "size": 774,
+   "sha256": "976a61c5aeb6082c875cae54a1f4336c9f07c815d0d74dee80ab41fb0ccdbe16"
+  },
+  {
+   "path": "01_filter/tables/P_144AC7_lp_filter_coeffs.txt",
+   "size": 9990,
+   "sha256": "667f601ba706ec066a41f137fc3c93cd59b48ef4354713ca7928dac6b484d188"
+  },
+  {
+   "path": "01_filter/tables/P_144B48_kernel_tbl_144B48.bin",
+   "size": 384,
+   "sha256": "886f206b6a18cdcd85f0405b670709e9f8b8f1ee705cfc19f62a985d29facba1"
+  },
+  {
+   "path": "01_filter/tables/P_144B48_kernel_tbl_144B48.txt",
+   "size": 5031,
+   "sha256": "7ef940e1243cb84da20426d22f435738ee6f37c378c1aad41b35671ddd489866"
+  },
+  {
+   "path": "01_filter/tables/P_144BC9_kernel_tbl_144BC9.bin",
+   "size": 384,
+   "sha256": "f7c24acc4cb806265f23dd7bdfab878811c5ddf31708a379dbb56f96d29c6ede"
+  },
+  {
+   "path": "01_filter/tables/P_144BC9_kernel_tbl_144BC9.txt",
+   "size": 5010,
+   "sha256": "6bbe7639c40adb15d8337014bedd4de8653243972302d994c9bffeb570476e66"
+  },
+  {
+   "path": "01_filter/tables/P_14A000_sine8k_head.bin",
+   "size": 24,
+   "sha256": "80f304206478ac6fe9f47c543d29e56843b17da1d1b2951f20c1f96a734f1c6c"
+  },
+  {
+   "path": "01_filter/tables/P_14A000_sine8k_head.txt",
+   "size": 452,
+   "sha256": "d9e9de7c65ac6e0f5878af8b785eeec146f6d68e8ea95ce6c030ca226c3f85de"
+  },
+  {
+   "path": "01_filter/tables/P_14A800_cos8k_head.bin",
+   "size": 24,
+   "sha256": "a86f58e4f6b364c8221a14412172b2d058cde363b3199d168465ec2c8615cc47"
+  },
+  {
+   "path": "01_filter/tables/P_14A800_cos8k_head.txt",
+   "size": 427,
+   "sha256": "8fc84cd050a781ad533c1d27c9d72ffb9244094f0da52ce637893d759a86a357"
+  },
+  {
+   "path": "01_filter/tables/tables_analysis.json",
+   "size": 19014,
+   "sha256": "f3afb23a769b46da83dedf52d5c2de1e637713c1c58c6535928c98301d40a3b8"
+  },
+  {
+   "path": "02_phaser/README_phaser_algorithm.md",
+   "size": 10328,
+   "sha256": "b8929b0963117a82f3ee86ba81ad4b21eec878a946b59c2531aab29cdcc1148d"
+  },
+  {
+   "path": "02_phaser/disasm_phaser_machine_P144E81-15035.txt",
+   "size": 31332,
+   "sha256": "463e57dc3a30f6933686ad6bb22153cb24fd506e3924af41a5610e5792d98449"
+  },
+  {
+   "path": "02_phaser/monomachine_phaser.hpp",
+   "size": 8136,
+   "sha256": "afc1d7e3ff0d107c6bc7a0a6b69079d727ff2c5c2c999dc129599343cdc8fca4"
+  },
+  {
+   "path": "03_voice_page/voice_page_map.md",
+   "size": 12444,
+   "sha256": "fc93210cc82209222da710c8ab48653c67b918cb9b271556f4746aa91e98d20e"
+  },
+  {
+   "path": "04_evidence/corrections_to_previous_mining.md",
+   "size": 7352,
+   "sha256": "8adfb4e225cceb3180782326fc4cb5879ccb8e14bcd4f33f03f364805906a081"
+  },
+  {
+   "path": "04_evidence/machine_dispatch_tables.txt",
+   "size": 2077,
+   "sha256": "f08ff132d95bf8d842e79f92ad7240f661ca468421148f7470280de25437ff41"
+  },
+  {
+   "path": "04_evidence/numeric_verification.md",
+   "size": 2161,
+   "sha256": "f31a81be8a1d4fa83c6c80373278bfc301d3817753b85143f5a1b443996ad7b7"
+  },
+  {
+   "path": "04_evidence/table_reference_scan_full_pmem.txt",
+   "size": 12337,
+   "sha256": "40f7b856cf293ad531875063686151ef0d5206fef3d859c850b45ca57a82d164"
+  },
+  {
+   "path": "04_evidence/what_is_missing_for_full_port.md",
+   "size": 5892,
+   "sha256": "a246644d96c0e1aa73fb6d109c69b08c9e3e21f8bce231ea02f22f60cd4d0017"
+  },
+  {
+   "path": "05_emulator/06_measured/exp_A.json",
+   "size": 2044,
+   "sha256": "14fefe793ad86dc3fdde805738b5f173752204fb4f100213e821494fc78bf2a7"
+  },
+  {
+   "path": "05_emulator/06_measured/fr_base.json",
+   "size": 3675,
+   "sha256": "9dea174d2176abeb484b4e5af7bd4add9f1f2a17f7533d73bec03dab9f845f8f"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_lfo_rate.json",
+   "size": 641,
+   "sha256": "cbe363722832f2ec92ad82c5771677d1b19f1892884af399a97ca333cd7ea068"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_out.json",
+   "size": 657,
+   "sha256": "710fa7bf6efc7f06a7b84d2332d174817b91fcead5595744b4e4773faa7e01ed"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_states.json",
+   "size": 154,
+   "sha256": "9872b28c20631a7b88780f02fc7d3e7e839a8dc9b819368786507cb7ce183e89"
+  },
+  {
+   "path": "05_emulator/README_emulator.md",
+   "size": 10580,
+   "sha256": "ad3bf83c40e5799bbd849578975455571f34651ba28eb0d625acd7ac02e61a26"
+  },
+  {
+   "path": "05_emulator/dsp_emu.py",
+   "size": 41213,
+   "sha256": "5e818e69b611c3e17e0d732801cf957965578325334693c74b4fbb553acea3aa"
+  },
+  {
+   "path": "05_emulator/experiments.py",
+   "size": 5291,
+   "sha256": "c3a89dea6735d28eff2a0bed4b7fda194cf4f958a816c3104535f58108d1b715"
+  },
+  {
+   "path": "05_emulator/measure_fr.py",
+   "size": 4160,
+   "sha256": "4a322028f9add39498342d5d00040ca6a6063b171c4f30fee852fe162438b4c8"
+  },
+  {
+   "path": "05_emulator/phaser_harness.py",
+   "size": 4307,
+   "sha256": "23ae0734addcc8693eb2b97fd2f0aba24328fd183d2509fcc04401a137ae5045"
+  },
+  {
+   "path": "05_emulator/run_kernel.py",
+   "size": 4649,
+   "sha256": "8e7cb2fac8fb5191322c15e61af3796e01168997c7b08b57f531ec3b51c660f1"
+  },
+  {
+   "path": "05_emulator/test_dsp_emu.py",
+   "size": 9933,
+   "sha256": "8ba42804f73c77552847c5d19711b6fbcd100897fd367c77f9775cdaedbad521"
+  },
+  {
+   "path": "05_emulator/track_harness.py",
+   "size": 4260,
+   "sha256": "187e469414ede2506f1a57274da65dcda83914caaaaeb294df0f112ef559008f"
+  },
+  {
+   "path": "06_amp_env/README_amp_envelope.md",
+   "size": 11092,
+   "sha256": "27b669dafd39a8f20f5efeab3b09d2f267707cac3930486752f24025abd899c4"
+  },
+  {
+   "path": "06_amp_env/amp_env_measure.py",
+   "size": 5579,
+   "sha256": "3ab28d07bc1225b99a090c083e26d774cfac86aee5a55b07ec03d12c2af51c6a"
+  },
+  {
+   "path": "06_amp_env/amp_env_sweep.json",
+   "size": 7448,
+   "sha256": "d6684dc61afb2769a6c434d66fd2e103d3a71c350ddc0d9abf6232e335d4d89d"
+  },
+  {
+   "path": "06_amp_env/amp_env_sweep.py",
+   "size": 5189,
+   "sha256": "91252c3762a54bb987af41716f1d35c205b5de39333ba88628e2dc3ab250f782"
+  },
+  {
+   "path": "MANIFEST.json",
+   "size": 12462,
+   "sha256": "2a8b72614a50baea54114e95432b520628393d9069cdaafd8c301c0695df9589"
+  },
+  {
+   "path": "README.md",
+   "size": 12462,
+   "sha256": "c3ee7a6cd927c5a4ec873b8b792043e4845c10c9cc97ed0e07e33d9d29014f67"
+  }
+ ]
+}
