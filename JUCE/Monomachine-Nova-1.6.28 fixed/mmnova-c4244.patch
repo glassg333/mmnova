@@ -1,0 +1,216 @@
+From: arena-agent
+Subject: [PATCH] 1.6.7: explicit float() casts for JUCE float-arg draw calls
+
+Kills every C4244 "int -> float" warning in PluginEditor.cpp of both
+projects (Synth and FX). No behaviour change: same values, explicit casts.
+
+Apply from INSIDE the Monomachine-Nova-1.6.7 folder:
+    git apply -p1 mmnova-c4244.patch
+or without git:
+    patch -p1 < mmnova-c4244.patch
+--- a/Monomachine_Nova_Synth/Source/PluginEditor.cpp	2026-09-19 06:09:06.318182944 +0000
++++ b/Monomachine_Nova_Synth/Source/PluginEditor.cpp	2026-09-19 05:54:57.684647614 +0000
+@@ -208,7 +208,7 @@
+         return juce::String(raw);
+     }
+     void paint(juce::Graphics& g)override{
+-        if(pickMode || flashTicks > 0){g.setColour(flashTicks > 0 ? ink : ink.withAlpha(0.28f));g.drawRect(getLocalBounds().reduced(2),flashTicks > 0 ? 3 : 2);g.drawLine(getWidth()/2-8,getHeight()/2,getWidth()/2+8,getHeight()/2,1);g.drawLine(getWidth()/2,getHeight()/2-8,getWidth()/2,getHeight()/2+8,1);}
++        if(pickMode || flashTicks > 0){g.setColour(flashTicks > 0 ? ink : ink.withAlpha(0.28f));g.drawRect(getLocalBounds().reduced(2),flashTicks > 0 ? 3 : 2);g.drawLine(float(getWidth()/2-8),float(getHeight()/2),float(getWidth()/2+8),float(getHeight()/2),1.0f);g.drawLine(float(getWidth()/2),float(getHeight()/2-8),float(getWidth()/2),float(getHeight()/2+8),1.0f);}
+         g.setColour(parameter?ink:dim);pixel::text(g,label,{3,3,getWidth()-6,23},21,true);
+         if(isChoice){int cx=getWidth()/2,cy=49;
+             if(pageIndex>=3&&knob==3){int type=juce::roundToInt(parameter->convertFrom0to1(parameter->getValue()));
+@@ -321,7 +321,7 @@
+         const int w = getWidth() / 8;
+         const int tTop = 4, tH = getHeight() - 108, vTop = getHeight() - 96, vH = 88;
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(0, 0, getWidth(), getHeight(), 1);
+-        g.drawHorizontalLine(tTop + tH / 2, 0, getWidth()); g.drawHorizontalLine(vTop - 4, 0, getWidth());
++        g.drawHorizontalLine(float(tTop + tH / 2), 0.0f, float(getWidth())); g.drawHorizontalLine(float(vTop - 4), 0.0f, float(getWidth()));
+         for (int i = 0; i < 8; ++i) {
+             const int pg = juce::jlimit(0, 15, pageOf());
+             const auto pre = "arp_s" + juce::String(pg) + "_" + juce::String(i) + "_";
+@@ -329,7 +329,7 @@
+             const float ve = processor.parameters.getRawParameterValue(pre + "velocity")->load();
+             const float ho = processor.parameters.getRawParameterValue(pre + "hold")->load();
+             const int x = i * w;
+-            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(c * w, 0, getHeight());
++            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(float(c * w), 0.0f, float(getHeight()));
+             g.setColour(ink);
+             const int mid = tTop + tH / 2;
+             const int hgt = juce::roundToInt(tr / 24.0f * (tH / 2 - 4));
+@@ -420,7 +420,7 @@
+     using ComboAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+     void addToggle(juce::ToggleButton& button, const juce::String& text, const juce::String& id) { button.setButtonText(text); button.setClickingTogglesState(true); addAndMakeVisible(button); toggleLinks.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.parameters, id, button)); }
+     void setStepParameter(int pg, int st, const char* field, float value) { const auto id = "arp_s" + juce::String(pg) + "_" + juce::String(st) + "_" + field; if (auto* p = processor.parameters.getParameter(id)) { p->beginChangeGesture(); p->setValueNotifyingHost(p->convertTo0to1(value)); p->endChangeGesture(); } }
+-    void randomizeStep(int pg, int st) { pg = juce::jlimit(0, 15, pg); st = juce::jlimit(0, 7, st); auto& r = juce::Random::getSystemRandom(); setStepParameter(pg, st, "hold", r.nextInt(2)); setStepParameter(pg, st, "transpose", r.nextInt(49) - 24); setStepParameter(pg, st, "velocity", r.nextInt(128)); lane.repaint(); repaint(); }
++    void randomizeStep(int pg, int st) { pg = juce::jlimit(0, 15, pg); st = juce::jlimit(0, 7, st); auto& r = juce::Random::getSystemRandom(); setStepParameter(pg, st, "hold", float(r.nextInt(2))); setStepParameter(pg, st, "transpose", float(r.nextInt(49) - 24)); setStepParameter(pg, st, "velocity", float(r.nextInt(128))); lane.repaint(); repaint(); }
+     void showRandomMenu() { juce::PopupMenu menu; menu.addItem(1, "RANDOM THIS PAGE (8 STEPS)"); menu.addItem(2, "RANDOM ALL PAGES (128 STEPS)"); menu.addItem(3, "RANDOM SELECTED STEP"); const juce::Component::SafePointer<ArpPage> safe(this); menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&randomButton), [safe](int result) { if (!safe || result <= 0) return; const int pg = safe->page.getSelectedItemIndex(); if (result == 1) { for (int i = 0; i < 8; ++i) safe->randomizeStep(pg, i); } else if (result == 2) { for (int allPg = 0; allPg < 16; ++allPg) for (int st = 0; st < 8; ++st) safe->randomizeStep(allPg, st); } else safe->randomizeStep(pg, safe->selectedStep); }); }
+     void rebindSteps() { lane.repaint(); repaint(); }
+     void timerCallback() override { const bool syncMode = clock.getSelectedId() == 2; rateGrid.setVisible(syncMode); timeRate.setVisible(!syncMode); if (auto* p = processor.parameters.getRawParameterValue("arp_step_page")) { const int wanted = juce::jlimit(1, 16, juce::roundToInt(p->load()) + 1); if (page.getSelectedId() != wanted) { page.setSelectedId(wanted, juce::dontSendNotification); rebindSteps(); } } lane.repaint(); repaint(); }
+@@ -450,7 +450,7 @@
+         for (int c = 0; c < 6; ++c) pixel::text(g, headers[c], {colX(c), 30, colWidth(c), 19}, 13, true);
+         if (sortColumn >= 2 && sortColumn <= 5) { g.setColour(ink.withAlpha(0.5f)); pixel::text(g, sortDescending ? "\xe2\x96\xbc" : "\xe2\x96\xb2", {colX(sortColumn) + colWidth(sortColumn) - 19, 30, 16, 18}, 12, true); }
+         for (int r = 0; r < 16; ++r) {
+-            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(y + 31, 8, 1128);
++            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(float(y + 31), 8.0f, 1128.0f);
+             for (int c = 1; c <= 5; ++c) {
+                 auto* par = cell(r, c); if (!par) continue; const int value = juce::roundToInt(par->convertFrom0to1(par->getValue()));
+                 if (c == 1) { drawCheck(g, colX(c) + 10, y + 7, value > 0); continue; }
+@@ -458,7 +458,7 @@
+                 pixel::text(g, text, {colX(c) + 5, y + 2, colWidth(c) - (c == 3 ? 32 : 8), 25}, c == 3 ? 14 : 16, c != 3);
+                 if (c == 3) drawCrosshair(g, colX(c) + colWidth(c) - 18, y + 15);
+             }
+-            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(colX(c) - 4, y, y + 31);
++            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(float(colX(c) - 4), float(y), float(y + 31));
+         }
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(8, 26, 1120, 16 * 34 + 36, 1);
+         g.setColour(dim); pixel::text(g, "DEPTH 0..100%   UNIPOLAR = ONE SIDE   BIPOLAR = TWO SIDES   GRAB EMPTY LEFT EDGE TO REORDER", {10, getHeight() - 24, 1115, 17}, 11, false);
+@@ -494,8 +494,8 @@
+     static int choiceCount(juce::RangedAudioParameter* p) { if (!p) return 0; const auto n = p->getAllValueStrings(); return n.size() > 0 ? n.size() : juce::roundToInt(p->convertFrom0to1(1.0f)) + 1; }
+     static juce::String sourceName(int v) { const char* n[]{"KEY", "VEL", "MACRO X", "MACRO Y", "LFO1", "LFO2", "LFO3", "PITCH WHL", "MOD WHL", "AFTERTOUCH", "MSEG", "STEP VEL", "STEP TRANS", "ARP GATE", "ARP RATE", "RANDOM"}; return n[juce::jlimit(0, 15, v)]; }
+     static juce::String polarityName(int v) { return v == 1 ? "BIPOLAR" : "UNIPOLAR"; }
+-    static void drawCheck(juce::Graphics& g, int x, int y, bool checked) { g.setColour(ink); g.drawRect(x, y, 18, 18, 1); if (checked) { g.drawLine(x + 4, y + 9, x + 8, y + 14, 2); g.drawLine(x + 8, y + 14, x + 15, y + 4, 2); } }
+-    static void drawCrosshair(juce::Graphics& g, int x, int y) { g.setColour(ink); g.drawEllipse(x - 6, y - 6, 12, 12, 1); g.drawLine(x - 9, y, x + 9, y, 1); g.drawLine(x, y - 9, x, y + 9, 1); }
++    static void drawCheck(juce::Graphics& g, int x, int y, bool checked) { const float fx = float(x), fy = float(y); g.setColour(ink); g.drawRect(fx, fy, 18.0f, 18.0f, 1.0f); if (checked) { g.drawLine(fx + 4.0f, fy + 9.0f, fx + 8.0f, fy + 14.0f, 2.0f); g.drawLine(fx + 8.0f, fy + 14.0f, fx + 15.0f, fy + 4.0f, 2.0f); } }
++    static void drawCrosshair(juce::Graphics& g, int x, int y) { const float fx = float(x), fy = float(y); g.setColour(ink); g.drawEllipse(fx - 6.0f, fy - 6.0f, 12.0f, 12.0f, 1.0f); g.drawLine(fx - 9.0f, fy, fx + 9.0f, fy, 1.0f); g.drawLine(fx, fy - 9.0f, fx, fy + 9.0f, 1.0f); }
+     int colX(int c) const { const int x[]{8, 28, 78, 245, 580, 735}; return x[juce::jlimit(0, 5, c)]; }
+     int colWidth(int c) const { const int w[]{18, 42, 165, 330, 150, 190}; return w[juce::jlimit(0, 5, c)]; }
+     int rowY(int r) const { return 58 + r * 34; }
+@@ -535,8 +535,8 @@
+         pixel::text(g, "MSEG / CURVE EDITOR", {12, 4, 600, 28}, 22);
+         pixel::text(g, juce::String(processor.msegPointCount()) + " POINTS", {620, 9, 140, 20}, 14, false);
+         g.setColour(ink.withAlpha(0.22f)); g.drawRect(graphX, graphY, graphW, graphH, 1);
+-        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(graphY + graphH * i / 4, graphX, graphX + graphW);
+-        for (int i = 1; i < 8; ++i) g.drawVerticalLine(graphX + graphW * i / 8, graphY, graphY + graphH);
++        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(float(graphY + graphH * i / 4), float(graphX), float(graphX + graphW));
++        for (int i = 1; i < 8; ++i) g.drawVerticalLine(float(graphX + graphW * i / 8), float(graphY), float(graphY + graphH));
+         juce::Path path;
+         for (int i = 0; i < processor.msegPointCount(); ++i) { const float px = pointToX(processor.msegPointX(i)), py = pointToY(processor.msegPointY(i)); if (i == 0) path.startNewSubPath(px, py); else path.lineTo(px, py); }
+         g.setColour(ink); g.strokePath(path, juce::PathStrokeType(2.0f));
+@@ -552,13 +552,13 @@
+         if (e.x < graphX || e.x > graphX + graphW || e.y < graphY || e.y > graphY + graphH) return;
+         if (e.mods.isPopupMenu()) { erasing = true; eraseAt(e.position); return; }
+         selected = nearestPoint(e.position);
+-        if (selected < 0) { processor.addMsegPoint(toX(e.x), toY(e.y)); selected = nearestPoint(e.position); }
++        if (selected < 0) { processor.addMsegPoint(toX(float(e.x)), toY(float(e.y))); selected = nearestPoint(e.position); }
+         draggingPoint = selected >= 0; repaint();
+     }
+     void mouseDrag(const juce::MouseEvent& e) override {
+         if (erasing) { eraseAt(e.position); return; }
+         if (!draggingPoint || selected < 0) return;
+-        const float x = toX(e.x), y = toY(e.y); float lo = selected == 0 ? 0.0f : processor.msegPointX(selected - 1) + 0.005f; float hi = selected == processor.msegPointCount() - 1 ? 1.0f : processor.msegPointX(selected + 1) - 0.005f; processor.setMsegPoint(selected, juce::jlimit(lo, hi, x), y); repaint();
++        const float x = toX(float(e.x)), y = toY(float(e.y)); float lo = selected == 0 ? 0.0f : processor.msegPointX(selected - 1) + 0.005f; float hi = selected == processor.msegPointCount() - 1 ? 1.0f : processor.msegPointX(selected + 1) - 0.005f; processor.setMsegPoint(selected, juce::jlimit(lo, hi, x), y); repaint();
+     }
+     void mouseUp(const juce::MouseEvent&) override { draggingPoint = false; erasing = false; }
+ private:
+@@ -592,7 +592,7 @@
+     void paint(juce::Graphics& g)override{
+         g.fillAll(juce::Colours::black);g.setColour(ink);pixel::text(g,"AMP / ENVELOPE",{20,8,650,26},22);
+         const juce::Rectangle<float> box(30,60,1110,225);g.setColour(ink.withAlpha(0.2f));g.drawRect(box);
+-        for(int i=1;i<4;++i)g.drawHorizontalLine(60+i*56,30,1140);
++        for(int i=1;i<4;++i)g.drawHorizontalLine(float(60+i*56),30.0f,1140.0f);
+         for(int i=0;i<=4;++i){float x=30.0f+1110.0f*static_cast<float>(i)/4.0f;g.drawVerticalLine(juce::roundToInt(x),60,285);g.setColour(ink);g.drawText(juce::String(duration*i/4,2)+" s",juce::roundToInt(x)-25,286,70,20,juce::Justification::centred);g.setColour(ink.withAlpha(0.2f));}
+         juce::Path path;for(size_t i=0;i<trace.size();++i){float x=30+1110*static_cast<float>(i)/std::max(1.0f,static_cast<float>(trace.size()-1));float y=285-225*trace[i];if(i==0)path.startNewSubPath(x,y);else path.lineTo(x,y);}g.setColour(ink);g.strokePath(path,juce::PathStrokeType(1.8f));
+         const float off=30+1110*static_cast<float>(gate.getValue()/1000/duration);if(off<1140){g.setColour(ink.withAlpha(0.5f));g.drawVerticalLine(juce::roundToInt(off),60,285);g.drawText("NOTE OFF",juce::roundToInt(off)+4,62,85,18,juce::Justification::left);}
+--- a/Monomachine_Nova_FX/Source/PluginEditor.cpp	2026-09-19 06:09:06.526182944 +0000
++++ b/Monomachine_Nova_FX/Source/PluginEditor.cpp	2026-09-19 05:54:57.688647614 +0000
+@@ -208,7 +208,7 @@
+         return juce::String(raw);
+     }
+     void paint(juce::Graphics& g)override{
+-        if(pickMode || flashTicks > 0){g.setColour(flashTicks > 0 ? ink : ink.withAlpha(0.28f));g.drawRect(getLocalBounds().reduced(2),flashTicks > 0 ? 3 : 2);g.drawLine(getWidth()/2-8,getHeight()/2,getWidth()/2+8,getHeight()/2,1);g.drawLine(getWidth()/2,getHeight()/2-8,getWidth()/2,getHeight()/2+8,1);}
++        if(pickMode || flashTicks > 0){g.setColour(flashTicks > 0 ? ink : ink.withAlpha(0.28f));g.drawRect(getLocalBounds().reduced(2),flashTicks > 0 ? 3 : 2);g.drawLine(float(getWidth()/2-8),float(getHeight()/2),float(getWidth()/2+8),float(getHeight()/2),1.0f);g.drawLine(float(getWidth()/2),float(getHeight()/2-8),float(getWidth()/2),float(getHeight()/2+8),1.0f);}
+         g.setColour(parameter?ink:dim);pixel::text(g,label,{3,3,getWidth()-6,23},21,true);
+         if(isChoice){int cx=getWidth()/2,cy=49;
+             if(pageIndex>=3&&knob==3){int type=juce::roundToInt(parameter->convertFrom0to1(parameter->getValue()));
+@@ -321,7 +321,7 @@
+         const int w = getWidth() / 8;
+         const int tTop = 4, tH = getHeight() - 108, vTop = getHeight() - 96, vH = 88;
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(0, 0, getWidth(), getHeight(), 1);
+-        g.drawHorizontalLine(tTop + tH / 2, 0, getWidth()); g.drawHorizontalLine(vTop - 4, 0, getWidth());
++        g.drawHorizontalLine(float(tTop + tH / 2), 0.0f, float(getWidth())); g.drawHorizontalLine(float(vTop - 4), 0.0f, float(getWidth()));
+         for (int i = 0; i < 8; ++i) {
+             const int pg = juce::jlimit(0, 15, pageOf());
+             const auto pre = "arp_s" + juce::String(pg) + "_" + juce::String(i) + "_";
+@@ -329,7 +329,7 @@
+             const float ve = processor.parameters.getRawParameterValue(pre + "velocity")->load();
+             const float ho = processor.parameters.getRawParameterValue(pre + "hold")->load();
+             const int x = i * w;
+-            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(c * w, 0, getHeight());
++            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(float(c * w), 0.0f, float(getHeight()));
+             g.setColour(ink);
+             const int mid = tTop + tH / 2;
+             const int hgt = juce::roundToInt(tr / 24.0f * (tH / 2 - 4));
+@@ -420,7 +420,7 @@
+     using ComboAttachment = juce::AudioProcessorValueTreeState::ComboBoxAttachment;
+     void addToggle(juce::ToggleButton& button, const juce::String& text, const juce::String& id) { button.setButtonText(text); button.setClickingTogglesState(true); addAndMakeVisible(button); toggleLinks.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.parameters, id, button)); }
+     void setStepParameter(int pg, int st, const char* field, float value) { const auto id = "arp_s" + juce::String(pg) + "_" + juce::String(st) + "_" + field; if (auto* p = processor.parameters.getParameter(id)) { p->beginChangeGesture(); p->setValueNotifyingHost(p->convertTo0to1(value)); p->endChangeGesture(); } }
+-    void randomizeStep(int pg, int st) { pg = juce::jlimit(0, 15, pg); st = juce::jlimit(0, 7, st); auto& r = juce::Random::getSystemRandom(); setStepParameter(pg, st, "hold", r.nextInt(2)); setStepParameter(pg, st, "transpose", r.nextInt(49) - 24); setStepParameter(pg, st, "velocity", r.nextInt(128)); lane.repaint(); repaint(); }
++    void randomizeStep(int pg, int st) { pg = juce::jlimit(0, 15, pg); st = juce::jlimit(0, 7, st); auto& r = juce::Random::getSystemRandom(); setStepParameter(pg, st, "hold", float(r.nextInt(2))); setStepParameter(pg, st, "transpose", float(r.nextInt(49) - 24)); setStepParameter(pg, st, "velocity", float(r.nextInt(128))); lane.repaint(); repaint(); }
+     void showRandomMenu() { juce::PopupMenu menu; menu.addItem(1, "RANDOM THIS PAGE (8 STEPS)"); menu.addItem(2, "RANDOM ALL PAGES (128 STEPS)"); menu.addItem(3, "RANDOM SELECTED STEP"); const juce::Component::SafePointer<ArpPage> safe(this); menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&randomButton), [safe](int result) { if (!safe || result <= 0) return; const int pg = safe->page.getSelectedItemIndex(); if (result == 1) { for (int i = 0; i < 8; ++i) safe->randomizeStep(pg, i); } else if (result == 2) { for (int allPg = 0; allPg < 16; ++allPg) for (int st = 0; st < 8; ++st) safe->randomizeStep(allPg, st); } else safe->randomizeStep(pg, safe->selectedStep); }); }
+     void rebindSteps() { lane.repaint(); repaint(); }
+     void timerCallback() override { const bool syncMode = clock.getSelectedId() == 2; rateGrid.setVisible(syncMode); timeRate.setVisible(!syncMode); if (auto* p = processor.parameters.getRawParameterValue("arp_step_page")) { const int wanted = juce::jlimit(1, 16, juce::roundToInt(p->load()) + 1); if (page.getSelectedId() != wanted) { page.setSelectedId(wanted, juce::dontSendNotification); rebindSteps(); } } lane.repaint(); repaint(); }
+@@ -450,7 +450,7 @@
+         for (int c = 0; c < 6; ++c) pixel::text(g, headers[c], {colX(c), 30, colWidth(c), 19}, 13, true);
+         if (sortColumn >= 2 && sortColumn <= 5) { g.setColour(ink.withAlpha(0.5f)); pixel::text(g, sortDescending ? "\xe2\x96\xbc" : "\xe2\x96\xb2", {colX(sortColumn) + colWidth(sortColumn) - 19, 30, 16, 18}, 12, true); }
+         for (int r = 0; r < 16; ++r) {
+-            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(y + 31, 8, 1128);
++            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(float(y + 31), 8.0f, 1128.0f);
+             for (int c = 1; c <= 5; ++c) {
+                 auto* par = cell(r, c); if (!par) continue; const int value = juce::roundToInt(par->convertFrom0to1(par->getValue()));
+                 if (c == 1) { drawCheck(g, colX(c) + 10, y + 7, value > 0); continue; }
+@@ -458,7 +458,7 @@
+                 pixel::text(g, text, {colX(c) + 5, y + 2, colWidth(c) - (c == 3 ? 32 : 8), 25}, c == 3 ? 14 : 16, c != 3);
+                 if (c == 3) drawCrosshair(g, colX(c) + colWidth(c) - 18, y + 15);
+             }
+-            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(colX(c) - 4, y, y + 31);
++            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(float(colX(c) - 4), float(y), float(y + 31));
+         }
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(8, 26, 1120, 16 * 34 + 36, 1);
+         g.setColour(dim); pixel::text(g, "DEPTH 0..100%   UNIPOLAR = ONE SIDE   BIPOLAR = TWO SIDES   GRAB EMPTY LEFT EDGE TO REORDER", {10, getHeight() - 24, 1115, 17}, 11, false);
+@@ -494,8 +494,8 @@
+     static int choiceCount(juce::RangedAudioParameter* p) { if (!p) return 0; const auto n = p->getAllValueStrings(); return n.size() > 0 ? n.size() : juce::roundToInt(p->convertFrom0to1(1.0f)) + 1; }
+     static juce::String sourceName(int v) { const char* n[]{"KEY", "VEL", "MACRO X", "MACRO Y", "LFO1", "LFO2", "LFO3", "PITCH WHL", "MOD WHL", "AFTERTOUCH", "MSEG", "STEP VEL", "STEP TRANS", "ARP GATE", "ARP RATE", "RANDOM"}; return n[juce::jlimit(0, 15, v)]; }
+     static juce::String polarityName(int v) { return v == 1 ? "BIPOLAR" : "UNIPOLAR"; }
+-    static void drawCheck(juce::Graphics& g, int x, int y, bool checked) { g.setColour(ink); g.drawRect(x, y, 18, 18, 1); if (checked) { g.drawLine(x + 4, y + 9, x + 8, y + 14, 2); g.drawLine(x + 8, y + 14, x + 15, y + 4, 2); } }
+-    static void drawCrosshair(juce::Graphics& g, int x, int y) { g.setColour(ink); g.drawEllipse(x - 6, y - 6, 12, 12, 1); g.drawLine(x - 9, y, x + 9, y, 1); g.drawLine(x, y - 9, x, y + 9, 1); }
++    static void drawCheck(juce::Graphics& g, int x, int y, bool checked) { const float fx = float(x), fy = float(y); g.setColour(ink); g.drawRect(fx, fy, 18.0f, 18.0f, 1.0f); if (checked) { g.drawLine(fx + 4.0f, fy + 9.0f, fx + 8.0f, fy + 14.0f, 2.0f); g.drawLine(fx + 8.0f, fy + 14.0f, fx + 15.0f, fy + 4.0f, 2.0f); } }
++    static void drawCrosshair(juce::Graphics& g, int x, int y) { const float fx = float(x), fy = float(y); g.setColour(ink); g.drawEllipse(fx - 6.0f, fy - 6.0f, 12.0f, 12.0f, 1.0f); g.drawLine(fx - 9.0f, fy, fx + 9.0f, fy, 1.0f); g.drawLine(fx, fy - 9.0f, fx, fy + 9.0f, 1.0f); }
+     int colX(int c) const { const int x[]{8, 28, 78, 245, 580, 735}; return x[juce::jlimit(0, 5, c)]; }
+     int colWidth(int c) const { const int w[]{18, 42, 165, 330, 150, 190}; return w[juce::jlimit(0, 5, c)]; }
+     int rowY(int r) const { return 58 + r * 34; }
+@@ -535,8 +535,8 @@
+         pixel::text(g, "MSEG / CURVE EDITOR", {12, 4, 600, 28}, 22);
+         pixel::text(g, juce::String(processor.msegPointCount()) + " POINTS", {620, 9, 140, 20}, 14, false);
+         g.setColour(ink.withAlpha(0.22f)); g.drawRect(graphX, graphY, graphW, graphH, 1);
+-        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(graphY + graphH * i / 4, graphX, graphX + graphW);
+-        for (int i = 1; i < 8; ++i) g.drawVerticalLine(graphX + graphW * i / 8, graphY, graphY + graphH);
++        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(float(graphY + graphH * i / 4), float(graphX), float(graphX + graphW));
++        for (int i = 1; i < 8; ++i) g.drawVerticalLine(float(graphX + graphW * i / 8), float(graphY), float(graphY + graphH));
+         juce::Path path;
+         for (int i = 0; i < processor.msegPointCount(); ++i) { const float px = pointToX(processor.msegPointX(i)), py = pointToY(processor.msegPointY(i)); if (i == 0) path.startNewSubPath(px, py); else path.lineTo(px, py); }
+         g.setColour(ink); g.strokePath(path, juce::PathStrokeType(2.0f));
+@@ -552,13 +552,13 @@
+         if (e.x < graphX || e.x > graphX + graphW || e.y < graphY || e.y > graphY + graphH) return;
+         if (e.mods.isPopupMenu()) { erasing = true; eraseAt(e.position); return; }
+         selected = nearestPoint(e.position);
+-        if (selected < 0) { processor.addMsegPoint(toX(e.x), toY(e.y)); selected = nearestPoint(e.position); }
++        if (selected < 0) { processor.addMsegPoint(toX(float(e.x)), toY(float(e.y))); selected = nearestPoint(e.position); }
+         draggingPoint = selected >= 0; repaint();
+     }
+     void mouseDrag(const juce::MouseEvent& e) override {
+         if (erasing) { eraseAt(e.position); return; }
+         if (!draggingPoint || selected < 0) return;
+-        const float x = toX(e.x), y = toY(e.y); float lo = selected == 0 ? 0.0f : processor.msegPointX(selected - 1) + 0.005f; float hi = selected == processor.msegPointCount() - 1 ? 1.0f : processor.msegPointX(selected + 1) - 0.005f; processor.setMsegPoint(selected, juce::jlimit(lo, hi, x), y); repaint();
++        const float x = toX(float(e.x)), y = toY(float(e.y)); float lo = selected == 0 ? 0.0f : processor.msegPointX(selected - 1) + 0.005f; float hi = selected == processor.msegPointCount() - 1 ? 1.0f : processor.msegPointX(selected + 1) - 0.005f; processor.setMsegPoint(selected, juce::jlimit(lo, hi, x), y); repaint();
+     }
+     void mouseUp(const juce::MouseEvent&) override { draggingPoint = false; erasing = false; }
+ private:
+@@ -592,7 +592,7 @@
+     void paint(juce::Graphics& g)override{
+         g.fillAll(juce::Colours::black);g.setColour(ink);pixel::text(g,"AMP / ENVELOPE",{20,8,650,26},22);
+         const juce::Rectangle<float> box(30,60,1110,225);g.setColour(ink.withAlpha(0.2f));g.drawRect(box);
+-        for(int i=1;i<4;++i)g.drawHorizontalLine(60+i*56,30,1140);
++        for(int i=1;i<4;++i)g.drawHorizontalLine(float(60+i*56),30.0f,1140.0f);
+         for(int i=0;i<=4;++i){float x=30.0f+1110.0f*static_cast<float>(i)/4.0f;g.drawVerticalLine(juce::roundToInt(x),60,285);g.setColour(ink);g.drawText(juce::String(duration*i/4,2)+" s",juce::roundToInt(x)-25,286,70,20,juce::Justification::centred);g.setColour(ink.withAlpha(0.2f));}
+         juce::Path path;for(size_t i=0;i<trace.size();++i){float x=30+1110*static_cast<float>(i)/std::max(1.0f,static_cast<float>(trace.size()-1));float y=285-225*trace[i];if(i==0)path.startNewSubPath(x,y);else path.lineTo(x,y);}g.setColour(ink);g.strokePath(path,juce::PathStrokeType(1.8f));
+         const float off=30+1110*static_cast<float>(gate.getValue()/1000/duration);if(off<1140){g.setColour(ink.withAlpha(0.5f));g.drawVerticalLine(juce::roundToInt(off),60,285);g.drawText("NOTE OFF",juce::roundToInt(off)+4,62,85,18,juce::Justification::left);}

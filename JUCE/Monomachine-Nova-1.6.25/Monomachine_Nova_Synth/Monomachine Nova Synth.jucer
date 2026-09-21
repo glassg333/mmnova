@@ -1,0 +1,105 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<JUCERPROJECT id="NovaUniS" name="Monomachine Nova Synth" projectType="audioplug" version="1.6.25" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.unified.synth" pluginName="Monomachine Nova Synth" pluginDesc="Monomachine Nova Synth" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="NvSy" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn" pluginVST3Category="Instrument,Synth" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+  <MAINGROUP id="NovaMain" name="Monomachine Nova Synth">
+    <GROUP id="g1" name="Source">
+      <FILE id="f2" name="NovaConfig.h" compile="0" resource="0" file="Source/NovaConfig.h" />
+      <FILE id="f3" name="NovaDSP.h" compile="0" resource="0" file="Source/NovaDSP.h" />
+      <FILE id="f4" name="NovaData.h" compile="0" resource="0" file="Source/NovaData.h" />
+      <FILE id="f5" name="PixelFont.h" compile="0" resource="0" file="Source/PixelFont.h" />
+      <FILE id="f6" name="PluginEditor.cpp" compile="1" resource="0" file="Source/PluginEditor.cpp" />
+      <FILE id="f7" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h" />
+      <FILE id="f8" name="PluginProcessor.cpp" compile="1" resource="0" file="Source/PluginProcessor.cpp" />
+      <FILE id="f9" name="PluginProcessor.h" compile="0" resource="0" file="Source/PluginProcessor.h" />
+      <GROUP id="g10" name="dsp">
+        <FILE id="f11" name="monomachine_bbox.hpp" compile="0" resource="0" file="Source/dsp/monomachine_bbox.hpp" />
+        <FILE id="f50" name="ChorusCore.h" compile="0" resource="0" file="Source/dsp/ChorusCore.h" />
+        <FILE id="f51" name="ChorusCore.cpp" compile="1" resource="0" file="Source/dsp/ChorusCore.cpp" />
+        <FILE id="f52" name="ChorusTables.h" compile="0" resource="0" file="Source/dsp/ChorusTables.h" />
+        <FILE id="f53" name="AudioAdapter.h" compile="0" resource="0" file="Source/dsp/AudioAdapter.h" />
+        <FILE id="f54" name="AudioAdapter.cpp" compile="1" resource="0" file="Source/dsp/AudioAdapter.cpp" />
+        <FILE id="f12" name="monomachine_chorus.hpp" compile="0" resource="0" file="Source/dsp/monomachine_chorus.hpp" />
+        <FILE id="f13" name="monomachine_effects.hpp" compile="0" resource="0" file="Source/dsp/monomachine_effects.hpp" />
+        <FILE id="f14" name="monomachine_filter.hpp" compile="0" resource="0" file="Source/dsp/monomachine_filter.hpp" />
+        <FILE id="f15" name="monomachine_fm_dynamic.hpp" compile="0" resource="0" file="Source/dsp/monomachine_fm_dynamic.hpp" />
+        <FILE id="f16" name="monomachine_fm_stat_par.hpp" compile="0" resource="0" file="Source/dsp/monomachine_fm_stat_par.hpp" />
+        <FILE id="f17" name="monomachine_voice_chain.hpp" compile="0" resource="0" file="Source/dsp/monomachine_voice_chain.hpp" />
+      </GROUP>
+      <GROUP id="g18" name="models">
+        <FILE id="f19" name="arpeggiator.hpp" compile="0" resource="0" file="Source/models/arpeggiator.hpp" />
+        <FILE id="f20" name="exact_firmware_fm_dispatch.hpp" compile="0" resource="0" file="Source/models/exact_firmware_fm_dispatch.hpp" />
+        <FILE id="f21" name="machine_definitions.hpp" compile="0" resource="0" file="Source/models/machine_definitions.hpp" />
+        <FILE id="f22" name="modulation_matrix.hpp" compile="0" resource="0" file="Source/models/modulation_matrix.hpp" />
+        <FILE id="f23" name="parameter_conversions.hpp" compile="0" resource="0" file="Source/models/parameter_conversions.hpp" />
+        <FILE id="f24" name="track_pages.hpp" compile="0" resource="0" file="Source/models/track_pages.hpp" />
+      </GROUP>
+      <GROUP id="g25" name="ui">
+        <FILE id="f26" name="MonomachineGuiLayout.hpp" compile="0" resource="0" file="Source/ui/MonomachineGuiLayout.hpp" />
+      </GROUP>
+      <FILE id="novaidentity" name="ProjectIdentity.h" compile="0" resource="0" file="Source/ProjectIdentity.h" />
+      <FILE id="noisecontour" name="NoiseContour.h" compile="0" resource="0" file="Source/dsp/NoiseContour.h" />
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova Synth" optimisation="1" winArchitecture="x64" extraCompilerFlags="/utf-8" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova Synth" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" extraCompilerFlags="/utf-8" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+      </MODULEPATHS>
+    </VS2022>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova Synth" optimisation="1" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova Synth" optimisation="3" linkTimeOptimisation="0" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Monomachine Nova Synth" optimisation="1" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Monomachine Nova Synth" optimisation="3" linkTimeOptimisation="0" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+  </MODULES>
+  <JUCEOPTIONS JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0" JUCE_VST3_CAN_REPLACE_VST2="0" />
+</JUCERPROJECT>

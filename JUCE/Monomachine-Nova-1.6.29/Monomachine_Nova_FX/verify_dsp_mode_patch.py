@@ -1,0 +1,737 @@
+#!/usr/bin/env python3
+"""Static checks for the DSP MODE / filter modes patch (revision v6).
+
+Компилятор не нужен: скрипт читает исходники и проверяет обещания правки.
+
+  1. dsp/mnm/MnmRealFilter.hpp -- основной фильтр: реальные таблицы, устойчивый
+     TPT-SVF, DC-блокер, порядок аргументов страницы FILT, живое отпускание ноты.
+  2. dsp/mnm/MnmKernel.hpp -- дубль FilterCore/real_detail удалён, std::clamp исправлен.
+  3. dsp/mnm/MnmFilterModes.hpp (cascade/dual/raw) и альтернативные движки
+     MnmDist2.hpp / MnmFm2.hpp / MnmBbox2.hpp -- УДАЛЕНЫ (v5/v6).
+     режимов у каждого раздела, схема состояния 10.
+     никаких веток dist2/fm2/bbox2, хорус и FX как в 1.6.0 (линейный INP, без домешиваний).
+  6. dsp/monomachine_bbox.hpp -- BBOX: старый закон RTIM (5...255 мс) с инверсией,
+     интервал никогда не 0, сглаживание по сэмплам, рабочий кит = старый + снейр/томы.
+  7. PluginProcessor.cpp -- одно правило допустимости режима + миграция на схему 10.
+  9. Обещания 1.6.5: unity-дилей (wet отдельно, dry не удваивается), repitch-slew
+     без кликов, раздельные FM-файлы (stat/par), FM+STAT old удалён, FM+PAR old
+     с устойчивым полом огибающих, ROUTE скрыт из меню, папки-категории и
+     описание цепочки, параметр dly_repitch, drag-and-release модуляция с
+     кнопок LFO, /utf-8 в .jucer и CMake для MSVC.
+
+Run:  python3 verify_dsp_mode_patch.py <path-to-Monomachine_Nova_FX/Source>
+"""
+
+from pathlib import Path
+import re
+import sys
+
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def balanced(text: str) -> bool:
+    return text.count("{") == text.count("}")
+
+
+def without_comments(text: str) -> str:
+    return "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("//"))
+
+
+def main() -> int:
+    root = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
+    real = root / "dsp" / "mnm" / "MnmRealFilter.hpp"
+    kernel = root / "dsp" / "mnm" / "MnmKernel.hpp"
+    removed = root / "dsp" / "mnm" / "MnmFilterModes.hpp"
+    bbox = root / "dsp" / "monomachine_bbox.hpp"
+    modes = root / "models" / "DspModes.hpp"
+    dsp = root / "NovaDSP.h"
+    editor = root / "PluginEditor.cpp"
+    processor = root / "PluginProcessor.cpp"
+
+    for path in (real, kernel, bbox, modes, dsp, editor, processor):
+        if not path.is_file():
+            raise AssertionError(f"missing file: {path}")
+
+    tests = root.parent / "tests" / "DeliveryTests.cpp"
+
+    failures = []
+
+    def check(ok: bool, message: str) -> None:
+        print(("OK   " if ok else "FAIL ") + message)
+        if not ok:
+            failures.append(message)
+
+    def present(text: str, needle: str, message: str) -> None:
+        check(needle in text, message)
+
+    def absent(text: str, needle: str, message: str) -> None:
+        check(needle not in text, message)
+
+    # 1. Основной фильтр
+    text = read(real)
+    check(balanced(text), "MnmRealFilter.hpp: скобки сбалансированы")
+    present(text, "class RealFilterCore", "MnmRealFilter.hpp: определён RealFilterCore")
+    present(text, "using FilterCore = RealFilterCore", "MnmRealFilter.hpp: FilterCore = реальный фильтр")
+    present(text, "class MnmResoSVF", "MnmRealFilter.hpp: резонанс -- устойчивый TPT-SVF")
+    present(text, "DcBlocker", "MnmRealFilter.hpp: DC-блокер на выходе активного фильтра")
+    present(text, "kMaxQ", "MnmRealFilter.hpp: закон Q вынесен в константу kMaxQ")
+    present(text, "float envAtk, float envDec, float bofs, float wofs",
+            "MnmRealFilter.hpp: порядок аргументов = страница FILT (ATK, DEC, BOFS, WOFS)")
+    present(text, "release() noexcept { released_ = true; }",
+            "MnmRealFilter.hpp: отпускание ноты возвращает огибающую к нулю")
+    absent(text, "bp1 += g1", "MnmRealFilter.hpp: старого Chamberlin больше нет")
+    absent(text, "class FilterCore {", "MnmRealFilter.hpp: нет второго класса FilterCore")
+
+    # 2. Ядро без дубля
+    text = read(kernel)
+    absent(text, "class FilterCore {", "MnmKernel.hpp: дубль класса FilterCore удалён")
+    absent(text, "kRealSVF_x0_F528BD", "MnmKernel.hpp: дубль констант SVF удалён")
+    absent(text, "namespace real_detail", "MnmKernel.hpp: дубль real_detail удалён")
+    present(text, "class FilterCoreLegacy", "MnmKernel.hpp: резервный FilterCoreLegacy сохранён")
+    absent(text, "std::clamp(attack,0,127)", "MnmKernel.hpp: std::clamp(float,0,127) исправлен")
+
+    # 3. Мусорные режимы удалены
+    check(not removed.is_file(), "dsp/mnm/MnmFilterModes.hpp удалён из сборки (*.bak-v5)")
+    for name in ("MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp"):
+        check(not (root / "dsp" / "mnm" / name).is_file(),
+              f"dsp/mnm/{name} удалён из сборки (*.bak-v6)")
+
+    live = [p for p in (dsp, modes, processor, editor, real, kernel, bbox) ]
+    for word in ("MnmFilterModes.hpp", "SvfCascadeFilter", "DualSectionFilter", "TruthfulRawFilter",
+                 "cascadeFilter", "dualFilter", "rawFilter", "rawBlockCounter",
+                 "dspModeCascade", "dspModeDual", "dspModeRaw", "filt_detail",
+                 "MnmDist2.hpp", "MnmFm2.hpp", "MnmBbox2.hpp",
+                 "Dist2Core", "FMPlusBlock2", "Bbox2Core",
+                 "dspModeDist2", "dspModeFm2", "dspModeBbox2",
+                 "fm2Core", "bbox2Core", "dist2Core",
+                 "dspModeIsDistOnly", "dspModeIsSyntOnly"):
+        hits = [p.name for p in live if word in without_comments(read(p))]
+        if hits:
+            check(False, f"{word} остался в коде: " + ", ".join(hits))
+        else:
+            check(True, f"{word} не встречается в коде DSP-части")
+
+    # 4. Реестр режимов
+    text = read(modes)
+    present(text, '"mnm|old|fma"', "1.6.14 DspModes.hpp: список режимов = mnm|old|fma")
+    check(re.search(r"dspModeMnm\s*=\s*0\b", text) is not None, "dspModeMnm = 0 (основной)")
+    check(re.search(r"dspModeOld\s*=\s*1\b", text) is not None, "dspModeOld = 1 (резерв)")
+    check(re.search(r"dspModeCount\s*=\s*3\b", text) is not None, "1.6.14 dspModeCount = 3 (mnm/old/fma)")
+    present(text, "dspSectionModeChoices", "DspModes.hpp: список режимов на каждый раздел")
+    present(text, "dspModeAllowedForSection", "DspModes.hpp: правило допустимости режима")
+    present(text, "dspModeLegacyIndexToCurrent", "DspModes.hpp: перевод старой нумерации режимов")
+    present(text, "kDspModeSchemaVersion = 11", "DspModes.hpp: версия схемы состояния = 11 (per-machine SYNT mode)")
+    present(text, "kShowBackupModes", "DspModes.hpp: резервные режимы скрываются флагом")
+    present(text, "dspMachineModeParamId", "DspModes.hpp: режим SYNT хранится по каждой машине (mode_synt_m<id>)")
+    table = re.search(r"dspSectionModeChoices\(int section\)\s*\{(.*?)\n\}", text, re.S)
+    check(table is not None, "DspModes.hpp: найдена таблица режимов по разделам")
+    body = table.group(1) if table else ""
+    for section, expect in (("DspSynt", "mnm|old|fma"), ("DspAmp", "mnm"), ("DspFilter", "mnm|old"),
+                            ("DspDist", "mnm|old"), ("DspDelay", "mnm|old"),
+                            ("DspRouting", "mnm"), ("DspChorus", "mnm")):
+        m = re.search(r"case %s:\s+return \"([^\"]+)\"" % section, body)
+        check(bool(m) and m.group(1) == expect,
+              f"DspModes.hpp: {section} -> {expect}")
+        present(text, r'case DspFilter: return "FILT: mnm = the real filter',
+            "DspModes.hpp: у FILT основной режим описан как реальный фильтр прошивки")
+    absent(text, r'"FILT: mnm = ' + '\\xd0',
+            "DspModes.hpp: русские \\xNN-строки описаний режимов убраны (кракозябры)")
+
+    # 5. Диспетчер
+    text = read(dsp)
+    present(text, "MnmRealFilter.hpp", "NovaDSP.h: подключён основной фильтр")
+    call = re.search(r"mnmFilter\.setParameters\(([^;]*)\)", text)
+    check(call is not None, "NovaDSP.h: вызов основного фильтра найден")
+    if call:
+        args = re.sub(r"\s+", "", call.group(1))
+        check("params[20]-64" not in args and "params[21]-64" not in args,
+              "NovaDSP.h: ATK/DEC не передаются как BOFS/WOFS (баг «по частотам» закрыт)")
+        check(args == "fltBase,fltWidth,fltHpq,fltLpq,fltAtk,fltDec,fltBofs,fltWofs",
+              "NovaDSP.h: порядок аргументов fltBase..fltWofs")
+    present(text, "filter.processStereo(l,r,l,r", "NovaDSP.h: резервный режим old (MonomachineFilter) на месте")
+    present(text, "bbox.setParameters(b(0),b(1),b(4),b(5),b(2),b(3)>0,false)",
+            "NovaDSP.h: BBOX получает ручки как в 1.6.0 (PTCH,ST/RT,START-позиция,SLOT,RND)")
+    present(text, "bbox.setChromatic(b(6)>0)", "NovaDSP.h: хроматический режим BBOX на месте")
+    present(text, "if(id!=15){const float g=p[7]/64.0f;",
+            "NovaDSP.h: INP для FX -- линейный, как в 1.6.0 (без квадратичного «FIXED»)")
+    present(text, "const float wet=norm(p[3]);l[i]=dl*(1-wet)+wl*wet;",
+            "NovaDSP.h: хорус микшируется dry->wet по MIX (как в 1.6.0, без домешивания x1.5)")
+    for word in ("inpGainQuad", "chorusMakeup", "reverbMakeup", "FIXED"):
+        absent(without_comments(text), word, f"NovaDSP.h: нет остатков приёма «{word}»")
+
+    # 6. BBOX
+    text = read(bbox)
+    check(balanced(text), "monomachine_bbox.hpp: скобки сбалансированы")
+    present(text, "float retrigMs = 5.0f + ((127.0f - static_cast<float>(rtim)) / 127.0f) * 250.0f;",
+            "BBOX: старый закон RTIM (5...255 мс) с инверсией")
+    absent(text, "255.0f * std::pow((127.0f-static_cast<float>(rtim))/126.0f,2.0f)",
+           "BBOX: прежняя формула с интервалом 0 мс удалена")
+    present(text, "static constexpr size_t kDeclickSamples = 16;",
+            "BBOX: сглаживание задано в сэмплах (kDeclickSamples)")
+    present(text, "samplesToRestart", "BBOX: спад доходит до нуля к перезапуску (деклик)")
+    present(text, "static const bool modernVoice[24]=", "BBOX: таблица голосов нового кита")
+    present(text, "x*x*x*std::min", "BBOX 1.6.12: STRT -- кубическая шкала с шапкой ~25 мс")
+    present(text, "void generateLegacyKit()", "BBOX: полностью старый кит оставлен рядом")
+
+    # 7. Аудио-поток
+    text = read(processor)
+    present(text, "dspModeAllowedForSection(i,idx)",
+            "PluginProcessor.cpp: режим проверяется списком своего раздела")
+    absent(text, "dspModeIsFilterOnly(idx)", "PluginProcessor.cpp: ad-hoc правил больше нет")
+    present(text, "dspModeLegacyIndexToCurrent", "PluginProcessor.cpp: старая нумерация переводится")
+    present(text, "state.setProperty(\"schema\",monomachine::kDspModeSchemaVersion,nullptr)",
+            "PluginProcessor.cpp: схема состояния обновлена")
+    present(text, "if(schema<10)", "PluginProcessor.cpp: миграция состояний до схемы 10")
+    present(text, "static_cast<float>(monomachine::dspModeOld),nullptr",
+            "PluginProcessor.cpp: старые состояния без режимов заполняются old (как в DeliveryTests)")
+
+    # 8. Меню
+    text = read(editor)
+    bounds = re.search(r"dspModeButton\.setBounds\(([^)]*)\)", text)
+    check(bounds is not None, "PluginEditor.cpp: dspModeButton позиционируется")
+    if bounds:
+        values = [int(v) for v in re.findall(r"-?\d+", bounds.group(1))]
+        x, y = values[0], values[1]
+        check(y != 58 or x >= 1014, "PluginEditor.cpp: dspModeButton не залезает на строку ARP")
+    present(text, "dspModePrimaryForSection", "PluginEditor.cpp: в меню основной режим идёт первым")
+    present(text, "dspModeAllowedForSection", "PluginEditor.cpp: меню предлагает только режимы раздела")
+    present(text, "BACKUP (not the primary engine):", "PluginEditor.cpp: резервные режимы помечены отдельной группой (1.6.8: текст на английском)")
+    present(text, "ENCODING TEST: ", "PluginEditor.cpp: проверочная строка кодировки на месте")
+    absent(text, "DSP MODE -- \\xd0", "PluginEditor.cpp: русские \\xNN-строки тултипа убраны")
+
+    # 9. Тесты
+    if tests.is_file():
+        text = read(tests)
+        present(text, "RTIM 127 must be about 5 ms, not zero",
+                "DeliveryTests.cpp: ожидание нового закона RTIM")
+        present(text, "new snare/toms missing from the working kit",
+                "DeliveryTests.cpp: ожидание рабочего кита (старый + снейр/томы)")
+    else:
+        print("..   tests/DeliveryTests.cpp не найден рядом с проектом -- проверки тестов пропущены")
+
+    # 10. Обещания 1.6.5
+    delay = root / "dsp" / "mnm" / "MnmDelay.hpp"
+    fmpar = root / "dsp" / "monomachine_fm_par.hpp"
+    fmstat = root / "dsp" / "monomachine_fm_stat.hpp"
+    fmold = root / "dsp" / "monomachine_fm_stat_par.hpp"
+    data = root / "NovaData.h"
+    header = root / "PluginProcessor.h"
+
+    text = read(delay)
+    present(text, "float send, bool pingPong,", "1.6.5 MnmDelay: send вместо mix в сигнатуре")
+    present(text, "(pingPong ? 0.5f * (inL + inR) : inL) * send", "1.6.5 MnmDelay: в линию пишется вход*send (топология old, 1.6.6)")
+    present(text, "outL=aL;", "1.6.5 MnmDelay: выход -- чистый wet, dry не удваивается")
+    present(text, "smoothSamples", "1.6.5 MnmDelay: slewing длины линии (repitch без кликов)")
+
+    text = read(dsp)
+    present(text, "dsp/monomachine_fm_par.hpp", "1.6.5 NovaDSP: FM+PAR в отдельном файле")
+    present(text, "dsp/monomachine_fm_stat.hpp", "1.6.5 NovaDSP: FM+STAT в отдельном файле")
+    absent(text, "monomachine_fm_stat_par.hpp", "1.6.5 NovaDSP: совмещённый fm_stat_par не подключён")
+    absent(text, "MonomachineFmStatic stat;", "1.6.5 NovaDSP: old-движок FM+STAT удалён")
+    absent(text, "stat.processStereo", "1.6.5 NovaDSP: вызовов stat больше нет")
+    present(text, "(syntMode==monomachine::dspModeMnm||id==8)&&(id==8||id==9||id==10)",
+            "1.6.5 NovaDSP: машина 8 (FM+STAT) всегда на mnm")
+    present(text, "mnmDelay.process(params[27],feedback,send,pingPong,ppMode,std::max(repitchSlew,declickSlew),dryL,dryR,wetL,wetR)",
+            "1.6.5 NovaDSP: wet добавляется один раз (unity thru); 1.6.12: ppMode в вызове")
+    present(text, "void setRepitch(float raw,float smoothRaw)", "1.6.5/1.6.8 NovaDSP: настройка скорости repitch (непрерывная шкала + антиклик)")
+
+    check(fmpar.is_file(), "1.6.5 monomachine_fm_par.hpp существует")
+    if fmpar.is_file():
+        t2 = read(fmpar)
+        check(balanced(t2), "1.6.5 fm_par: скобки сбалансированы")
+        present(t2, "class MonomachineFmParallel", "1.6.5 fm_par: класс FM+PAR на месте")
+        present(t2, "getFmListedRatio", "1.6.5 fm_par: таблица ratios на месте")
+        present(t2, "kSustain = 0.45f", "1.6.5 fm_par: устойчивый пол 45% (1FRQ/1ENV слышны всю ноту)")
+        present(t2, "0.25f * static_cast<float>(m_sampleRate)", "1.6.5 fm_par: огибающие 0.25/0.45/0.65 с вместо 20 мс")
+    check(fmstat.is_file(), "1.6.5 monomachine_fm_stat.hpp существует")
+    check(not fmold.is_file(), "1.6.5 совмещённый monomachine_fm_stat_par.hpp удалён (.bak-v7)")
+
+    text = read(modes)
+    present(text, "dspSectionVisibleInMenu", "1.6.5 DspModes: видимость разделов в меню")
+    present(text, "return section != DspRouting && section != DspAmp;", "1.6.5 DspModes: ROUTE не выбирается (1.6.19: и AMP)")
+    present(text, "dspSectionCategory", "1.6.5 DspModes: папки-категории разделов")
+    present(text, "dspRouteDescription", "1.6.5 DspModes: подробное описание цепочки для наведения")
+
+    text = read(data)
+    present(text, "dly_repitch", "1.6.5/1.6.8 NovaData: параметр dly_repitch (c 1.6.8 непрерывный 0..3)")
+    present(text, "dly_repitch_smooth", "1.6.8 NovaData: параметр dly_repitch_smooth (антиклик-доводка)")
+
+    text = read(processor)
+    present(text, "addRouteFromSource", "1.6.5 Processor: маршрут из drag-and-release")
+    present(text, "chain.setRepitch", "1.6.5 Processor: repitch доходит до цепочки")
+    if header.is_file():
+        present(read(header), "void addRouteFromSource(int src, uint8_t target);",
+                "1.6.5 Processor.h: объявлен addRouteFromSource")
+
+    text = read(editor)
+    present(text, "class ModSourceButton", "1.6.5 Editor: одинаковые кнопки LFO1/2/3")
+    present(text, "lfo1Button", "1.6.5 Editor: LFO1 теперь кнопка")
+    present(text, "beginModDrag", "1.6.5 Editor: модуляция прицелом перетаскиванием")
+    present(text, "endModDrag", "1.6.5 Editor: отпустил на ручке -- маршрут назначен")
+    present(text, "\"mseg_rate\",\"RATE\"", "1.6.5 Editor: MSEG-панель с быстрыми ручками")
+    absent(text, "showLfo3", "1.6.5 Editor: старого переключателя showLfo3 нет")
+    present(text, "BUILD 1.6.29", "1.6.29 Editor: маркер версии сборки (обновляется +1 каждым патчем)")
+    present(text, 'showMessageBoxAsync(juce::MessageBoxIconType::NoIcon,"MONOMACHINE NOVA","mnm mod by restrange aka kraduvremya")', "1.6.29 Editor: About = только подпись, без иконки i")
+
+    core_tests = root.parent / "tests" / "MnmCoreTests.cpp"
+    if core_tests.is_file():
+        text = read(core_tests)
+        present(text, "DLY send=0 wet is silent", "1.6.5 Tests: unity-проверка дилея")
+        present(text, "repitch slew keeps the read pointer continuous", "1.6.5 Tests: repitch без кликов")
+
+    cmake = root.parent / "CMakeLists.txt"
+    if cmake.is_file():
+        present(read(cmake), "/utf-8", "1.6.5 CMake: /utf-8 для MSVC")
+    jucers = list(root.parent.glob("*.jucer"))
+    check(bool(jucers) and all('extraCompilerFlags="/utf-8"' in read(j) for j in jucers),
+          "1.6.5 jucer: extraCompilerFlags /utf-8 в конфигах VS")
+
+    # ---- 11. обещания 1.6.6
+    text = read(root / "dsp" / "mnm" / "MnmKernel.hpp")
+    present(text, "holdPeak", "1.6.6 Kernel: hold пика огибающей для HOLD")
+    text = read(root / "NovaDSP.h")
+    present(text, "kernelEnv.holdPeak()", "1.6.6 Envelope: атака идёт во время hold, пик заморожен")
+    present(text, "kernelEnv.setParameters(p[0],p[2],p[3],0.0f)", "1.6.6 Envelope: сустейн не следует за DEC")
+    text = read(root / "dsp" / "mnm" / "MnmFm.hpp")
+    present(text, "1.6.6: unipolar", "1.6.6 FM DYN: фидбек 0 = нет фидбека")
+    text = read(root / "dsp" / "mnm" / "MnmDelay.hpp")
+    present(text, "0.5f * (inL + inR)", "1.6.6 Delay: send по закону old DSP (ping-pong моно-микс)")
+    text = read(root / "NovaData.h")
+    present(text, "m.id==10) defaultMachine", "1.6.6: FM DYN по умолчанию при открытии")
+    text = read(root / "PluginEditor.cpp")
+    present(text, "class StepLane", "1.6.6 ARP: горизонтальный секвенсор с рисованием")
+    present(text, "rebuildModeControls", "1.6.6: MODE-селекторы в заголовках страниц")
+    present(text, "showRepitchMenu", "1.6.6: repitch дилея по ПКМ на DTIM")
+    present(text, "struct RndButton", "1.6.6 ARP: рандом мгновенно, меню по ПКМ")
+    text = read(root.parent / "tests" / "MnmCoreTests.cpp")
+    present(text, "DLY 1.6.6 ping-pong send=0", "1.6.6 Tests: новая топология send")
+
+    # ---- 12. обещания 1.6.8
+    text = read(modes)
+    present(text, 'return "MACHINES (OSC)"', "1.6.8 DspModes: категории меню на английском")
+    absent(text, "return \"\\xd0", "1.6.8 DspModes: русских \\xNN-строк категорий больше нет")
+    text = read(data)
+    present(text, "if(section==monomachine::DspSynt)continue;", "1.6.8 NovaData: общий mode_synt больше не создаётся")
+    present(text, "dspMachineModeParamId(m.id)", "1.6.8 NovaData: у каждой машины свой параметр mode_synt_m<id>")
+    text = read(processor)
+    present(text, "syntModeRaw[static_cast<size_t>(selectedMachine)]", "1.6.8 Processor: SYNT-режим читается из параметра текущей машины")
+    present(text, "if(schema<11)", "1.6.8 Processor: миграция mode_synt -> mode_synt_m<id> (схема 11)")
+    present(text, "if(slot>0)moveModRoute(slot,0);", "1.6.8 Processor: свежий маршрут LFO всплывает на первую строку матрицы")
+    present(text, "if(column<1||column>5)return;", "1.6.8 Processor: колонка ON сортируется")
+    text = read(editor)
+    present(text, "void showDspModes(int section,juce::Point<int> screen", "1.6.8 Editor: меню режимов открывается у курсора (SRR)")
+    present(text, "withTargetScreenArea", "1.6.8 Editor: попап привязан к точке курсора")
+    present(text, "class RepitchSliderPanel", "1.6.8 Editor: repitch DTIM -- слайдер, а не список")
+    present(text, "launchAsynchronously", "1.6.8 Editor: слайдер repitch в call-out боксе")
+    present(text, "const juce::String lfoPanelName=\"LFO\"", "1.6.8 Editor: заголовок LFO-панели без цифры")
+    present(text, 'names[]{"SYNT","",lfoPanelName,"FILT","EFFX","MSEG"}', "1.6.8 Editor: LFO наверху, MSEG внизу (панели поменялись)")
+    present(text, "aimLfoDest", "1.6.8 Editor: прицел LFO выбирает внутренний PAGE/DEST")
+    present(text, "if (c >= 1 && c <= 5) sortBy(c);", "1.6.8 Editor: сортировка матрицы по колонке ON")
+    present(text, '"ON", "SOURCE", "DESTINATION", "DEPTH", "MODE"', "1.6.8 Editor: заголовок ON в матрице")
+    present(text, "paintingTranspose = e.y < geo.yVel", "1.6.8/1.6.13 Editor: степы ARP -- квадратные пады (TR от середины, VEL от низа, ряд в mouseDown)")
+    present(text, "processor.dspModeParamIdFor(monomachine::DspSynt)", "1.6.8 Editor: SYNT-селектор привязан к параметру выбранной машины")
+
+    # ---- 13. обещания 1.6.8.1
+    text = read(editor)
+    present(text, "{if(panel==5)continue;", "1.6.8.1 Editor: пропускается только MSEG-панель -- LFO-панель снова с ручками")
+    absent(text, "{if(panel==2||panel==5)continue;", "1.6.8.1 Editor: старый пропуск LFO-панели убран (пустая страница LFO)")
+    present(text, "lfo1Button.selected=(lfoPageSel==0)", "1.6.21 Editor: выбор LFO-страницы -- заливкой квадрата с номером")
+    present(text, "void beginModDrag(int src,bool matrix)", "1.6.8.1 Editor: ЛКМ = прямой PAGE/DEST, ПКМ = матрица")
+    present(text, "bool modDragMatrix", "1.6.8.1 Editor: флаг режима перетаскивания LFO")
+    present(text, "lfo1Button.setBounds(975,97,52,24)", "1.6.21 Editor: три кнопки-гнезда LFO в шапке панели (номер + джек)")
+    present(text, "addRow(rep, \"dly_repitch\"", "1.6.8.1 Editor: repitch -- непрерывный слайдер в call-out панели")
+    present(text, "addRow(smo, \"dly_repitch_smooth\"", "1.6.8.1 Editor: SMOOTH-слайдер под REPITCH (антиклик)")
+    present(text, "FOLDER: ", "1.6.8.1/1.6.12 Editor: DSP MODE -- группировка по папкам (метки FOLDER)")
+    present(text, "menu.addSubMenu(title,sub)", "1.6.12 Editor: DSP MODE снова вложенные подменю (группировка по папкам)")
+    text = read(dsp)
+    present(text, "anchors[4]={0.0f,0.006f,0.030f,2.5f}", "1.6.8.1 NovaDSP: шкала repitch 0=OFF,1=FAST,2=MED(дефолт),3=~2.5с")
+    present(text, "std::max(repitchSlew,declickSlew)", "1.6.8.1 NovaDSP: антиклик-доводка применяется к длине линии")
+    text = read(data)
+    absent(text, "OFF|FAST|MED|SLOW", "1.6.8.1 NovaData: список OFF/FAST/MED/SLOW больше не выбор -- шкала непрерывная")
+
+    # ---- 14. обещания 1.6.12
+    text = read(editor)
+    present(text, "class DragChoice", "1.6.12 Editor: чёрный пиксельный список с драгом (DragChoice)")
+    present(text, "class DragValueBox", "1.6.12 Editor: окошко значения с драгом (DragValueBox)")
+    present(text, "class LfoLockPanel", "1.6.12 Editor: панель замков PAGE/DEST LFO")
+    present(text, "openLocks", "1.6.12 Editor: ПКМ на PAGE/DEST LFO открывает замки")
+    present(text, "flashTicks=6", "1.6.12 Editor: короткая вспышка прицела (6 тиков)")
+    present(text, "isAltDown()", "1.6.12 Editor: BPM -- целые шаги, Alt/Shift = десятые")
+    present(text, "closeButton.setBounds(870,58,140,30)", "1.6.12 Editor: BACK ровно на месте MATRIX")
+    present(text, "WILL LOAD", "1.6.12 Editor: серый WILL LOAD -- предпросмотр загружаемых сэмплов")
+    text = read(data)
+    present(text, 'prefix+"lock"', "1.6.12 NovaData: замок маршрута FREE/LOCK/SOLO")
+    present(text, "dly_ppmode", "1.6.12 NovaData: режим ping-pong дилея (CLASSIC/MID SAFE)")
+    present(text, "old|mnm", "1.6.12 NovaData: режимы огибающей old/mnm")
+    present(text, "page_solo", "1.6.12 NovaData: solo PAGE/DEST LFO (0 = выкл, 1..8)")
+    present(text, "arp_s", "1.6.12 NovaData: параметры ARP-страницы (транспозиция/velocity/hold по шагам)")
+    text = read(dsp)
+    present(text, "interlace", "1.6.12 NovaDSP: INTL = interlace по мануалу (волна чередуется с нулём)")
+    present(text, "void setPpMode(int m){ppMode=m;}", "1.6.12 NovaDSP: MID SAFE ping-pong в DSP")
+    text = read(processor)
+    present(text, "chain.setPpMode", "1.6.12 PluginProcessor: ppMode протянут в DSP")
+    # ---- 15. обещания 1.6.13
+    text = read(editor)
+    present(text, "drawPopupMenuBackgroundWithOptions", "1.6.13 Editor: чёрный пиксельный скин для ВСЕХ popup-меню")
+    present(text, "drawPopupMenuItemWithOptions", "1.6.13 Editor: пункты меню -- пиксельный шрифт по центру")
+    present(text, "class DsndPanel", "1.6.13 Editor: у DSND своё окно (PP MODE), DTIM -- только REPITCH/SMOOTH")
+    present(text, "GUI DRAG SPEED", "1.6.13 Editor: настройки плавности прокрутки каждого списка (только UI)")
+    present(text, "class FloatBox", "1.6.13 Editor: редактор множителя скорости (не VST-параметр)")
+    present(text, "holdLfoPage", "1.6.13 Editor: удержание над кнопкой другого LFO (1 с) переключает страницу")
+    present(text, "setHover", "1.6.13 Editor: подсветка прицела мгновенная, без шлейфа")
+    present(text, "drawRect(x, geo.yHold, geo.pad, geo.holdH, 1)", "1.6.13/1.6.14 Editor: отдельный ряд HOLD-кнопок (рисуется зажатием)")
+    present(text, "applyErase", "1.6.13 Editor: ПКМ-драг стирает velocity+transpose")
+    present(text, "PITCH", "1.6.13 Editor: кнопки RANDOM PAGE/ALL/PITCH/VEL")
+    present(text, "randomizeRange", "1.6.13 Editor: батч-рандом 128 степов без лагов (suspendProcessing)")
+    present(text, "machineButton.arrows=true", "1.6.13 Editor: стрелки пресета по бокам названия машины")
+    present(text, "dragPixelsPerStep=18", "1.6.13 Editor: прокрутка машины замедлена, хитбоксы прежние")
+    present(text, "tempoSync.setButtonText(\"SYNC\")", "1.6.14 Editor: галочка SYNC вплотную к значению BPM")
+    present(text, "previewSample(row)", "1.6.13 Editor: PLAY-колонка в списке BBOX")
+    present(text, "list.getVerticalScrollBar()", "1.6.13 Editor: скроллбар списка BBOX белый")
+    text = read(processor)
+    present(text, "void MonomachineNovaAudioProcessor::previewSample", "1.6.13 PluginProcessor: голос предпрослушивания семплов")
+    present(text, "suspendProcessing(true);", "1.6.13 PluginProcessor: сортировка матрицы без шторма нотификаций (фикс краша Ableton)")
+
+    # ---- 16. обещания 1.6.14
+    text = read(editor)
+    present(text, "menu.setLookAndFeel(&getLookAndFeel())", "1.6.14 Editor: все верхнеуровневые меню явно в чёрном пиксельном скине")
+    present(text, "class PortaPanel", "1.6.14 Editor: у PORT своё окно (TIME + SPEED)")
+    present(text, "openPorta", "1.6.14 Editor: ПКМ по PORT открывает окно портаменто")
+    present(text, "unfocusAllComponents", "1.6.14 Editor: callout не забирает клавиатуру (QWERTY-ноты играют)")
+    present(text, "stepRnd", "1.6.14 Editor: STEP RND -- новый паттерн страницы на каждом цикле")
+    present(text, "arpStepEcho", "1.6.14 PluginProcessor: эхо шага арпеджиатора для UI")
+    present(text, "holdH = 26", "1.6.14 Editor: ряд HOLD выше")
+    absent(text, "scrollView", "1.6.14/1.6.16 Editor: ЛКМ-драг-скролл страницы ARP убран")
+    absent(text, "void mouseWheelMove(const juce::MouseEvent&,const juce::MouseWheelDetails&)override{}", "1.6.14/1.6.16 Editor: запрет колеса убран -- скролл снова колёсиком")
+    present(text, "class DragValueBox", "1.6.14 Editor: PAGE -- квадратное окошко с displayOffset")
+    present(text, "displayOffset", "1.6.14 Editor: PAGE-бокс показывает 1..16 для 0-базного параметра")
+    present(text, "arrowClick", "1.6.14 Editor: стрелки < > у названия машины (клик = один шаг)")
+    present(text, "rightClick", "1.6.14 Editor: ПКМ-хук кнопок (ARP -> страница ARP)")
+    present(text, "keyPressed(const juce::KeyPress& k)", "1.6.14 Editor: ESC закрывает матрицу/ARP/оверлеи")
+    present(text, "hoverLock", "1.6.14 Editor: подсказка режима замка при наведении")
+    present(text, "lfoHoldIndex", "1.6.14 Editor: удержание над другим LFO (1 с) переключает страницу")
+    present(text, "1.6.14: та же ячейка -- не перестраиваем", "1.6.14 Editor: мгновенная смена страниц LFO (bind early-out)")
+    text = read(dsp)
+    present(text, "softFmSat", "1.6.14 NovaDSP: fma -- мягкая сатурация для FM вместо жёсткого фолда")
+    present(text, "bool fmaActive()", "1.6.14 NovaDSP: флаг режима fma у машины")
+    text = read(data)
+    present(text, "porta_speed", "1.6.14 NovaData: скорость портаменто")
+    text = read(processor)
+    present(text, "portaSpeedRaw", "1.6.14 PluginProcessor: glide быстрее и регулируемый")
+    present(text, "nova::AmpEnvelope::kKernelAlgorithm", "1.6.14 PluginProcessor: old AMP DSP удалён -- всегда mnm")
+
+    # ---- 17. обещания 1.6.15
+    text = read(editor)
+    present(text, "armed=false", "1.6.15 Editor: мёртвая зона 6 px у драга множителей скорости")
+    present(text, "dy/48.0", "1.6.15 Editor: мягкий наклон драга скорости (Shift = x0.1)")
+    present(text, "refreshTo", "1.6.15 Editor: RESET ALL для сетки GUI DRAG SPEED")
+    present(text, "Restore all GUI drag speeds to their defaults.", "1.6.15/1.6.19 Editor: кнопка RESET у панели скорости GUI")
+    present(text, '{"MODE AMP","AMP MODE",1.0}', "1.6.21 Editor: MODE AMP вернулся в сетку скорости (AMP MODE на панели)")
+    present(text, "ampModeCombo", "1.6.21 Editor: комбо режима усилителя в шапке (old/mnm)")
+
+    # ---- 18. обещания 1.6.16
+    text = read(editor)
+    absent(text, "rateSync", "1.6.16 Editor: кнопки SYNC/TIME удалены -- HOST TEMPO единственный переключатель")
+    present(text, "DragValueBox pageBox, pageLimit, octavesBox, gateBox", "1.6.16 Editor: GATE -- квадрат со значением")
+    absent(text, "gateLink", "1.6.16 Editor: слайдер GATE и его attachment убраны")
+    present(text, "p->setValue(p->convertTo0to1(v));", "1.6.16 Editor: батч-рандом без нотификаций хосту (лаг Ableton устранён)")
+    present(text, "getIdealPopupMenuItemSizeWithOptions", "1.6.16 Editor: крупный пиксельный шрифт меню (до 21 px)")
+    present(text, "HOLD: LMB drag like velocity", "1.6.16/1.6.20 Editor: подсказка управления при наведении на степы")
+    present(text, "else if (row == 2) setParam(pg, st, \"hold\", 0.0f);", "1.6.16/1.6.20 Editor: ПКМ стирает только захваченный ряд (row locking)")
+    present(text, '"LFO"+juce::String(cur-4)+" "+lbl', "1.6.16 Editor: правильные имена DEST в панели замков")
+
+    # ---- 19. обещания 1.6.17
+    text = read(editor)
+    present(text, "int overLfoButton", "1.6.17 Editor: определение кнопки LFO под курсором при прицеле")
+    present(text, "aimLfoDest(static_cast<uint8_t>(32+over*8))", "1.6.17 Editor: отпускание прицела над кнопкой LFO = выбрать его целью (PAGE на его страницу)")
+    present(text, "lfoPageSel!=over", "1.6.17/1.6.18 Editor: удержание не перезапускается циклично")
+    # ---- 20. обещания 1.6.18
+    present(text, "if(modDragSrc<4){lfoHoldIndex=-1;", "1.6.18 Editor: удержание переключает страницу и в ПКМ-режиме (матрица; 1.6.19: строка расширена сбросами grayBlink)")
+
+    # ---- 21. обещания 1.6.19
+    text = read(editor)
+    present(text, "grayBlink", "1.6.19 Editor: серое мигание кнопки LFO, на чью страницу идёт прицел")
+    present(text, "blinkPhase()", "1.6.19 Editor: общий таймер мигания (280 мс)")
+    present(text, "if(over>=0&&lfoPageSel!=over){lfoPageSel=juce::jlimit(0,2,over);bind();}", "1.6.19/1.6.20 Editor: прицел переключает страницу МГНОВЕННО, возврат к исходному разрешен")
+    present(text, "showGuiOptions", "1.6.19 Editor: GUI OPTIONS -- отдельное окно из MENU (пункт 9)")
+    present(text, "class GuiSpeedPanel final : public juce::Component", "1.6.19 Editor: скорость GUI -- отдельная панель (окно из MENU), не страница ARP")
+    present(text, "\"amp_mode\"", "1.6.19 Editor: комбо огибающей old/mnm вернулось (attachment amp_mode)")
+    text = read(root / "models" / "DspModes.hpp")
+    present(text, "section != DspAmp", "1.6.19 DspModes: AMP скрыт из меню DSP MODE")
+    text = read(processor)
+    present(text, "kKernelAlgorithm:0", "1.6.19 Processor: огибающая выбирается по amp_mode, не по DSP-режиму")
+    present(text, "msegIndex<3?10+msegIndex:15+msegIndex", "1.6.29 Processor: addMsegRoute пишет src страницы MSEG (10..12, 18..22)")
+    text = read(editor)
+    present(text, "processor.addMsegRoute(m,cell->targetId())", "1.6.21 Editor: MSEG-джек -- провод к ручке = маршрут этой кривой")
+    absent(text, "class MsegOutputButton final : public juce::Component, public juce::DragAndDropTarget", "1.6.19 Editor: старый DnD MsegOutputButton удалён")
+    present(text, "LFO CURVE EDITOR", "1.6.19 Editor: страница MSEG пересоздана по фото (LFO CURVE EDITOR)")
+    present(text, '"UNDO","REDO","INVERT","FLIP X","COPY","PASTE"', "1.6.19 Editor: ряд инструментов MSEG")
+    present(text, "ROUTING / SIGNED AMOUNT", "1.6.19 Editor: маршруты MSEG со знаковой величиной")
+    present(text, "static const int steps[]{0,1,2,4,8,16,32,64,3,6,12,24}", "1.6.29 Editor: полная сетка OFF/1..1/64 + триоли")
+
+    # ---- 22. обещания 1.6.20
+    text = read(editor)
+    present(text, "const int end=getWidth()-56,cy=getHeight()/2;", "1.6.22 Editor: стрелки машин раздвинуты и прижаты к правому краю")
+    present(text, "канарейка живет ТОЛЬКО в полном меню", "1.6.20 Editor: ENCODING TEST только в дебаг-меню кнопки DSP MODE")
+    absent(text, "FREE (LMB: LOCK, RMB: modes)", "1.6.20 Editor: подсказки на замках матрицы убраны")
+    present(text, 'clearButton.onClick=[this,wipeField]{for(const char* f:{"on","src","dest","depth","mode","lock","aux"})wipeField(f);repaint();}', "1.6.22 Editor: CLEAR ЛКМ стирает ВСЁ в дефолт (краш висячей ссылки исправлен)")
+    present(text, "clearButton.rightClick=[this,wipeField]", "1.6.21 Editor: CLEAR ПКМ = меню выборочного стирания")
+    present(text, '"host_sync",tempoSync', "1.6.20 Editor: SYNC главной панели = общий host_sync (весь синт)")
+    absent(text, '"arp_sync",tempoSync', "1.6.20 Editor: SYNC больше не висит на arp_sync (развязан с HOST TEMPO)")
+    present(text, "if(firstOfCat||row==hover)pixel::text(g,juce::String(m.category),{8,y,colW-14,20},14,false);", "1.6.26 Editor: тип слева ОДИН раз на категорию; SYNTH-машины первыми, FX в конце")
+    present(text, "const bool blink=grayBlink&&blinkPhase();", "1.6.20 Editor: яркое мигание кнопки страницы-цели LFO")
+    absent(text, "0xff3a3a3a", "1.6.20 Editor: слабый серый мигания заменен")
+    present(text, "if(dimmed)fill=juce::Colour(0xffc8c8c8);", "1.6.21 Editor: кнопка-источник прицела чуть серее (dimmed)")
+    present(text, "if(!dragStarted){if(e.getDistanceFromDragStart()<6)return;dragStarted=true;", "1.6.21 Editor: провод стартует только с реальным драгом от джека (клик по номеру = выбор)")
+    present(text, "if(over>=0&&lfoPageSel!=over){lfoPageSel=juce::jlimit(0,2,over);bind();}", "1.6.20 Editor: возврат прицела к исходному LFO разрешен")
+    present(text, "gateOuter(p,\"arp_length\",1,127,64)", "1.6.20 Editor: SET заменен на GATE (arp_length) на внешней панели")
+    absent(text, "arpSettingsButton", "1.6.20 Editor: кнопка SET удалена")
+    present(text, "const int row = eraseRow >= 0 ? eraseRow : rowUnder(geo, static_cast<int>(e.y));", "1.6.20 Editor: ПКМ-стирание не задевает чужие ряды (ряд захвачен в mouseDown)")
+    present(text, "const bool on = static_cast<int>(e.y) < geo.yHold + geo.holdH / 2;", "1.6.20 Editor: HOLD рисуется как VEL (верх половины = ставит, низ = стирает)")
+    present(text, "tempoSync.setBounds(952,4,54,30)", "1.6.20 Editor: SYNC вплотную к цифрам BPM, без букв BPM")
+    present(text, "setMsegPointCount", "1.6.19 Processor: редактор форм задаёт число точек MSEG")
+    present(text, "playH = 12", "1.6.19 Editor: линия игры под рядом HOLD")
+
+    # ---- 23. обещания 1.6.21
+    text = read(editor)
+    present(text, "class CableLayer final : public juce::Component", "1.6.21 Editor: слой патч-корда поверх интерфейса")
+    present(text, "cableLayer.setBounds(getLocalBounds())", "1.6.21 Editor: слой корда растянут на всю панель")
+    present(text, "juce::Rectangle<int> jackBounds() const", "1.6.21 Editor: у кнопки-источника есть ГНЕЗДО (джек) справа")
+    present(text, "b.numberClick=[this,i]{lfoPageSel=juce::jlimit(0,2,i);bind();}", "1.6.21 Editor: клик по НОМЕРУ = выбор страницы LFO")
+    present(text, "wireMseg(msego1,0);wireMseg(msego2,1);wireMseg(msego3,2);", "1.6.21 Editor: ТРИ MSEG-гнезда с номерами 1/2/3")
+    present(text, "void showMseg(int page=0)", "1.6.21 Editor: MSEG-редактор открывается на выбранной странице")
+    present(text, "MsegPage>(processor,page)", "1.6.21 Editor: страница MSEG передаётся в редактор")
+    present(text, "gateOuter.rightClick=[this]{if(settings)closeOverlay();else showSettings(false);}", "1.6.22 Editor: ПКМ по GATE открывает И закрывает ARP")
+    present(text, "if(!dragHandler||!e.mods.isLeftButtonDown())return;", "1.6.21 Editor: драг значений front-панели -- только ЛКМ")
+
+    present(text, "dspMenuLf.setColour(juce::PopupMenu::backgroundColourId,juce::Colours::black)", "1.6.21 Editor: меню DSP MODE -- обычный шрифт, ЧЁРНЫЙ фон")
+    present(text, '"arp_step_random", pageRndToggle', "1.6.21 Editor: PAGE RND -- отдельный параметр arp_step_random")
+    present(text, "pixel::text(g,item.text,area.reduced(10,0),21,false); // 1.6.21: пункты меню влево -- ровные списки в папках", "1.6.21 Editor: пункты попапов выровнены ВЛЕВО")
+    present(text, "lockPaint = lockPaintWasRmb ? 2 : (lockValue(r) > 0 ? 0 : 1);", "1.6.21 Editor: замки матрицы красятся ПРОВЕДЕНИЕМ (ЛКМ toggle, ПКМ SOLO)")
+    present(text, "paintValue=was?0:1;lockPainting=true;", "1.6.21 Editor: замки LFO-панели красятся проведением")
+    present(text, '{"MODE AMP","AMP MODE",1.0}', "1.6.21 Editor: скорость-mode AMP в defs")
+    text = read(processor)
+    present(text, "setMsegOutputs(msegValue[0],msegValue[1],msegValue[2])", "1.6.21 Processor: все ТРИ кривые MSEG идут в DSP")
+    present(text, "juce::jlimit(0,17,juce::roundToInt(routeRaw[r][1]->load()))", "1.6.21 Processor: источники маршрутов до 17 (MSEG3)")
+    text = read(root / "models" / "arpeggiator.hpp")
+    present(text, "const bool newPass = (sequenceStep % stepCount) == 0;", "1.6.21 Arp: новый проход = конец паттерна (реген текущей страницы, без джиттера)")
+    present(text, "randomPage = static_cast<uint8_t>(rng % 16);", "1.6.23 Arp: PAGE RND -- случайная страница из ВСЕХ 16, шаги по порядку")
+    text = read(root / "models" / "mseg.hpp")
+    present(text, "k", "1.6.21 models: mseg.hpp -- кривая с изгибом сегмента (k)")
+
+    # ---- 24. обещания 1.6.22
+    text = read(editor)
+    absent(text, "[this,&wipeField]", "1.6.22 Editor: CLEAR больше не держит висячую ссылку на локальную лямбду (краш ЛКМ)")
+    present(text, "void setOnPaint(int r)", "1.6.22 Editor: галочки ON красятся проведением (ЛКМ -- вкл, ПКМ -- стирание)")
+    present(text, "if (!e.mods.isLeftButtonDown()) return; // 1.6.22", "1.6.22 Editor: SRC/DEST/DEPTH/MODE матрицы -- только ЛКМ")
+    absent(text, "struct Cord", "1.6.24 Editor: постоянные провода удалены (двоились)")
+    absent(text, "rebuildCables", "1.6.24 Editor: перерисовка проводов удалена вместе с проводами")
+    absent(text, "cablesFocus", "1.6.24 Editor: фокус-подсветка проводов удалена")
+    absent(text, "jackRightClick", "1.6.24 Editor: ПКМ-подсветка проводов у гнёзд удалена (проводов больше нет)")
+    present(text, "void bakeSteps()", "1.6.22 Editor: ПКМ по STEPS применяет ступеньки к графику (повторный ПКМ возвращает)")
+    present(text, "void rebuildStairs()", "1.6.22 Editor: DRAW STEP рисует квадратные ступени на ЛКМ")
+    present(text, "class WheelCombo final : public juce::ComboBox", "1.6.22 Editor: списки MSEG крутятся колесом (предустановки и сетка)")
+    present(text, "WheelCombo shape, grid, viewGrid;", "1.6.29 Editor: SHAPE/GRID/VIEW -- колесо")
+    present(text, "if(e.x>=end-8){", "1.6.28 Editor: полоса стрелок забронирована (с запасом слева), стрелки в своей рамке")
+    present(text, "double dragGain = 1.0;", "1.6.22 Editor: множитель чувствительности драга значений")
+    present(text, "gateOuter.dragGain=6.0;", "1.6.22 Editor: GATE -- весь диапазон за ~170 px")
+    present(text, "holdRndButton{\"HOLD\"}", "1.6.22 Editor: кнопка HOLD-рандома")
+    present(text, "holdRndButton.setBounds(742, 195, 64, 28)", "1.6.22 Editor: ряд случайностей PAGE ALL PITCH VEL HOLD слева направо")
+    present(text, "BUILD 1.6.29", "1.6.29 Editor: маркер версии сборки обновлен")
+    present(text, 'showMessageBoxAsync(juce::MessageBoxIconType::NoIcon,"MONOMACHINE NOVA","mnm mod by restrange aka kraduvremya")', "1.6.29 Editor: About = только подпись")
+    absent(text, "showCords", "1.6.24 Editor: следов постоянных проводов нет")
+    absent(text, "SHOW PATCH CORDS", "1.6.24 Editor: постоянные провода и их тумблер УДАЛЕНЫ (двоились)")
+    present(text, "if (c == 4) { if (hitWasRmb) openValueMenu(r, 4, e.getScreenPosition()); return; }", "1.6.25 Editor: DEPTH -- список по ПКМ, двойной ЛКМ -- сброс, ПКМ никогда не сбрасывает")
+    present(text, "const int values[]{-64, -48, -32, -16, 0, 16, 32, 48, 63}; for (int i = 0; i < 9; ++i)", "1.6.23 Editor: DEPTH-список -100% ... 0% ... +100%")
+    present(text, "if (c == 4 || c == 5) { p->beginChangeGesture(); p->setValueNotifyingHost(p->convertTo0to1(0.0f)); p->endChangeGesture(); repaint(); } }", "1.6.24 Editor: двойной ЛКМ-клик сбрасывает только DEPTH/MODE")
+    present(text, 'auto wipeField=[this](const char* f){for(int r=0;r<16;++r)if(auto* p=processor.parameters.getParameter("r"+juce::String(r)+"_"+f)){p->setValue(p->convertTo0to1(0.0f));}};', "1.6.23 Editor: CLEAR -- ровно ноль одной конвертацией, без нотификации хоста")
+    present(text, "if (auto* raw = processor.parameters.getRawParameterValue(id)) *raw = v;", "1.6.23 Editor: рандомайзеры шагов пишут прямо в атомы параметров")
+    absent(text, "processor.suspendProcessing(true);", "1.6.23 Editor: suspendProcessing убран из рандомайзеров (подвисал интерфейс)")
+
+    # ---- 26. обещания 1.6.24
+    text = read(editor)
+    absent(text, "struct Cord", "1.6.24 Editor: постоянные патч-корды удалены")
+    present(text, "aimBackupValid", "1.6.24 Editor: провод отпущен мимо -- PAGE/DEST откатываются к до-прицельным")
+    present(text, "if (c == 2 || c == 3 || c == 5) openValueMenu(r, c, e.getScreenPosition());", "1.6.25 Editor: SOURCE/DEST/MODE -- список по клику (драг листает, конфликтов нет)")
+    present(text, "void openAuxMenu(int r, juce::Point<int> screen)", "1.6.24 Editor: AUX SOURCE -- список вторичных источников")
+    present(text, '"DESTINATION", "DEPTH", "MODE", "AUX SRC"', "1.6.24 Editor: колонка AUX SRC в матрице")
+    present(text, "for (int i = 0; i < 2; ++i) menu.addItem(i + 1, polarityName(i), true, i == selected);", "1.6.25 Editor: полярность -- список UNIPOLAR/BIPOLAR по клику")
+    present(text, "g.drawVerticalLine(edge, float(by + 1), float(by + bh - 1));", "1.6.24 Editor: DEPTH -- белая обводка по границе заполнения")
+    present(text, "c == 3 ? 14 : 16, c == 4);", "1.6.24 Editor: значение DEPTH по центру ячейки")
+    present(text, "if (!e.mods.isLeftButtonDown()) return;", "1.6.24 Editor: двойной сброс -- только ЛКМ")
+    absent(text, "retrigSync.setButtonText", "1.6.25 Editor: RETRIG SYNC удалена (делала не то)")
+    absent(text, "arp_retrig_sync", "1.6.25 Editor: параметр arp_retrig_sync выкорчеван")
+    present(text, "machineButton.verticalDrag=true;", "1.6.24 Editor: имя машины листается ВВЕРХ/ВНИЗ драгом")
+    present(text, "wheelAccum+=w.deltaY;", "1.6.24 Editor: колесо пресетов срабатывает каждый раз (накопление дельты)")
+    present(text, "g.drawRect(end-3,cy-13,56,26,1);", "1.6.24 Editor: стрелки пресетов в отдельной рамке, полоса забронирована")
+    present(text, "g.drawRect(x + 2 + std::min(fillEnd, width - 4)", "1.6.24 Editor: незаполненный остаток шкалы LEV -- полая белая рамка")
+    absent(text, "цель прицела -- ТОЛЬКО мигающая рамка", "1.6.25 Editor: мигания при прицеле больше нет (как в прошлой версии)")
+    present(text, "setMouseCursor(juce::MouseCursor::NormalCursor); // 1.6.24", "1.6.24 Editor: указательный палец над ручками убран, ПКМ везде работает")
+    present(text, "arpButton.doubleClickHandler", "1.6.24 Editor: двойной клик по ARP открывает страницу")
+    text = read(processor)
+    present(text, "auxRaw[static_cast<size_t>(r)]=parameters.getRawParameterValue", "1.6.24 Processor: атомы AUX SOURCE маршрутов")
+    text = read(root / "models" / "modulation_matrix.hpp")
+    present(text, "uniOf(static_cast<ModSource>(route.auxSource - 1))", "1.6.25 Matrix: AUX SOURCE масштабирует Amount")
+    text = read(processor)
+    present(text, "state.setProperty(\"schema\",monomachine::kDspModeSchemaVersion,nullptr)", "1.6.24 Processor: сохранение пишет АКТУАЛЬНУЮ schema (миграции больше не портят пресет)")
+    absent(text, 'state.setProperty("schema",8', "1.6.24 Processor: старая schema=8 при сохранении искоренена")
+
+    # ---- 27. обещания 1.6.25
+    text = read(editor)
+    present(text, "if (c == 2 || c == 3 || c == 5 || c == 6) { // 1.6.25", "1.6.25 Editor: SRC/DEST/MODE/AUX -- клик = список, ЛКМ-драг = листать")
+    present(text, "hitCol == 3 ? 55 : hitCol == 5 ? 1 : hitCol == 6 ? 18 : 17", "1.6.25 Editor: диапазоны листания драгом для всех колонок")
+    present(text, "g.setColour(ink.withAlpha(0.45f)); g.drawRect(bx, by, bw, bh, 1);", "1.6.25 Editor: DEPTH -- только контур ячейки, без серой заливки")
+    present(text, "g.setColour(juce::Colours::white); g.drawRect(8, 26, 1120, 16 * 34 + 36, 1);", "1.6.25 Editor: рамка матрицы белая")
+    present(text, "g.setColour(juce::Colours::white);g.drawRect(0,0,width-1,height-1);", "1.6.25 Editor: списки -- полная белая рамка")
+    present(text, "g.fillRect(area.reduced(1,0));", "1.6.25 Editor: пункты списков не затирают боковые кромки рамки")
+    present(text, "colX(c) + colWidth(c) - 56 && e.x < colX(c) + colWidth(c) - 28", "1.6.25 Editor: хитбокс замка шире в сторону DEST")
+    present(text, 'n[]{"KEY", "VEL", "MACRO X", "MACRO Y", "LFO1", "LFO2", "LFO3", "PITCH WHL", "MOD WHL", "AFTERTOUCH", "MSEG1", "MSEG2", "MSEG3", "STEP VEL", "STEP TRANS", "ARP GATE", "ARP RATE", "RANDOM", "MSEG4", "MSEG5", "MSEG6", "MSEG7", "MSEG8"}', "1.6.29 Editor: 23 источника в порядке ModSource")
+    present(text, "if(flashTicks>0){g.setColour(juce::Colours::white.withAlpha(0.40f));", "1.6.27 Editor: пост-вспышка -- бледно-белый мигок и ТОЛЬКО по галке MAP FLASH")
+    present(text, "if(pickMode&&hoverNow){g.setColour(ink);g.drawRect(getLocalBounds().reduced(2),3);} // 1.6.26", "1.6.28 Editor: подсветка прицела -- БЕЛАЯ рамка только на текущей цели (и из матрицы)")
+    present(text, "slider.setInterceptsMouseClicks(!pickMode,false);", "1.6.28 Editor: ручка видна, но закрыта для мыши на время прицела")
+    present(text, "if(machine==7&&knob==2&&e.mods.isPopupMenu()){popupHandled=true;if(openSamples)openSamples();return;} // 1.6.25", "1.6.25 Editor: ПКМ по SAMPLES перед общим фолбэком")
+    present(text, "arrowHl=e.x<end+24?0:1;arrowPressed=true;", "1.6.25 Editor: своя подсветка у каждой стрелки пресетов")
+    present(text, "if(arrowPressed)return; // 1.6.25", "1.6.25 Editor: драг со стрелки не листает пресеты")
+    present(text, "if((juce::String(nova::machines()[static_cast<size_t>(i)].category).startsWith(\"FX\"))==(pass==1))order.push_back(i);", "1.6.25 Editor: SYNTH-машины первыми, FX -- в конце")
+    present(text, "machineButton.getScreenX()+2,machineButton.getScreenBounds().getBottom()+6", "1.6.29 Editor: список машин открывается ПОД строкой имени")
+    present(text, "rateButton.rightClick=[this]{ // 1.6.25", "1.6.25 Editor: список рейтов по ПКМ")
+    present(text, "pageBox.editOnDoubleClick=true;pageLimit.editOnDoubleClick=true;", "1.6.25 Editor: PAGE/PAGE LIMIT -- двойной клик вводит значение")
+    present(text, "pageBox.setBounds(24, 238, 64, 28); pageLimit.setBounds(92, 238, 64, 28);", "1.6.25 Editor: PAGE и PAGE LIMIT вплотную")
+    present(text, "pageRndButton.rightClick=[this]{randomizeRange(0,15,true,true,true);};", "1.6.25 Editor: ПКМ по рандомайзерам = все страницы")
+    present(text, "g.drawRect(getLocalBounds().reduced(1), 1); // 1.6.25", "1.6.25 Editor: GATE-бокс ровно с кнопками")
+    present(text, "const int s=std::min(b.getHeight()-2,28),oy=(b.getHeight()-s)/2;", "1.6.28 Editor: квадрат галки на всю высоту кнопки")
+    present(text, "ampModeCombo.setBounds(762,97,92,25);", "1.6.28 Editor: AMP MODE над последней крутилкой; ширина 92")
+    present(text, "label.setBounds(2, 2, box.getWidth() - 6, box.getHeight() - 4);", "1.6.25 Editor: текст режимов по центру окна")
+    present(text, "refreshNames(); // 1.6.25: КАЖДЫЙ кадр от живой страницы", "1.6.25 Editor: панель замков LFO следует за свапом страниц")
+    text = read(processor)
+    present(text, "settings.stepPage=static_cast<uint8_t>(juce::jlimit(0,15,juce::roundToInt(global[ArpStepPage])));", "1.6.25 Processor: строка PAGE/LIMIT/RANDOM восстановлена (была проглочена комментарием)")
+    present(text, 'const char* fields[]{"on","src","dest","depth","mode","aux"}; // 1.6.25', "1.6.25 Processor: sortModRoutes -- массив на 6 имён (был выход за границы)")
+    present(text, "juce::jlimit(0,17,src); // 1.6.25", "1.6.25 Processor: addRouteFromSource принимает 18 источников")
+    present(text, "VelocityMode::Step,", "1.6.25 Processor: порядок velocity-режимов STEP-первыми отображён в движок")
+    absent(text, "retrigRaw", "1.6.25 Processor: ретриг-хук из processBlock удалён")
+    text = read(root / "models" / "modulation_matrix.hpp")
+    present(text, "MSEG2 = 11,", "1.6.25 Matrix: enum без дыры (MSEG2=11, MSEG3=12, шаги арпа 13..17)")
+    present(text, "float uniOf(ModSource source) const noexcept", "1.6.25 Matrix: нормализация источников к 0..1")
+    present(text, "route.polarity == ModPolarity::Bipolar ? source * 2.0f - 1.0f : source; // Serum", "1.6.25 Matrix: полярность по Serum -- UNI одна сторона, BI по центру")
+    text = read(root / "NovaData.h")
+    present(text, '"KEY|VEL|MACRO X|MACRO Y|LFO1|LFO2|LFO3|PITCH WHL|MOD WHL|AFTERTOUCH|MSEG1|MSEG2|MSEG3|STEP VEL|STEP TRANS|ARP GATE|ARP RATE|RANDOM|MSEG4|MSEG5|MSEG6|MSEG7|MSEG8"', "1.6.29 Defaults: src -- 23 источника в порядке enum")
+    absent(text, "arp_retrig_sync", "1.6.25 Defaults: arp_retrig_sync удалён")
+
+    # ---- 28. обещания 1.6.26
+    text = read(editor)
+    present(text, "syntModeCombo.setBounds(363,97,92,25);", "1.6.28 Editor: SYNT MODE над последней крутилкой")
+    present(text, "filtModeCombo.setBounds(363,337,92,25);", "1.6.28 Editor: FILT MODE над последней крутилкой")
+    present(text, "effxDlyCombo.setBounds(666,337,92,25);", "1.6.28 Editor: второй мод EFFX (DLY) над предпоследней крутилкой")
+    present(text, "effxDistCombo.setBounds(762,337,92,25);", "1.6.28 Editor: DIST над последней крутилкой EFFX")
+    present(text, "g.fillRect(end-2,2,56,getHeight()-4);", "1.6.26 Editor: у стрелок свой чёрный фон (нажатие списка не заливает их белым)")
+    present(text, "pixel::text(g,shortName(i),{colW+4,y,getWidth()-colW-10,20},14,false);", "1.6.26 Editor: короткие имена машин -- правым списком")
+
+    # ---- 29. обещания 1.6.27
+    text = read(editor)
+    present(text, "static bool mapPostFlash=false;", "1.6.27 Editor: пост-анимация мапинга ВЫКЛЮЧЕНА по умолчанию")
+    present(text, "void flashPick(){if(!mapPostFlash)return;", "1.6.27 Editor: вспышка подтверждения -- только при включённой MAP FLASH")
+    present(text, "mapFlash.setButtonText(\"MAP FLASH\")", "1.6.27 Editor: галка MAP FLASH в GUI OPTIONS")
+    present(text, "mapFlash.setBounds(845,6,155,24);", "1.6.27 Editor: MAP FLASH рядом с RESET")
+    present(text, "void mouseExit(const juce::MouseEvent&) override { if(pickMode) setHover(false); }", "1.6.27 Editor: подсветка ховера корректно гаснет")
+    present(text, "juce::Time::getMillisecondCounter()<flashUntilMs", "1.6.29 Editor: PixelButton -- вспышка-подтверждение")
+    present(text, "down&&outlined&&juce::Desktop::getInstance().getMainMouseSource().isDragging()", "1.6.29 Editor: залипшее «нажато» самоликвидируется")
+    present(text, "||getToggleState()||", "1.6.27 Editor: PixelButton отражает toggle (галка залита белым)")
+
+    # ---- 30. обещания 1.6.28
+    text = read(editor)
+    present(text, "slider.setInterceptsMouseClicks(!pickMode,false);", "1.6.28 Editor: в прицеле ручка закрыта для мыши")
+    present(text, "if(e.mods.isAltDown()&&parameter&&!isChoice){altTurn=true;", "1.6.28 Editor: Alt+ЛКМ в прицеле крутит ручку")
+    present(text, "cell->setPickMode(true,true); // 1.6.28", "1.6.28 Editor: выбор цели из матрицы -- мапинг по ЛКМ")
+    present(text, "menu.addSectionHeader(\"MIDI\")", "1.6.28 Editor: SOURCE -- плоский список с папками (без задержки подменю)")
+    present(text, "static const int vals[]{17, 2, 3, 0, 1, 9, 8, 7, 4, 5, 6, 10, 11, 12, 18, 19, 20, 21, 22, 13, 14, 15, 16};", "1.6.29 Editor: RANDOM первым, папки MIDI/LFO/MSEG(1-8)/ARP")
+    present(text, 'menu.addSubMenu(groups[g], sub);', "1.6.29 Editor: DEST -- папки-подменю (дефолтная задержка JUCE)")
+    present(text, 'menu.addSubMenu("MSEG", msegSub);', "1.6.29 Editor: DEST -- секция MSEG OUT после модулей")
+    present(text, 'if (value == 0 && !(onp && juce::roundToInt(onp->convertFrom0to1(onp->getValue())) > 0)) text = "---";', "1.6.28 Editor: неназначенный DEST -- прочерки")
+    present(text, "if (fw > 0) { if (value >= 0) g.fillRect(mid, by, fw, bh); else g.fillRect(mid - fw, by, fw, bh); }", "1.6.28 Editor: DEPTH -- серая полоса заполнения возвращена")
+    present(text, "colW=std::max(colW,static_cast<int>(juce::String(nova::machines()[static_cast<size_t>(idx)].category).length())*12);", "1.6.28 Editor: пикер -- колонки под полный кегль (SWAVE не мельче)")
+    present(text, "if(verticalDrag&&std::abs(dx)>3)wasDragged=true;", "1.6.28 Editor: драг имени не открывает список")
+    present(text, "if(arrowPressed){arrowPressed=false;arrowHl=-1;wasDragged=false;repaint();return;}", "1.6.28 Editor: стрелки -- изолированный жест")
+    present(text, "if(e.x>=end-8){", "1.6.28 Editor: запас хитбокса левой стрелки")
+    present(text, 'wireCat(msegCatButton,"MSEG: open the curve editor")', "1.6.28 Editor: кнопка MSEG открывает редактор")
+    present(text, "syntCatButton.setBounds(72,95,94,28);", "1.6.28 Editor: кнопки категорий от линии панели до первой крутилки")
+    present(text, "g.drawRect(x,y,387,30,2); // 1.6.28", "1.6.28 Editor: заголовок рисует кнопка (без дубля текстом)")
+    present(text, "ampButton.setBounds(471,95,94,28);", "1.6.28 Editor: AMP -- от линии до края первой крутилки")
+    present(text, "syntModeCombo.setBounds(363,97,92,25);", "1.6.28 Editor: MODE 92 px у линии конца страницы")
+    present(text, "const int s=std::min(b.getHeight()-2,28),oy=(b.getHeight()-s)/2;", "1.6.28 Editor: квадрат галки на всю высоту кнопки")
+    present(text, "arpButton.setBounds(499,58,120,30);gateOuter.setBounds(623,58,34,30);", "1.6.29 Editor: ARP прилегает к галке, шаги ARP->GATE->TRIG сохранены")
+    present(text, "g.drawHorizontalLine(ty,x+width/2-8.0f,x+width/2+6.0f);", "1.6.28 Editor: LEV -- микрориска на 100")
+    absent(text, "g.drawRect(8,94,55,512,2);", "1.6.29 Editor: серая полоса-шлейф у LEV убрана")
+    present(text, "pixel::dotted(g,8,94,8,570)", "1.6.29 Editor: пунктир LEV до низа секций (y=570)")
+    present(text, "levTick(100.0f);levTick(static_cast<float>(rng.getEnd()));", "1.6.29 Editor: две одинаковые узкие риски LEV -- дефолт и максимум")
+    present(text, 'pixel::text(g, "MODE", {328, 48, 80, 20}, 14, true); pixel::text(g, "RATE", {518, 48, 80, 20}, 14, true); // 1.6.28', "1.6.28 Editor: ARP -- надпись PLAY убрана")
+    present(text, "e.x >= 393 && e.x <= 912 && e.y >= y - 3 && e.y <= y + 28", "1.6.28 Editor: хитбокс ампаунта MSEG шире")
+    text = read(root / "NovaData.h")
+    present(text, '"STEP|STEP+KEY|STEP+HOLD|KEY|HOLD"', "1.6.24 Defaults: velocity -- STEP, первые в списке")
+    absent(text, "ARP Retrig sync", "1.6.25 Defaults: параметр arp_retrig_sync удалён")
+    present(text, 'aux source",0,23,0,1', "1.6.29 Defaults: r*_aux -- OFF + 23 источника")
+    text = read(processor)
+    present(text, "static const monomachine::MonomachineArpeggiator::Play playMap[]", "1.6.22 Processor: порядок режимов ARP STEP-первыми отображён в движок")
+    text = read(root / "models" / "arpeggiator.hpp")
+    present(text, "if (settings.stepRandom <= 0.5f) randomPage = settings.stepPage;", "1.6.22 Arp: без PAGE RND играется выбранная страница (без хвоста)")
+    present(text, "gate = std::max(1.0, stepHold ? duration - 1.0 : std::min(duration - 1.0, normalGate));", "1.6.23 Arp: HOLD -- нота держится до следующего шага (по мануалу MNM)")
+    # 31. 1.6.29: страницы MSEG 4..8, MSEG OUT как DEST, About-подпись, фиксы панели
+    mmat = read(root / "models" / "modulation_matrix.hpp")
+    present(mmat, "kTargetCount = 64", "1.6.29 Matrix: 64 цели (56..63 = MSEG OUT)")
+    present(mmat, "MSEG4 = 18,", "1.6.29 Matrix: источники MSEG4..8 = 18..22")
+    present(mmat, "void setMsegOutputs(const float* values, int count)", "1.6.29 Matrix: выходы восьми страниц")
+    present(mmat, "msegDests[route.targetParamId - 56]", "1.6.29 Matrix: суммы маршрутов на MSEG OUT")
+    present(mmat, 'if (paramId >= 56) return "MSEG" + std::to_string(paramId - 56 + 1) + " OUT";', "1.6.29 Matrix: имена целей MSEG OUT")
+    pdata = read(root / "NovaData.h")
+    present(pdata, 'n+"_rate","MSEG"+juce::String(mi)+" rate"', "1.6.29 Defaults: параметры mseg4..8 (rate/sync/loop)")
+    present(pdata, 'ARP RATE|RANDOM|MSEG4|MSEG5|MSEG6|MSEG7|MSEG8', "1.6.29 Defaults: источники 18..22 в конце списков выбора")
+    present(pdata, '"MSEG"+juce::String(i-55)+" OUT"', "1.6.29 Defaults: имена DEST 56..63")
+    ptext = read(processor)
+    present(ptext, 'state.setProperty("msegpages",msegPageCount(),nullptr);', "1.6.29 State: счётчик страниц сохраняется")
+    absent(ptext, "state.removeChild(savedMseg,nullptr);", "1.6.29 State FIX: MSEG1 больше не теряет точки при загрузке")
+    present(ptext, "for(int mi=0;mi<8;++mi)loadMseg(msegTags[mi],mi);", "1.6.29 State: загрузка восьми страниц")
+    present(ptext, "void MonomachineNovaAudioProcessor::removeMsegPage(int page){", "1.6.29 Processor: удаление страницы с переименованием назначений")
+    present(ptext, "void MonomachineNovaAudioProcessor::addMsegPage(){", "1.6.29 Processor: добавление страницы")
+    present(ptext, "msegValue[static_cast<size_t>(mi)]+msegMod[static_cast<size_t>(mi)]/127.0f", "1.6.29 Engine: DEST 56..63 сдвигает выход кривой")
+    etext = read(editor)
+    present(etext, "void rebuildPageStrip()", "1.6.29 MSEG: лента страниц + «+»/«−»")
+    present(etext, "void removePageWithConfirm()", "1.6.29 MSEG: удаление страницы с подтверждением")
+    present(etext, "juce::AlertWindow::showOkCancelBox", "1.6.29 MSEG: диалог подтверждения удаления")
+    present(etext, "b->rightClick = [this] { showPageList(); };", "1.6.29 MSEG: ПКМ по странице открывает список")
+    present(etext, "b->verticalDrag = true; b->dragPixelsPerStep = 16;", "1.6.29 MSEG: LMB-драг листает страницы")
+    present(etext, "(sv >= 18 && sv <= 22) ? sv - 15 : -1", "1.6.29 MSEG: роутинг понимает источники MSEG4..8")
+    present(etext, "std::array<juce::String, 64>& targetNames()", "1.6.29 MSEG: таблица целей 0..63")
+    present(etext, "routeY() + row * 34", "1.6.29 MSEG: строки роутинга 34 px как в матрице")
+    present(etext, "if(target>=56)return", "1.6.29 Editor: targetName знает MSEG OUT")
+    present(etext, 'RIGHT CLICK POINT: REMOVE   ALT: BYPASS SNAP   ALT+1/2 GRID -/+   ALT+3 TRIPLET   ALT+4 SNAP   B DRAW', "1.6.29 MSEG: подсказка с горячими клавишами сетки")
+    present(etext, "class SquareToggle final : public juce::ToggleButton", "1.6.29 Editor: галка-квадрат на всю высоту (ARP)")
+    present(etext, "machineButton.flashFor(160);", "1.6.29 Editor: строка машины мигает при смене стрелкой")
+    present(etext, "juce::Desktop::getInstance().getMainMouseSource().isDragging()", "1.6.29 Editor: залипшее «нажато» самоликвидируется")
+    present(etext, "machineButton.getScreenBounds().getBottom()+6", "1.6.29 Editor: пикер открывается ПОД строкой машины")
+    present(etext, "ampButton.textHeight=20;", "1.6.29 Editor: шрифт кнопки AMP как у всех категорий")
+    present(etext, "arpEnabled.setBounds(471,58,26,30);arpButton.setBounds(499,58,120,30);", "1.6.29 Editor: ARP вплотную к галке")
+    present(etext, "ALT+1/2 GRID", "1.6.29 MSEG: хоткеи сетки в подсказке")
+    text = read(root / "NovaData.h")
+    present(text, '"STEP|STEP CHORD|TRUE|UP|DOWN|CYCL|RND"', "1.6.22 Defaults: режим ARP -- STEPS, первые в списке")
+    present(text, '"Route target",0,63,0,1', "1.6.29 Defaults: цель маршрута (DEST) -- 0, диапазон 0..63")
+    present(text, '"arp_grid","ARP Rate",0,15,4,1', "1.6.22 Defaults: RATE арпа -- 1/16 (SYNC по умолчанию)")
+    if failures:
+        print(f"\nFAIL: {len(failures)} check(s) failed", file=sys.stderr)
+        return 1
+    # ---- защита от C2026 (MSVC режет строковые литералы ~16КБ)
+    text = read(editor)
+    _mx = 0
+    import re as _re
+    for _m in _re.finditer(r'"(?:[^"\\]|\\.)*"', text):
+        _mx = max(_mx, len(_m.group(0)))
+    if _mx > 15000:
+        print("\nFAIL: строковый литерал %d символов -- MSVC C2026; разбей на соседние литералы" % _mx)
+        return 1
+    print("\nсамый длинный строковый литерал %d символов (лимит MSVC ~16380) -- OK" % _mx)
+    print("\nPASS static patch verification")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
