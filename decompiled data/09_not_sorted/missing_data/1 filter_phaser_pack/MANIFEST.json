@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
  "generated": "2026-09-22T00:00:00Z",
- "iteration": 19,
- "file_count": 138,
- "total_bytes": 3196826,
+ "iteration": 20,
+ "file_count": 140,
+ "total_bytes": 3226763,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -199,6 +199,16 @@
    "path": "01_filter/tables/P_144546_filter_width_tbl_2.txt",
    "size": 5029,
    "sha256": "b097971c91e6efb1d4118329f4255485dfa515026895662f22998de92bf38b98"
+  },
+  {
+   "path": "01_filter/tables/P_1447C6_dist_curve_2.bin",
+   "size": 768,
+   "sha256": "e27c09b2aef6ab349d10e8fede453a7fb7e5e5918b5e2c2f42fa9b813d0478c2"
+  },
+  {
+   "path": "01_filter/tables/P_1447C6_dist_curve_2.txt",
+   "size": 9914,
+   "sha256": "0c85b6bd61a0dbb0ed7a5a3dee4dca9e83b8c11f1f50ca6fbf7867e8c30d8cf2"
   },
   {
    "path": "01_filter/tables/P_1448C6_resonance_hp_tbl.bin",
@@ -577,8 +587,8 @@
   },
   {
    "path": "11_decoder_v2/F3_table_readers.md",
-   "size": 3223,
-   "sha256": "997e6e61341ce75c399b28ca126c10b845b9a61b4529f422fc628dbded02eb6f"
+   "size": 6562,
+   "sha256": "4618cb9273edb5338b074b3e8c273c5cf3623ace54d36faafd7a7751a332490a"
   },
   {
    "path": "11_decoder_v2/README_decoder_v2.md",
@@ -687,8 +697,8 @@
   },
   {
    "path": "MANIFEST.json",
-   "size": 6226,
-   "sha256": "472d31b960005a39f647d329f2bf7a0102702d8b0377c6a46bb3c6a80e665730"
+   "size": 22142,
+   "sha256": "c57d220a0cd40731caf0700cfaa3736958795dd3099e47231b1fa868716521ba"
   },
   {
    "path": "README.md",
