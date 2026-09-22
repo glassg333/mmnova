@@ -398,8 +398,11 @@ class DSP56300:
         else:
             self.pc = handled
         # DO-loop management (after the end instruction executed)
+        # la may be the SECOND word of a 2-word instruction (e.g. move #imm,rN
+        # spanning la-1..la): the hardware loop ends after the instruction
+        # whose word range covers la.
         for entry in list(self.do_stack):
-            if pc == entry[2]:
+            if pc <= entry[2] < next_pc:
                 entry[0] -= 1
                 if entry[0] > 0:
                     self.pc = entry[1]
@@ -716,6 +719,21 @@ class DSP56300:
         for tk in toks:
             if tk.startswith("if"):
                 continue
+            if tk.count(",") == 0 and re.match(r"^\((r\d)\)([+-](n\d)?)?$", tk):
+                mm = re.match(r"^\((r\d)\)([+-](n\d)?)?$", tk)
+                rnum = int(mm.group(1)[1])
+                upd = mm.group(2)
+                if upd == "":
+                    continue
+                if upd == "+":
+                    eas.append(("", "post+", rnum, 1, None))
+                elif upd == "-":
+                    eas.append(("", "post-", rnum, -1, None))
+                elif upd.startswith("+n"):
+                    eas.append(("", "post+", rnum, None, upd[1:]))
+                elif upd.startswith("-n"):
+                    eas.append(("", "post-", rnum, None, upd[1:]))
+                continue
             if tk.count(",") == 0 and tk.startswith("("):
                 # bare address-register update: move (r2)+n2
                 eas.append(self.parse_ea("x:" + tk))
@@ -786,6 +804,22 @@ class DSP56300:
         latch = []
         eas = []
         for tk in move_toks:
+            # pointer-update-only parallel move, e.g. '(r0)+', '(r4)+n2', '(r0)-'
+            if tk.count(",") == 0 and re.match(r"^\((r\d)\)([+-](n\d)?)?$", tk):
+                mm = re.match(r"^\((r\d)\)([+-](n\d)?)?$", tk)
+                rnum = int(mm.group(1)[1])
+                upd = mm.group(2)
+                if upd == "":
+                    continue
+                if upd == "+":
+                    eas.append(("", "post+", rnum, 1, None))
+                elif upd == "-":
+                    eas.append(("", "post-", rnum, -1, None))
+                elif upd.startswith("+n"):
+                    eas.append(("", "post+", rnum, None, upd[1:]))
+                elif upd.startswith("-n"):
+                    eas.append(("", "post-", rnum, None, upd[1:]))
+                continue
             if tk.count(",") != 1:
                 raise EmuError("bad par move %s at %06X" % (tk, pc))
             src, dst = tk.split(",")
