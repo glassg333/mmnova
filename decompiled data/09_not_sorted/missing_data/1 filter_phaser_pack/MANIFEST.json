@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
  "generated": "2026-09-22T00:00:00Z",
- "iteration": 20,
- "file_count": 140,
- "total_bytes": 3226763,
+ "iteration": 22,
+ "file_count": 157,
+ "total_bytes": 3508445,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -286,9 +286,19 @@
    "sha256": "f3afb23a769b46da83dedf52d5c2de1e637713c1c58c6535928c98301d40a3b8"
   },
   {
+   "path": "02_phaser/README_m18_real_phaser.md",
+   "size": 6664,
+   "sha256": "903a25667fcf709066b17860142e0b93eeddb28bc27ac522aabc4218a4e5e032"
+  },
+  {
    "path": "02_phaser/README_phaser_algorithm.md",
    "size": 10328,
    "sha256": "b8929b0963117a82f3ee86ba81ad4b21eec878a946b59c2531aab29cdcc1148d"
+  },
+  {
+   "path": "02_phaser/disasm_m18_real_phaser_P145036-14538D.txt",
+   "size": 61677,
+   "sha256": "e711dc34b3f31d55733b2dc3bb30d223764207d5c8d80fc2c8e1703971e88999"
   },
   {
    "path": "02_phaser/disasm_phaser_machine_P144E81-15035.txt",
@@ -301,9 +311,14 @@
    "sha256": "afc1d7e3ff0d107c6bc7a0a6b69079d727ff2c5c2c999dc129599343cdc8fca4"
   },
   {
+   "path": "03_voice_page/DIST_STATUS.md",
+   "size": 8108,
+   "sha256": "21e1abbf2e766a4c21aa9107f18fb4a052887d302f2d2b0558f1f444959ce685"
+  },
+  {
    "path": "03_voice_page/voice_page_map.md",
-   "size": 17355,
-   "sha256": "aa698cbe8dfd47c8c7cab447e477fb72cbfcddcfb9bb48d14eb0a5c2e044c1c4"
+   "size": 17854,
+   "sha256": "66752eb56ad86309c257a3b42b95a74e5ba4e5107d588adfdafa8bf61e274c3e"
   },
   {
    "path": "04_evidence/corrections_to_previous_mining.md",
@@ -327,8 +342,8 @@
   },
   {
    "path": "04_evidence/what_is_missing_for_full_port.md",
-   "size": 3603,
-   "sha256": "4484661c4b52346d87e29e40b6c51c54019bf10acf8492a77ae12fc9407e3b32"
+   "size": 4718,
+   "sha256": "bbab72e15ffb11f47b526500c3c2a08e202c1401ffad7569567a7a594f12b4e4"
   },
   {
    "path": "05_emulator/06_measured/exp_A.json",
@@ -587,8 +602,8 @@
   },
   {
    "path": "11_decoder_v2/F3_table_readers.md",
-   "size": 6562,
-   "sha256": "4618cb9273edb5338b074b3e8c273c5cf3623ace54d36faafd7a7751a332490a"
+   "size": 7448,
+   "sha256": "4415869cd10dcd0d6ab26ab2c8c3bbdef94abd3800e756ba5d3df1b46c116738"
   },
   {
    "path": "11_decoder_v2/README_decoder_v2.md",
@@ -696,14 +711,84 @@
    "sha256": "82f0415c150823d66bc34f8d960120585a26d78cc7aa3eec2ebe3bf61791369f"
   },
   {
+   "path": "13_stage2_tail/README_stage2_tail.md",
+   "size": 11254,
+   "sha256": "749a3ee005acbbcdb1c030dce6e6277cd9d76d087e0af2579c1a94b37a65ade1"
+  },
+  {
+   "path": "13_stage2_tail/disasm_tail_P0AD1-0B4C.txt",
+   "size": 6790,
+   "sha256": "e139641a903212865825dc00b9ae19faf32b5e6aa5d150c2c2a2e1ab7f69c329"
+  },
+  {
+   "path": "13_stage2_tail/exp22_diag2.py",
+   "size": 3505,
+   "sha256": "05a5e5bc6b8d2b4301bb39532e1b4b9ff503d35a6ae983b815aa05ca6cdfbe5c"
+  },
+  {
+   "path": "13_stage2_tail/exp22_model.py",
+   "size": 12578,
+   "sha256": "ec418bbd0430fe4d6608d199b9a948142696ab7a99a60b785c8ccab86a26a200"
+  },
+  {
+   "path": "13_stage2_tail/exp22_skip.json.gz",
+   "size": 18288,
+   "sha256": "018b35f2e8042bc4cabce594a2978028bd7225eee5009c7f2f9783964da52dc2"
+  },
+  {
+   "path": "13_stage2_tail/exp22_snap.json.gz",
+   "size": 119554,
+   "sha256": "1c2c4cea8a5036884ea20e96b432fb7acb0bee1f52190166c806e25fe4343517"
+  },
+  {
+   "path": "13_stage2_tail/exp22_tail.py",
+   "size": 6199,
+   "sha256": "32a8c2b7f7dcf4e923a3dc8166a977a27431e7f50b4c190a02a84df76b8b448c"
+  },
+  {
+   "path": "13_stage2_tail/exp22_tail_skip.py",
+   "size": 4213,
+   "sha256": "81add2683b1553ee243a5c19703dfc34fa22e31d347ac8fe2965c6058e6373c3"
+  },
+  {
+   "path": "14_m18_phaser/m18_harness.py",
+   "size": 3273,
+   "sha256": "1939a6348eb89f2646ea5e8b03ca56ba5e886955c56edf0d675d09a9d6933cc8"
+  },
+  {
+   "path": "14_m18_phaser/m18_ir_fft.py",
+   "size": 1757,
+   "sha256": "123c35a644cf334a53545422f8282395c2b34ea3d607e3fe06d3c75def2ed7f4"
+  },
+  {
+   "path": "14_m18_phaser/m18_ir_head.json",
+   "size": 1995,
+   "sha256": "5703c638d887a5616d837330a93ddb262b7dfeaf5958fafa8ab3fef05fe685b4"
+  },
+  {
+   "path": "14_m18_phaser/m18_notches.json",
+   "size": 745,
+   "sha256": "558d6b8f494918f33c11ec0503ddb6021476b283ddf99011c5b52694cdc12ab8"
+  },
+  {
+   "path": "14_m18_phaser/m18_param_sweep.py",
+   "size": 2589,
+   "sha256": "c1b268506dd592948aa3df0474e5b8d2a1851038132af6afbf077d0b7dda7332"
+  },
+  {
+   "path": "14_m18_phaser/m18_probe.py",
+   "size": 3655,
+   "sha256": "8d617b0db73c26f2d03c4dd012e533c0508d5ff1775df07f698d4737671da0fa"
+  },
+  {
    "path": "MANIFEST.json",
-   "size": 22142,
-   "sha256": "c57d220a0cd40731caf0700cfaa3736958795dd3099e47231b1fa868716521ba"
+   "size": 23852,
+   "sha256": "d4986a2bbf189746e5a9cda8297e8b73406218c17a1e76d809f0bb37bf811f6d"
   },
   {
    "path": "README.md",
-   "size": 30841,
-   "sha256": "2e743320463484f15b7216a702b07c22bbfcf414c129cdb3be7f69259247ace9"
+   "size": 35469,
+   "sha256": "3a4f0bac88cc6584a6d4ae54aa511fafdaa4fb63a9fd747bc62ae8b3b524e7cf"
   }
  ]
 }
