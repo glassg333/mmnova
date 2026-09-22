@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
  "generated": "2026-09-22T00:00:00Z",
- "iteration": 22,
- "file_count": 157,
- "total_bytes": 3508445,
+ "iteration": 23,
+ "file_count": 170,
+ "total_bytes": 3590194,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -312,8 +312,8 @@
   },
   {
    "path": "03_voice_page/DIST_STATUS.md",
-   "size": 8108,
-   "sha256": "21e1abbf2e766a4c21aa9107f18fb4a052887d302f2d2b0558f1f444959ce685"
+   "size": 12678,
+   "sha256": "60c36091853b64e6e0234d5b86d2db812252b06f2e7b5adf1c965762b166badd"
   },
   {
    "path": "03_voice_page/voice_page_map.md",
@@ -342,8 +342,8 @@
   },
   {
    "path": "04_evidence/what_is_missing_for_full_port.md",
-   "size": 4718,
-   "sha256": "bbab72e15ffb11f47b526500c3c2a08e202c1401ffad7569567a7a594f12b4e4"
+   "size": 5664,
+   "sha256": "4c8189d9f8f9921bfe6eb067c736c04fcbc0d3545c862a452b59437b242e01a5"
   },
   {
    "path": "05_emulator/06_measured/exp_A.json",
@@ -507,13 +507,18 @@
   },
   {
    "path": "09_juce_port/README_JUCE.md",
-   "size": 10593,
-   "sha256": "4f7491a8d5570010139039ec8ebe157ded3bf058fff78d0c97d901b4b4b69c92"
+   "size": 13135,
+   "sha256": "cff03b005aebbc03dd1c4a93707d55bf5c34cd476b8a1f31bfdd56d760927dd8"
   },
   {
    "path": "09_juce_port/Source/mnm_amp_env.h",
    "size": 5742,
    "sha256": "9c62c58a560ddbb56779b7de37d3c7875a80b389415d47f95e7c8d3d61148d0f"
+  },
+  {
+   "path": "09_juce_port/Source/mnm_dist.h",
+   "size": 14388,
+   "sha256": "6b2153f2e71036a8618f9eb025aee5cdae31f632c2bea6d1948f665201595591"
   },
   {
    "path": "09_juce_port/Source/mnm_dual_filter.h",
@@ -539,6 +544,11 @@
    "path": "09_juce_port/Source/mnm_voice_example.h",
    "size": 4577,
    "sha256": "4c3fb13121cc97634ac0141bb52c9f53f69859a780c2748df3241eb690256b7d"
+  },
+  {
+   "path": "09_juce_port/tests/test_mnm_dist.cpp",
+   "size": 3947,
+   "sha256": "43e374ec00689b2b6f6a89f302e4bdfd455e17eecedd0427c1b71f9bedbeb0ad"
   },
   {
    "path": "09_juce_port/tests/test_mnm_filter.cpp",
@@ -781,14 +791,69 @@
    "sha256": "8d617b0db73c26f2d03c4dd012e533c0508d5ff1775df07f698d4737671da0fa"
   },
   {
+   "path": "15_dist_element/README_dist_element.md",
+   "size": 3969,
+   "sha256": "906ff76da9b3da8206a5b16fb0080447ce997a4fa6ee04508444080752c30669"
+  },
+  {
+   "path": "15_dist_element/probe23_bisect.py",
+   "size": 2463,
+   "sha256": "facc7578f39bb1b873ea787c324fced7e4ca21331969a06dc3fdb8fdc06986c0"
+  },
+  {
+   "path": "15_dist_element/probe23_dbg.py",
+   "size": 1962,
+   "sha256": "13e2aaa9bb8a9bae8814298be1e8532cbabcc0dddc9b7690c9d309b8f71f6209"
+  },
+  {
+   "path": "15_dist_element/probe23_dist.json",
+   "size": 4812,
+   "sha256": "7e378c5ac79fc8968cf2e2bbdeac5fdf49f95373f0583b6b6c6c823c7b3b23e9"
+  },
+  {
+   "path": "15_dist_element/probe23_dist.py",
+   "size": 4551,
+   "sha256": "75ff5c646279973334113561b1088377a669359e35489055554010355401d83a"
+  },
+  {
+   "path": "15_dist_element/probe23b_dist_m14.json",
+   "size": 2337,
+   "sha256": "f223b62630b9d19126ed7d31305a981baf49e5a271999b3e264ad445900d6517"
+  },
+  {
+   "path": "15_dist_element/probe23b_dist_m14.py",
+   "size": 5681,
+   "sha256": "091619fa3f1902de5e4f0da367694d5cfa9fa51bbdf896e8c8385e1152d71d4b"
+  },
+  {
+   "path": "15_dist_element/probe23c_drive_decay.json",
+   "size": 12835,
+   "sha256": "bf121378bb7e1f5caf920d0956550501e71fe0042227128e17424a6d5c7ace9b"
+  },
+  {
+   "path": "15_dist_element/probe23c_drive_decay.py",
+   "size": 2676,
+   "sha256": "db0e86627c354d042de982ea51b85ef97ced30811b7ca9e548e15c72cbe3d53a"
+  },
+  {
+   "path": "15_dist_element/probe23d_vectors.json",
+   "size": 6814,
+   "sha256": "247107306392a802dcae9fb6b6b6f75c3dc46794f49f4d1e795db50cf7f68b5f"
+  },
+  {
+   "path": "15_dist_element/probe23d_vectors.py",
+   "size": 3927,
+   "sha256": "75316634945a00ce165f89fcc590c9a557cf518519f235294f1a100ca08270ef"
+  },
+  {
    "path": "MANIFEST.json",
-   "size": 23852,
-   "sha256": "d4986a2bbf189746e5a9cda8297e8b73406218c17a1e76d809f0bb37bf811f6d"
+   "size": 25079,
+   "sha256": "517daca74af1d74d6926f62a7db0b58893838aa71f28589cf62e66380e078a4f"
   },
   {
    "path": "README.md",
-   "size": 35469,
-   "sha256": "3a4f0bac88cc6584a6d4ae54aa511fafdaa4fb63a9fd747bc62ae8b3b524e7cf"
+   "size": 37571,
+   "sha256": "c93bab19fcf470179e577972d0bc920a80cc6a2920af7391d2663add476f3433"
   }
  ]
 }
