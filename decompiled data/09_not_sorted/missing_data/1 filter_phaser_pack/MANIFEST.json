@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
- "generated": "2026-09-21T08:35:00Z",
- "iteration": 18,
- "file_count": 135,
- "total_bytes": 3065205,
+ "generated": "2026-09-22T00:00:00Z",
+ "iteration": 19,
+ "file_count": 138,
+ "total_bytes": 3196826,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -671,14 +671,29 @@
    "sha256": "a276b3faa8739b1ed76b85d6088df346a693b6d5ba69cc359e7cf0f187daa13c"
   },
   {
+   "path": "12_lfo_shapes/README_lfo_shapes.md",
+   "size": 8700,
+   "sha256": "5b0f31367b0971c0d2a0c3c50c967a623df2c719a5b145a9a68d30ae1700259a"
+  },
+  {
+   "path": "12_lfo_shapes/fx_identify_fr.json",
+   "size": 133414,
+   "sha256": "188c4852835501e6bd40643b852bcee6a193e08fe290aa8c22b1dd67f9f9b7a0"
+  },
+  {
+   "path": "12_lfo_shapes/lfo_delaytraj.json",
+   "size": 2337,
+   "sha256": "82f0415c150823d66bc34f8d960120585a26d78cc7aa3eec2ebe3bf61791369f"
+  },
+  {
    "path": "MANIFEST.json",
-   "size": 21525,
-   "sha256": "dbb2daa955b6d3a18def3cec62d282b537fee8dc22e83a2687c483422042de22"
+   "size": 6226,
+   "sha256": "472d31b960005a39f647d329f2bf7a0102702d8b0377c6a46bb3c6a80e665730"
   },
   {
    "path": "README.md",
-   "size": 28372,
-   "sha256": "c0a2e277f5a6a331cfbcfb93187813ed7192ee64b27530709c8b339bba7c9f2c"
+   "size": 30841,
+   "sha256": "2e743320463484f15b7216a702b07c22bbfcf414c129cdb3be7f69259247ace9"
   }
  ]
 }
