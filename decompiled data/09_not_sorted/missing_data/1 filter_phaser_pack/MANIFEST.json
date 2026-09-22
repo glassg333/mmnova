@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
  "generated": "2026-09-22T00:00:00Z",
- "iteration": 23,
- "file_count": 170,
- "total_bytes": 3590194,
+ "iteration": 24,
+ "file_count": 181,
+ "total_bytes": 3654838,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -854,6 +854,61 @@
    "path": "README.md",
    "size": 37571,
    "sha256": "c93bab19fcf470179e577972d0bc920a80cc6a2920af7391d2663add476f3433"
+  },
+  {
+   "path": "16_m18_tail/README_m18_tail.md",
+   "bytes": 9582,
+   "iteration": 24
+  },
+  {
+   "path": "16_m18_tail/m18_tail_probes.json",
+   "bytes": 2544,
+   "iteration": 24
+  },
+  {
+   "path": "16_m18_tail/exp24f_m18tail.py",
+   "bytes": 3782,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/README_delay_echo.md",
+   "bytes": 11198,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/echo_probe_results.json",
+   "bytes": 3015,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/exp24_echo.py",
+   "bytes": 5625,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/exp24b_echo2.py",
+   "bytes": 5162,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/exp24c_echo3.py",
+   "bytes": 5324,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/exp24d_echo4.py",
+   "bytes": 4767,
+   "iteration": 24
+  },
+  {
+   "path": "17_delay_echo/exp24e_onpole.py",
+   "bytes": 4079,
+   "iteration": 24
+  },
+  {
+   "path": "GARBAGE_NOTICE.md",
+   "bytes": 4232,
+   "iteration": 24
   }
  ]
 }

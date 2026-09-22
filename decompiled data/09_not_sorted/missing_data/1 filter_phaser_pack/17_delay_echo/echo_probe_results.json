@@ -1,0 +1,60 @@
+{
+  "iteration": 24,
+  "date": "2026-09-22",
+  "probe": "exp24_echo/exp24b_echo2/exp24c_echo3/exp24d_echo4/exp24e_onpole (bit-exact track harness, machine=1 GND-SIN)",
+  "efx_envelope": {
+    "block": "P:$04A8-$04F5",
+    "runs": "track 0 only (y:$124==0), accumulator Y:$4FF = page+$FF of track 0",
+    "states": {
+      "1_attack": "env += tblA[$141800][(P+$18)>>16]; carry -> state 4",
+      "4_decay": "env -= env*tblB[$141880][(P+$19)>>16]; until <= sustain",
+      "5_sustain": "env = (P+$1A)^2  [SRR^2]",
+      "2_release": "env -= env*tblB[$141880][(P+$1B)>>16]  [DTIM curve]",
+      "default": "env = $7FFFFF"
+    },
+    "measured": {
+      "all_zero": "080000 0A2000 0ABB42 0AE865 0AF596 0AF973 0AFA94 0AFAE9 0AFB02 ... -> 0AFB0C (attack target 0.0857)",
+      "eqf_127": "env stays 0 (tblA[127] = 0)",
+      "mid_all_64": "env ~= 00000B"
+    },
+    "destination": "T5 ramp mod[k] = (env*DWID)^2 -> master mix T6"
+  },
+  "arming": {
+    "block": "P:$0985-$09A9",
+    "index": "r0 = (LPQ + $8000) >> 10  (= LPQ*64)",
+    "tables": "T1 = x:(r0+$144BC9), T2 = x:(r0+$144C49), pair of 8192-word tables",
+    "gate": "T1[LPQ] * (TEMPO*$791FD0*32) >= $4000; TEMPO cell = P+$23 (host writes BPM<<16)",
+    "target": "L:P+$CD = P2A * T2[LPQ] * $21D10 (48-bit); P+$2A = host cell",
+    "measured_targets_p2a_1_16": {
+      "lpq_32": "0x00020CAA89E0",
+      "lpq_64": "0x01062464DE00",
+      "lpq_96": "0x0087F67E6B40",
+      "lpq_127": "0x000087440000"
+    },
+    "linearity": "P2A 1<<16 -> 2<<16 gives target ratio exactly 2.0000"
+  },
+  "retune_glide": {
+    "block": "P:$09CB-$09EE",
+    "coefficients": {"lo": "$0CCCCD = 0.05", "hi": "$733333 = 0.45", "with_dsp_x2": "alpha=0.1 target, 0.9 state"},
+    "law": "L += 0.1*(target - L) per frame (48-bit one-pole)",
+    "gate": "X:(P+$D0) >= $3FF0; cell host-coupled (rewritten from global L:$FC at $09FA)",
+    "single_frame_check": "L=0, T=0x40_000000 -> new L low half = $19999A = exactly 0.1 in 1.23 frac (OK)",
+    "time_44k16": "63% in ~7.3 ms, 95% in ~11 ms",
+    "read_position_slew": "global L:$FC slews toward (write - length) clamped to +/-4 words per frame ($09AB-$09C9)"
+  },
+  "ring": {
+    "size_words": 16384,
+    "mask": "$3FFF",
+    "publish": "T4: 16 words X:$71-$80 -> Y:(X:$C5)+ (window $4000)",
+    "taps": "17 taps L:$90-$A0 (X=integer, Y=frac), integration step Q=1/length (iter 22)",
+    "skip": "T1: S=(L asr2)<=4 (Y:$C4=0.5) -> taps/func397/publish skipped",
+    "echo_bus": "T6: 16 words echo[k] -> X:(X:$2C9)+ (X:$300+ in harness); host mixes"
+  },
+  "knob_findings": {
+    "DTIM_P1B": "DSP: only EFX-envelope release curve index. Delay length comes from host cell P+$2A (ColdFire computes from DTIM/DBAS/TEMPO) — no DTIM->length math in DSP firmware",
+    "DSND_P1C": "ZERO reads in DSP kernel -> send gain applied by ColdFire mixer",
+    "DFB_P1D": "ZERO reads in DSP kernel -> feedback is host-side",
+    "DBAS_P1E": "ZERO reads in DSP kernel -> base delay is host-side",
+    "DWID_P1F": "DSP-side (T5, bit-exact iter 22)"
+  }
+}

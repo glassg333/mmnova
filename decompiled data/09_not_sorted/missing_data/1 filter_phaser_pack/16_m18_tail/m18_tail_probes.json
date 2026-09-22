@@ -1,0 +1,49 @@
+{
+  "iteration": 24,
+  "date": "2026-09-22",
+  "probe": "exp24f_m18tail.py (m18 harness, PROC $145045-$14513F)",
+  "proc_end": "rts at $14513F (NOT $14538D); $14538E+ = m13 FX-REVERB (INIT $14538E/CONF $1453DB/PROC $1453DC)",
+  "delay_ladder_attribution": "m1 = $A76/$99E/$722/$664 rings at $145470/$145483 belong to m13 FX-REVERB, not m18",
+  "onepoles": {
+    "s18_r6_18": {"target": "param0 CNTR", "k": "$28F5C (~1/50 per block)", "note": "$FD70A4 = -$28F5C"},
+    "s19_r6_19": {"target": "param1 DEP", "k": "$28F5C"},
+    "measured_p0_127": ["480000", "587E28", "C5F130", "D2E460", "6FF790", "461C98", "...", "4FF1A0"],
+    "measured_p1_127_symmetric": true
+  },
+  "quadratic_shape": "v = s19*(s19-1.5); v(0)=v(1)=0, min -0.5625 at s=0.75; state y:(r6+$1A), ramp X:$E0-$EF",
+  "fb_state": "s13 = (P4-0.5)*2 at y:(r6+$13), ramp Y:$90-$9F",
+  "rotator": {
+    "passes": 2,
+    "stages": 16,
+    "states": "7 L-pairs r6+$1E..$24 <-> X/Y:$20-$26",
+    "outputs": "pass1 -> X:$60-$6F, pass2 -> X:$70-$7F",
+    "final_constant": "$5A8241 (~cos45 = 0.70706)",
+    "input_words": 34
+  },
+  "mix_law": {
+    "param": "P3 (r6+$7)",
+    "even": "out_even = (1-M)*dry_even + M*wet1   [dry Y:$00-$0F, wet1 X:$60-$6F]",
+    "odd": "out_odd = (1-M)*wet2 + M*dry_odd     [wet2 X:$70-$7F, dry Y:$10-$1F]",
+    "measured_rows": {
+      "MIX_0": [0.0, 0.3607, 0.6893, 0.9562, -0.8623, -0.7824],
+      "MIX_32": [0.072, 0.2706, 0.4848, 0.7172, -0.8483, -0.5868],
+      "MIX_64": [-0.1025, 0.1804, 0.7669, 0.4781, -0.4159, -0.3912],
+      "MIX_96": [-0.4749, 0.0902, 0.5995, 0.2391, -0.3925, -0.1956],
+      "MIX_127": [-0.2666, 0.0028, 0.815, 0.0075, -0.2359, -0.0061]
+    }
+  },
+  "lfo": {
+    "phase": "48-bit x:(r6+$11/$12), starts $80:00000000, counts DOWN, step = SPD^2*$9566 per block",
+    "carrier": "sin/cos tables $14A000/$14A800, 8192 words = 1 cycle, index = smoothed(P5 WID)*$800",
+    "measured_frequency": {"spd_16": {"period_blocks": 4.8, "hz": 576.55}},
+    "law": "f ~ 576.55*(SPD/16)^2 Hz @44.1kHz/16-word blocks; audio-rate above ~SPD 22 (aliasing = feature)"
+  },
+  "state_dump_after_40_blocks": {
+    "r6_11": "X=000042 Y=000000", "r6_12": "X=FFFF9E Y=000000",
+    "r6_13": "X=000000 Y=C00000",
+    "r6_18": "X=353675 Y=9D3C48", "r6_19": "X=162C06 Y=7E8730",
+    "r6_1A": "X=000000 Y=126F52", "r6_1B": "X=000000 Y=353667",
+    "r6_1E": "X=1579E4 Y=000000", "r6_1F": "X=A66BB3 Y=000000"
+  },
+  "remaining_for_bitexact": "unrolled rotator mac chain $145103-$14511C + mix pipeline preloads $145139-$14513E (method: 13_stage2_tail slices)"
+}
