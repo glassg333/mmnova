@@ -1,0 +1,156 @@
+{
+ "jump_table_240400": [
+  {
+   "group": 0,
+   "disp": 34,
+   "target": 2360354
+  },
+  {
+   "group": 1,
+   "disp": 114,
+   "target": 2360434
+  },
+  {
+   "group": 2,
+   "disp": 80,
+   "target": 2360400
+  },
+  {
+   "group": 3,
+   "disp": 80,
+   "target": 2360400
+  },
+  {
+   "group": 4,
+   "disp": 80,
+   "target": 2360400
+  },
+  {
+   "group": 5,
+   "disp": 56,
+   "target": 2360376
+  },
+  {
+   "group": 6,
+   "disp": 56,
+   "target": 2360376
+  },
+  {
+   "group": 7,
+   "disp": 56,
+   "target": 2360376
+  }
+ ],
+ "F23FA": {
+  "value": 992250,
+  "equals": "2*63*63*125 = 992250",
+  "match": true
+ },
+ "rounding_791FD": {
+  "value": 496125,
+  "equals": "F23FA>>1 = 496125",
+  "match": true
+ },
+ "host_791FD0": {
+  "value": 7938000,
+  "equals": "F23FA<<3 = 7938000",
+  "match": true,
+  "note": "DSP-side echo gate constant (iteration 24) = 8 * host modulus"
+ },
+ "trampolines": [
+  {
+   "ram": 16777352,
+   "calls": 1,
+   "rom": 2520800
+  },
+  {
+   "ram": 16778002,
+   "calls": 1,
+   "rom": 2521450
+  },
+  {
+   "ram": 16778138,
+   "calls": 1,
+   "rom": 2521586
+  },
+  {
+   "ram": 16778170,
+   "calls": 3,
+   "rom": 2521618
+  },
+  {
+   "ram": 16778262,
+   "calls": 1,
+   "rom": 2521710
+  },
+  {
+   "ram": 16778298,
+   "calls": 1,
+   "rom": 2521746
+  },
+  {
+   "ram": 16778338,
+   "calls": 2,
+   "rom": 2521786
+  },
+  {
+   "ram": 16779040,
+   "calls": 9,
+   "rom": 2522488
+  },
+  {
+   "ram": 16779158,
+   "calls": 1,
+   "rom": 2522606
+  },
+  {
+   "ram": 16779264,
+   "calls": 2,
+   "rom": 2522712
+  },
+  {
+   "ram": 16779520,
+   "calls": 2,
+   "rom": 2522968
+  },
+  {
+   "ram": 16779776,
+   "calls": 4,
+   "rom": null
+  }
+ ],
+ "copy_range": {
+  "ram": [
+   16777352,
+   16779562
+  ],
+  "rom": [
+   2520800,
+   2523010
+  ],
+  "bytes": 2210
+ },
+ "T2_from_iter24": {
+  "32": {
+   "target48": 8802437600,
+   "T2_float": 0.976918,
+   "T2_as_2p23": 8194984.4
+  },
+  "64": {
+   "target48": 1125892021760,
+   "T2_float": 124.954533,
+   "T2_as_2p23": 1048194597.2
+  },
+  "96": {
+   "target48": 583956065088,
+   "T2_float": 64.809019,
+   "T2_as_2p23": 543657456.2
+  },
+  "127": {
+   "target48": 2269380608,
+   "T2_float": 0.251862,
+   "T2_as_2p23": 2112771.4
+  }
+ },
+ "T2_note": "T2[LPQ] = target / (P$2A * $21D10) at P$2A = 1<<16. Non-monotonic (confirms iteration 24). T2*2^23 are not round numbers -> T2 is a raw 8192-word table, captured in 17_delay_echo."
+}

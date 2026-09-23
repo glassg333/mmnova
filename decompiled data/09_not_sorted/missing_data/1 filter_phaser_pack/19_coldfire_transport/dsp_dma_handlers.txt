@@ -1,0 +1,66 @@
+; ==== DSP1 kernel: host-command handlers $0219-$025F (vectors $0010-$0020) ====
+000219: movep #>$500,x:<<$ffffda ; 08F49A 000500
+00021B: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+00021D: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+00021F: rti                      ; 000004
+000220: movep #>$600,x:<<$ffffda ; 08F49A 000600
+000222: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+000224: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+000226: rti                      ; 000004
+000227: movep #>$700,x:<<$ffffda ; 08F49A 000700
+000229: movep #>$33,x:<<$ffffd9  ; 08F499 000033
+00022B: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+00022D: rti                      ; 000004
+00022E: movep x:<<$ffffc6,x:<<$ffffda ; 087086 FFFFDA
+000230: movep #>$7ff,x:<<$ffffd9 ; 08F499 0007FF
+000232: movep #>$8e9ac4,x:<<$ffffd8 ; 08F498 8E9AC4
+000234: rti                      ; 000004
+000235: move r0,x:>$4ff          ; 607000 0004FF
+000237: brclr #$0,x:<<$ffffc3,func_000237 ; 0CC300 000000
+000239: movep x:<<$ffffc6,r0     ; 085006
+00023A: movep x:(r0),x:<<$ffffc7 ; 08E087
+00023B: move x:>$4ff,r0          ; 60F000 0004FF
+00023D: rti                      ; 000004
+00023E: move a2,x:>$2c7          ; 527000 0002C7
+000240: move a1,x:>$2c6          ; 547000 0002C6
+000242: move a0,x:>$2c5          ; 507000 0002C5
+000244: move x:>$4fe,a           ; 56F000 0004FE
+000246: add #<$1,a               ; 014180
+000247: cmp #<$3,a               ; 014385
+000248: bge func_000252          ; 05140A
+000249: move a,x:>$4fe           ; 567000 0004FE
+00024B: move x:>$2c6,a1          ; 54F000 0002C6
+00024D: move x:>$2c7,a2          ; 52F000 0002C7
+00024F: move x:>$2c5,a0          ; 50F000 0002C5
+000251: rti                      ; 000004
+000252: movep #>$0,x:<<$ffffe8   ; 08F4A8 000000
+000254: movep #>$0,x:<<$ffffe4   ; 08F4A4 000000
+000256: movep #>$0,x:<<$ffffe0   ; 08F4A0 000000
+000258: jmp func_000258          ; 0C0258
+000259: movep #>$4a5a20,x:<<$ffffdc ; 08F49C 4A5A20
+00025B: movep x:>$2ca,x:<<$ffffde ; 08F09E 0002CA
+00025D: movep #>$2f,x:<<$ffffdd  ; 08F49D 00002F
+00025F: movep #>$8a52c0,x:<<$ffffdc ; 08F49C 8A52C0
+
+; ==== DSP1 init module $100109-$10012D: DSR5 = HRX, HCR = HCIE ====
+100109: movep #>$ffffc6,x:<<$ffffdb ; 08F49B FFFFC6
+10010B: movep #>$4,x:<<$ffffc2   ; 08F482 000004
+10010D: bset #$1,x:<<$fffffe     ; 0ABE21
+10010E: bclr #$0,x:<<$fffffe     ; 0ABE00
+10010F: rts                      ; 00000C
+100110: movep #>$ffffa1,x:<<$fffff2 ; 08F4B2 FFFFA1
+100112: movep #>$140,x:<<$ffffeb ; 08F4AB 000140
+100114: movep #>$ffffac,x:<<$ffffea ; 08F4AA FFFFAC
+100116: movep #>$5f,x:<<$ffffe9  ; 08F4A9 00005F
+100118: movep #>$ec6210,x:<<$ffffe8 ; 08F4A8 EC6210
+10011A: movep #>$1a0,x:<<$ffffe7 ; 08F4A7 0001A0
+10011C: movep #>$ffffab,x:<<$ffffe6 ; 08F4A6 FFFFAB
+10011E: movep #>$5f,x:<<$ffffe5  ; 08F4A5 00005F
+100120: movep #>$ac6210,x:<<$ffffe4 ; 08F4A4 AC6210
+100122: movep #>$200,x:<<$ffffe3 ; 08F4A3 000200
+100124: movep #>$ffffaa,x:<<$ffffe2 ; 08F4A2 FFFFAA
+100126: movep #>$5f,x:<<$ffffe1  ; 08F4A1 00005F
+100128: movep #>$ac6210,x:<<$ffffe0 ; 08F4A0 AC6210
+10012A: move #$0,x0              ; 240000
+10012B: move x0,x:>$4fe          ; 447000 0004FE
+10012D: rts                      ; 00000C

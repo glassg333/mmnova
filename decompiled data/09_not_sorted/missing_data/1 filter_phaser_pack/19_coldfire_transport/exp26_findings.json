@@ -1,0 +1,153 @@
+{
+ "iteration": 26,
+ "topic": "ColdFire host OS: HI08/DMA5 parameter transport",
+ "firmware": "elektron_sfx6-60_os1.32b.bin",
+ "coldfire_bin": {
+  "size": 425858,
+  "base": 2097152,
+  "disassembled_instructions": 125992,
+  "tool": "capstone 5.0.7 CS_ARCH_M68K/CS_MODE_M68K_020 (linear sweep)"
+ },
+ "hi08_uc_map": {
+  "dsp1": {
+   "ICR": "0x500000",
+   "CVR": "0x500001",
+   "ISR": "0x500002",
+   "TXRX": "0x500004"
+  },
+  "dsp2": {
+   "ICR": "0x600000",
+   "CVR": "0x600001",
+   "ISR": "0x600002",
+   "TXRX": "0x600004"
+  }
+ },
+ "command_dispatch": {
+  "rule": "CVR write with bit7 ($80) -> DSP interrupt at (CVR&0x3F)<<1",
+  "verified_in": "gearmulator-md-mm mc68k/source/hdi08.cpp write8/HdiCVR"
+ },
+ "dsp_vectors": {
+  "0x0C": "read word: r0=HRX(addr); HTX=x:(r0)",
+  "0x10": "arm DMA5: DDR5=Y:0500 DCO5=51 DCR5=0x8E9AC4",
+  "0x12": "arm DMA5: DDR5=Y:0600 DCO5=51 DCR5=0x8E9AC4",
+  "0x14": "arm DMA5: DDR5=Y:0700 DCO5=51 DCR5=0x8E9AC4",
+  "0x16": "arm DMA5: DDR5=HRX (first host word = dest addr) DCO5=2047 DCR5=0x8E9AC4",
+  "0x1A": "watchdog: X:4FE++; 3 misses -> mute ESAI + halt"
+ },
+ "dma5_dcr_0x8E9AC4": {
+  "Dss": 0,
+  "Dds": 1,
+  "Dds_meaning": "destination space = Y memory",
+  "Dam": 44,
+  "Drs": 19,
+  "Drs_meaning": "HI08 Receive Data Full (HRDF)",
+  "Dcon": 0,
+  "Dpr": 3,
+  "Dtm": 1,
+  "Dtm_meaning": "word mode, DE auto-clear",
+  "De": 1
+ },
+ "dma5_regs": {
+  "DCR5": "0xFFFFD8",
+  "DCO5": "0xFFFFD9",
+  "DDR5": "0xFFFFDA",
+  "DSR5": "0xFFFFDB (= $FFFFC6 HRX, set once at init $100109)"
+ },
+ "page_ownership": {
+  "host_owned_words": "$00-$32 (51 words per voice page)",
+  "dsp_owned_words": "$33-$FF (states/outputs)",
+  "voice_pages_per_dsp": 3,
+  "total_tracks": 6
+ },
+ "staging_buffers": [
+  {
+   "buf": "0x1000A54",
+   "dsp": 2,
+   "cvr": "$08|$80",
+   "dst": "Y:$0500",
+   "sender": "0x24837E"
+  },
+  {
+   "buf": "0x1000B24",
+   "dsp": 2,
+   "cvr": "$09|$80",
+   "dst": "Y:$0600",
+   "sender": "0x248262"
+  },
+  {
+   "buf": "0x1000BF4",
+   "dsp": 2,
+   "cvr": "$0A|$80",
+   "dst": "Y:$0700",
+   "sender": "0x2482EC"
+  },
+  {
+   "buf": "0x1000CC4",
+   "dsp": 1,
+   "cvr": "$08|$80",
+   "dst": "Y:$0500",
+   "sender": "0x2486C6"
+  },
+  {
+   "buf": "0x1000D94",
+   "dsp": 1,
+   "cvr": "$09|$80",
+   "dst": "Y:$0600",
+   "sender": "0x24855E"
+  },
+  {
+   "buf": "0x1000E64",
+   "dsp": 1,
+   "cvr": "$0A|$80",
+   "dst": "Y:$0700",
+   "sender": "0x2484EC"
+  }
+ ],
+ "record_layout": {
+  "stride": 208,
+  "flags_within_record": [
+   "+$80",
+   "+$84",
+   "+$A0"
+  ],
+  "note": "records not plain 52-long payloads; exact layout pending"
+ },
+ "frame_update_loop": {
+  "addr": "0x267DEE",
+  "tracks": 6,
+  "pointer_glide": "(ptr)=0.75*(ptr)+0.25*(word16@[$1001F40+tr]<<16)",
+  "ptr_array": "0x1000AD0+tr*$D0 (+$7C field)",
+  "fill_subroutines": [
+   "0x267A6E",
+   "0x267A92",
+   "0x267A12",
+   "0x23FE46"
+  ],
+  "meaning": "candidate DBAS ring-base / host-side glide; fill subs = knob->cell formulas incl. DTIM->P$2A (next iteration)"
+ },
+ "dsnd_dfb_routing": {
+  "proven": "DSND/DFB/DBAS cells transmitted in page burst but zero DSP reads (iteration 24); applied by ColdFire to echo-bus contribution (T6 -> X:$2C9) and ring (external shared SRAM, bridged XY>=0x020000 per gearmulator mddsp.cpp)",
+  "exact_cf_mix_code": "next iteration: subroutines $267A6E/$267A92/$267A12"
+ },
+ "false_leads": [
+  "0x021D10 in coldfire bin = instruction split (lea $2c021d + opcode $10), not a constant",
+  "pattern hit P:1018D3 (HRX read in dsp pmem) = data table region $101700+, not code",
+  "0x791FD0/0x0CCCCD absent from host (DSP-only constants)"
+ ],
+ "open": [
+  "exact host formula DTIM/DBAS/BPM -> P$2A (STARTED: tempo engine $267ABA with $791FD0=2^(-1/12) family; integrators $29C04C+, counter $29BD6C)",
+  "record layout of staging buffers ($D0) incl. flag semantics",
+  "ColdFire echo-bus summing / ring write-back loop (DSND/DFB application point)"
+ ],
+ "tempo_engine": {
+  "addr": "0x267ABA-0x267D90",
+  "hot_window": "0x267B38-0x267B90",
+  "constants": {
+   "0x791FD": "0x791FD0>>4",
+   "0xF23FA": "0x791FD0>>3 (divisor)",
+   "0x791FD0": "= 2^(-1/12) in 24-bit (0.9438743) = SEMITONE ratio; same constant as DSP echo-arm gate T1*TEMPO*$791FD0*32>=$4000"
+  },
+  "structure": "per-track integrator d2 += d3 with tempo-scaled step (global $2BC2A4, counter $29BD6C, accumulators $29C04C+), fixed-point refinement chain x125, x63/64",
+  "meaning": "host tempo-sync engine = producer of P$2A (delay length base); exact DTIM/DBAS/BPM -> P$2A formula decoded around this loop (next)"
+ }
+}
