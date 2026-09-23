@@ -1,0 +1,59 @@
+{
+  "tables": {
+    "sine": {
+      "addr": "X:$14A000",
+      "words": 8192,
+      "first8": [
+        "000000",
+        "001922",
+        "003244",
+        "004B66",
+        "006488",
+        "007DAA",
+        "0096CC",
+        "00AFEE"
+      ],
+      "extremum": "max at idx 2048"
+    },
+    "cos": {
+      "addr": "X:$14A800",
+      "words": 8192,
+      "first8": [
+        "7FFFFF",
+        "7FFFFD",
+        "7FFFF5",
+        "7FFFE9",
+        "7FFFD8",
+        "7FFFC1",
+        "7FFFA6",
+        "7FFF86"
+      ],
+      "extremum": "max at idx 0"
+    }
+  },
+  "bit_identical_alt_sources": {
+    "sine": [
+      true,
+      true
+    ],
+    "cos": [
+      true,
+      true
+    ]
+  },
+  "head_match_pack": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "math_max_err": {
+    "sine": 1.7818392872293032e-07,
+    "cos": 1.7818392872293032e-07
+  },
+  "notes": []
+}

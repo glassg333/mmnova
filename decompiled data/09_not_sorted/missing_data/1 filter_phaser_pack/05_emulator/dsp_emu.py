@@ -85,6 +85,8 @@ class DSP56300:
         self.sr_int = 0          # raw SR bits (bset/bclr on sr)
         self.pc = 0
         self.do_stack = []      # list of [count, body_start, end_addr]
+        self.rep_count = 0      # REP: remaining executions of next instruction
+        self.rep_after = None   # REP: pc of the instruction being repeated
         self.ret_stack = []
         self.trace = trace
         self.trace_log = []
@@ -397,6 +399,21 @@ class DSP56300:
             self.pc = next_pc
         else:
             self.pc = handled
+        # REP-loop management: the instruction right after `rep` executes
+        # rep_count times total (verified empirically: INIT clears exactly 6
+        # cells with rep #<$6 + move).
+        if getattr(self, "rep_after", None) is not None:
+            if pc == self.rep_after:
+                if self.rep_count > 1:
+                    self.rep_count -= 1
+                    self.pc = pc  # repeat the same instruction
+                else:
+                    self.rep_after = None
+            # a different instruction executed (branch out) -> rep is void
+            elif self.rep_count is not None:
+                self.rep_after = None
+        if mnem == "rep":
+            self.rep_after = next_pc
         # DO-loop management (after the end instruction executed)
         # la may be the SECOND word of a 2-word instruction (e.g. move #imm,rN
         # spanning la-1..la): the hardware loop ends after the instruction
@@ -438,6 +455,23 @@ class DSP56300:
                 # zero-count: executes body once per DSP56300 spec? (hardware: skips)
                 return end + 1
             self.do_stack.append([cnt, pc + 2, end])  # DO occupies 2 words (opcode+ext)
+            return None
+
+        # ---- REP (repeat next instruction N times) ----
+        if mnem == "rep":
+            cnt_tok = toks[0]
+            if cnt_tok.startswith("#"):
+                cnt = self.abs_val(cnt_tok)
+            elif re.match(r"^n\d$", cnt_tok) or cnt_tok in ("a1", "b1"):
+                cnt = self.get_reg(cnt_tok) & MASK24
+            else:
+                raise EmuError("rep cnt %s" % cnt_tok)
+            if cnt <= 0:
+                # hardware: rep with 0 executes the next instruction once? Per
+                # manual, rep #0 executes next instruction 1 time.
+                return None
+            self.rep_count = cnt  # repeat next single instruction cnt more times
+            self.rep_pc = None
             return None
 
         # ---- bit ops ----
@@ -964,7 +998,20 @@ class DSP56300:
                          "teq": "ifeq", "tne": "ifne", "tpl": "ifpl", "tmi": "ifmi"}
                 if CONDITIONS[conds[mnem]](f):
                     self.set_reg(d, self.get_reg(s))
-            elif mnem in ("clb", "normf", "max", "maxm", "insert"):
+            elif mnem in ("max", "maxm"):
+                # DSP56300 signed maximum: if s > d then d <- s else s <- d
+                sv = sext(self.get_reg(s), 56)
+                dv = sext(self.get_reg(d), 56)
+                if sv > dv:
+                    self.set_reg(d, self.get_reg(s))
+                else:
+                    self.set_reg(s, self.get_reg(d))
+                r = self.get_reg(d)
+                self.f["n"] = 1 if sext(r, 56) < 0 else 0
+                self.f["z"] = 1 if (r & MASK48) == 0 else 0
+                self.f["c"] = 0
+                self.f["v"] = 0
+            elif mnem in ("clb", "normf", "insert"):
                 raise EmuError("unimplemented alu %s at %06X" % (mnem, pc))
             return
 

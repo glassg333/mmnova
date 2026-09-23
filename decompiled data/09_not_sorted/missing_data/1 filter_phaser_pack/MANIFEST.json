@@ -1,25 +1,10 @@
 {
  "pack": "filter_phaser_pack",
- "generated": "2026-09-23",
- "iteration": 29,
- "file_count": 219,
- "total_bytes": 4077586,
+ "generated": "2026-09-22T00:00:00Z",
+ "iteration": 26,
+ "file_count": 203,
+ "total_bytes": 3869977,
  "files": [
-  {
-   "path": "GARBAGE_NOTICE.md",
-   "size": 4232,
-   "sha256": "604ae4f072d9fe99da93fcf1d5dab920817fdb72dc3a74b5960f22048d426b75"
-  },
-  {
-   "path": "MANIFEST.json",
-   "size": 34790,
-   "sha256": "73f85a1be7711825b4cd752c57b87f5127d189dbf406e9a77f49fc1e49486bc1"
-  },
-  {
-   "path": "README.md",
-   "size": 61099,
-   "sha256": "da82e094198b6845a05d392f849e84b8122f0b1f6e7a21880b02ea97761a9a11"
-  },
   {
    "path": "01_filter/README_filter_algorithm.md",
    "size": 11067,
@@ -357,8 +342,33 @@
   },
   {
    "path": "04_evidence/what_is_missing_for_full_port.md",
-   "size": 13080,
-   "sha256": "18a50ef0d701aef75e3785e11184839c478804232e9d28d84c58053db8f28977"
+   "size": 10200,
+   "sha256": "592d49d566bb607ece3a31809e09a55d5b85a464f0d4a4e5a5bdfa48baa4eaf1"
+  },
+  {
+   "path": "05_emulator/06_measured/exp_A.json",
+   "size": 2044,
+   "sha256": "14fefe793ad86dc3fdde805738b5f173752204fb4f100213e821494fc78bf2a7"
+  },
+  {
+   "path": "05_emulator/06_measured/fr_base.json",
+   "size": 3675,
+   "sha256": "9dea174d2176abeb484b4e5af7bd4add9f1f2a17f7533d73bec03dab9f845f8f"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_lfo_rate.json",
+   "size": 641,
+   "sha256": "cbe363722832f2ec92ad82c5771677d1b19f1892884af399a97ca333cd7ea068"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_out.json",
+   "size": 657,
+   "sha256": "710fa7bf6efc7f06a7b84d2332d174817b91fcead5595744b4e4773faa7e01ed"
+  },
+  {
+   "path": "05_emulator/06_measured/phaser_states.json",
+   "size": 154,
+   "sha256": "9872b28c20631a7b88780f02fc7d3e7e839a8dc9b819368786507cb7ce183e89"
   },
   {
    "path": "05_emulator/README_emulator.md",
@@ -367,8 +377,13 @@
   },
   {
    "path": "05_emulator/dsp_emu.py",
-   "size": 43644,
-   "sha256": "a60012dce40fa6ff512a35a065aed511353cde14a7ae823d13f756a2e16cb771"
+   "size": 45817,
+   "sha256": "58d707e66645f2d88c89d3d50ddf9c566ad7ffd54c51292d5cb4a3884f07a7fd"
+  },
+  {
+   "path": "05_emulator/exp26_m13_reverb.py",
+   "size": 5781,
+   "sha256": "4bdfca028b619ef0e6011ab8989caa045b2b156fdf6d6004439a599d71165710"
   },
   {
    "path": "05_emulator/experiments.py",
@@ -399,31 +414,6 @@
    "path": "05_emulator/track_harness.py",
    "size": 4260,
    "sha256": "187e469414ede2506f1a57274da65dcda83914caaaaeb294df0f112ef559008f"
-  },
-  {
-   "path": "05_emulator/06_measured/exp_A.json",
-   "size": 2044,
-   "sha256": "14fefe793ad86dc3fdde805738b5f173752204fb4f100213e821494fc78bf2a7"
-  },
-  {
-   "path": "05_emulator/06_measured/fr_base.json",
-   "size": 3675,
-   "sha256": "9dea174d2176abeb484b4e5af7bd4add9f1f2a17f7533d73bec03dab9f845f8f"
-  },
-  {
-   "path": "05_emulator/06_measured/phaser_lfo_rate.json",
-   "size": 641,
-   "sha256": "cbe363722832f2ec92ad82c5771677d1b19f1892884af399a97ca333cd7ea068"
-  },
-  {
-   "path": "05_emulator/06_measured/phaser_out.json",
-   "size": 657,
-   "sha256": "710fa7bf6efc7f06a7b84d2332d174817b91fcead5595744b4e4773faa7e01ed"
-  },
-  {
-   "path": "05_emulator/06_measured/phaser_states.json",
-   "size": 154,
-   "sha256": "9872b28c20631a7b88780f02fc7d3e7e839a8dc9b819368786507cb7ce183e89"
   },
   {
    "path": "06_amp_env/README_amp_envelope.md",
@@ -516,14 +506,14 @@
    "sha256": "e7d5124b4ac04e1082d24a59d270e2a9745630ce2ae5fe196f0cb7beca1a1cbe"
   },
   {
-   "path": "09_juce_port/README_JUCE.md",
-   "size": 13135,
-   "sha256": "cff03b005aebbc03dd1c4a93707d55bf5c34cd476b8a1f31bfdd56d760927dd8"
-  },
-  {
    "path": "09_juce_port/Example/MnmFilterPluginExample.h",
    "size": 6464,
    "sha256": "91ea438672e24fe5b9a92a953c60d9bbefa7b4a8dc4b3d638991fce631779220"
+  },
+  {
+   "path": "09_juce_port/README_JUCE.md",
+   "size": 13135,
+   "sha256": "cff03b005aebbc03dd1c4a93707d55bf5c34cd476b8a1f31bfdd56d760927dd8"
   },
   {
    "path": "09_juce_port/Source/mnm_amp_env.h",
@@ -601,11 +591,6 @@
    "sha256": "b581a2cfab89bef74634007f7a9bf30444b552f009da2c2c395d6342eac2d65e"
   },
   {
-   "path": "10_manual_crosscheck/trace_param_reads.py",
-   "size": 1537,
-   "sha256": "186f3b69c5961dd74342c8a3ef1891a5ccd9847cdc3f8dee6d76e8233f02db9d"
-  },
-  {
    "path": "10_manual_crosscheck/results/exp_f3_fltenv.json",
    "size": 20835,
    "sha256": "938775ec57585fc5394377045c8a89a6a5db5c2ecfaee41df3ffa5d8f1431ac7"
@@ -624,6 +609,11 @@
    "path": "10_manual_crosscheck/sources/mn_midi.csv",
    "size": 3886,
    "sha256": "8d51268a985ab044f0f9e469ea72e20a881c4381bf3263d632aae10570d3cf23"
+  },
+  {
+   "path": "10_manual_crosscheck/trace_param_reads.py",
+   "size": 1537,
+   "sha256": "186f3b69c5961dd74342c8a3ef1891a5ccd9847cdc3f8dee6d76e8233f02db9d"
   },
   {
    "path": "11_decoder_v2/F3_table_readers.md",
@@ -877,8 +867,8 @@
   },
   {
    "path": "17_delay_echo/README_delay_echo.md",
-   "size": 11890,
-   "sha256": "058fae268c4a23e1acd7f2edf823756b1c5bb623b075cab2c299af7abda55a56"
+   "size": 11198,
+   "sha256": "99a6519c28216abd5dd2b724cc9ee25949fb4353c6f2a4da47d92218da145338"
   },
   {
    "path": "17_delay_echo/echo_probe_results.json",
@@ -981,124 +971,54 @@
    "sha256": "2ca1a917a976644bb7745ee89992ff0b4eb123e7bca450608608f5cfcf4141c2"
   },
   {
-   "path": "19_coldfire_transport/README_coldfire_transport.md",
-   "size": 12142,
-   "sha256": "f3f1edb77d875b84e92cbe75725db9e5e0bbd91fe306b1e4027f68dc4a26bb6f"
+   "path": "19_m13_reverb/README_reverb.md",
+   "size": 11212,
+   "sha256": "d86b367267fa202094260770c15a31ed881663d195688396913adaf07f6b26c5"
   },
   {
-   "path": "19_coldfire_transport/coldfire_excerpts.asm",
-   "size": 12070,
-   "sha256": "2eac785fb67413c53a4d6d946a8e0b821faabefc133c0b85589ca910c556a8a2"
+   "path": "19_m13_reverb/exp26_m13_out.json",
+   "size": 20023,
+   "sha256": "dbfaf486e85f5f5a77f54e39f8c0c3d51c85ee33661195439e89b91004a821ba"
   },
   {
-   "path": "19_coldfire_transport/dsp_dma_handlers.txt",
-   "size": 3175,
-   "sha256": "d609bf31207183748a6a20d3351eef31fe717c64157710d6562263dee758b9c5"
+   "path": "19_m13_reverb/exp26_m13_reverb.py",
+   "size": 5781,
+   "sha256": "4bdfca028b619ef0e6011ab8989caa045b2b156fdf6d6004439a599d71165710"
   },
   {
-   "path": "19_coldfire_transport/exp26_cf_disasm.py",
-   "size": 1658,
-   "sha256": "1b596aa818d1c89b680651b9538a0256b2947164c38da9fc0956b26c698e4e8f"
+   "path": "19_m13_reverb/reverb_tables.txt",
+   "size": 8707,
+   "sha256": "e49cc4974dccb0c9bb956d652bb9200136c8ad2f52c5994bc493a81f6b32a1b6"
   },
   {
-   "path": "19_coldfire_transport/exp26_cf_scan.py",
-   "size": 2322,
-   "sha256": "8bf91f673d5eebf198b8f7a63bc2efdb5946618a58673a387d7cf1cc12164b08"
+   "path": "20_coldfire_host/README_coldfire_host.md",
+   "size": 8787,
+   "sha256": "c2da1d77a9ff33cb3cc92ef50e7c144f51db519b63c3e8c8be6c930d2b228fcb"
   },
   {
-   "path": "19_coldfire_transport/exp26_findings.json",
-   "size": 4492,
-   "sha256": "c04bc52b93d611d3e859b61d7a4d385063fc448bc97b35972f6e16ecc2e8a344"
+   "path": "20_coldfire_host/cf_driver.asm",
+   "size": 17187,
+   "sha256": "2608eb9bcb06dd31951aed04f14579c483a9cf679f808e27a4a1fcb915d8065a"
   },
   {
-   "path": "19_coldfire_transport/exp26_scan_hrx.py",
-   "size": 1473,
-   "sha256": "9f7d2dcf4a5b60768aab26ff2e0dc47b867444681db6ee28ace2c114eccacadb"
+   "path": "20_coldfire_host/cf_hi_refs.py",
+   "size": 1165,
+   "sha256": "51e5cefdad227a3de12b87e2e7a9f6b19670ad6e14b371cf07b4a19e2c0fe13d"
   },
   {
-   "path": "20_coldfire_clock/README_coldfire_clock.md",
-   "size": 17145,
-   "sha256": "443388401f6e2b3448f434df61e4f93dd85595d4f4ad63546b7ed2c898d6e013"
+   "path": "GARBAGE_NOTICE.md",
+   "size": 4232,
+   "sha256": "604ae4f072d9fe99da93fcf1d5dab920817fdb72dc3a74b5960f22048d426b75"
   },
   {
-   "path": "20_coldfire_clock/coldfire_clock_excerpts.asm",
-   "size": 34994,
-   "sha256": "76416e6dea7a524f76785a2b96c799a525e7616e04347e6a387c3a2d00fadb22"
+   "path": "MANIFEST.json",
+   "size": 30882,
+   "sha256": "e17befd39aeb4a245fa345ab0de2fe6c4557c9604f01de404f140b44585d1e13"
   },
   {
-   "path": "20_coldfire_clock/exp27_findings.json",
-   "size": 2345,
-   "sha256": "ca0c0d90529a128399b2c2410ac874ae88a77260fb7a7f7aab5e4b218cbcfe9a"
-  },
-  {
-   "path": "20_coldfire_clock/exp27_trampolines.py",
-   "size": 1737,
-   "sha256": "49e86f14239ef4ef695aa4f4f7376e72e30e9e41c493c7346c87b4864c5f52e2"
-  },
-  {
-   "path": "20_coldfire_clock/exp27_verify.py",
-   "size": 2902,
-   "sha256": "19bbf62f85c4e8ecc64e97377006b776e231f7516d086fd6e0e34e8e140be4b3"
-  },
-  {
-   "path": "21_echo_kernel_routing/README_echo_kernel_routing.md",
-   "size": 12671,
-   "sha256": "79bd669e09e5e3c3d156a552b7a46ff21b665341674687674ae81a3c50f64fa5"
-  },
-  {
-   "path": "21_echo_kernel_routing/exp28_dump_tables.py",
-   "size": 9424,
-   "sha256": "4b729a528f6c831c3dbf17691a7cfa6f4f9bbd263968a81dc61111fcfa49ed68"
-  },
-  {
-   "path": "21_echo_kernel_routing/exp28_findings.json",
-   "size": 5974,
-   "sha256": "cc0e71f8c47940df687032bf0c9f89f6cb4302a528c6fba5d4efa2df5233741d"
-  },
-  {
-   "path": "21_echo_kernel_routing/kernel_echo_flow.asm",
-   "size": 30424,
-   "sha256": "da0a8e8c3c99a10d67cc415d682c2d892f0436ac4a08e60739cdd45108bd21ed"
-  },
-  {
-   "path": "21_echo_kernel_routing/table_140000_mantissa.bin",
-   "size": 6144,
-   "sha256": "2c5a1ff66290187d040b9897b037ddda349dd04da0440c6f398b48167231e9b2"
-  },
-  {
-   "path": "21_echo_kernel_routing/table_140000_mantissa.txt",
-   "size": 58200,
-   "sha256": "b73f0c09b65bfcdfb4b4d666217fdad275aa8fbb2a264c04128651521ba81f4a"
-  },
-  {
-   "path": "21_echo_kernel_routing/table_1449C6_glide_rates.bin",
-   "size": 768,
-   "sha256": "03f51bc40d3d08caec5f53cd7e3a8684ce1ee4df2df944279660f61fad55f4ed"
-  },
-  {
-   "path": "21_echo_kernel_routing/table_1449C6_glide_rates.txt",
-   "size": 6975,
-   "sha256": "1bd01055c9336269e6482b5359587a7de51df87205a821eadcb224f887165a9d"
-  },
-  {
-   "path": "22_phaser_lfo/README_phaser_lfo.md",
-   "size": 13141,
-   "sha256": "899aa90fdd75f4fccf8bf5043dbfdd64b2702b4a1dfff8977378b4ebcfcc3882"
-  },
-  {
-   "path": "22_phaser_lfo/exp29_lfo_rate.json",
-   "size": 4896,
-   "sha256": "22c421e885f5f02e92d4316e8ce04f64000f7c2033bf6854c1cbbc534c1f29b9"
-  },
-  {
-   "path": "22_phaser_lfo/exp29_lfo_rate.py",
-   "size": 11183,
-   "sha256": "8be4a4e9a53ef95c5bd7e736a22743f9ed788a8b1695d431a73d82f3531bad24"
-  },
-  {
-   "path": "23_dsnd_dtim_routing/README_dsnd_dtim.md",
-   "size": 11360,
-   "sha256": "503c0ccbddb9e6cddde6020cffee27603bd88936e875068d26f33dfd86fbd189"
+   "path": "README.md",
+   "size": 47769,
+   "sha256": "066e77dbbc9af84ccc7e84d3f2969fd19c5f48090cd104c76618695109c0f6c1"
   }
  ]
 }
