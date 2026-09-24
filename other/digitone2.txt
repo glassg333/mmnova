@@ -1,0 +1,45 @@
+https://github.com/mischa85/elektron-firmware-tool
+
++
+
+https://github.com/nationalsecurityagency/ghidra
+custom firmware dissasembler
+
+https://www.reddit.com/r/synthesizers/comments/1w8ge7k/comment/p86wsox/
+
+As far as I know it's just me on the Samples/Cycles currently.
+
+and I only started this because : 1. it was some gear I was not using and 2. cheaper to replace if something did happen than my DT2, or the borrowed DN2 I have at the moment.
+
+What I'm hoping putting things out there is to show that this is in fact possible and to spurn others on in working on this.
+
+There is a much bigger community working on the Octatrack:
+
+https://github.com/sambanks/octabam
+
+https://www.elektronauts.com/t/octabam-custom-dsp-fx-for-octatrack-unofficial/254098/316
+
+And some other things I've poked at:
+
+Midi import/export for the DT2/DN2: https://www.reddit.com/r/Elektron/comments/1w22b7i/dt2dn2_midi_import_and_export_html_file_runs_in/
+
+Project File extraction and compaction (they decompress into flat files with set offsets for everything) This says DT2/DN2 but I've since learned this also works on project files from the Samples/Cycles so it likely works on many more boxes project files too: https://www.reddit.com/r/Elektron/comments/1vzzm28/digitakt_2_digitone_2_project_file/
+
+If you are technically minded and want to start poking around yourself (while being aware of the risks of flashing firmware) There are a few select keywords to dig in further in the post here
+
+
+https://github.com/sambanks/octabam custom octatrack firmware 
+
+https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main
+
+
+https://github.com/mischa85/elektron-firmware-tool
+
+
+https://github.com/sambanks/octabam/blob/main/dsp/alias_probe.asm
+
+
+https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main
+
+digitone 2 recreate
+https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main/docs/architecture
