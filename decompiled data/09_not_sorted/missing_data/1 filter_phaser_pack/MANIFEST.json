@@ -1,9 +1,9 @@
 {
  "pack": "filter_phaser_pack",
- "generated": "2026-09-22T00:00:00Z",
- "iteration": 26,
- "file_count": 203,
- "total_bytes": 3869977,
+ "generated": "2026-09-24T00:00:00Z",
+ "iteration": 28,
+ "file_count": 216,
+ "total_bytes": 3921233,
  "files": [
   {
    "path": "01_filter/README_filter_algorithm.md",
@@ -1006,19 +1006,84 @@
    "sha256": "51e5cefdad227a3de12b87e2e7a9f6b19670ad6e14b371cf07b4a19e2c0fe13d"
   },
   {
+   "path": "22_fm_machines/README_fm_machines.md",
+   "size": 22260,
+   "sha256": "18dcff4c4d7923efbdf304b3095bdc2cd5577ac188c8f7be9a051a3739573c04"
+  },
+  {
+   "path": "22_fm_machines/exp28_dyn_levels.py",
+   "size": 2278,
+   "sha256": "c1d1e4832129363d22b63d80bffae16a7ec918d0afaf4cc9109a8f880aa4445f"
+  },
+  {
+   "path": "22_fm_machines/exp28_dyn_reach.py",
+   "size": 2685,
+   "sha256": "6a79f5035bcb924cf47503051fb9e9602f1c57d4e546bc33537bb4c1454263f5"
+  },
+  {
+   "path": "22_fm_machines/fm_harness.py",
+   "size": 4370,
+   "sha256": "d000e51197c42f8706cd00917496db6fd875a5e9f4e515687f84a38f200c2bab"
+  },
+  {
+   "path": "22_fm_machines/fm_laws_stat.json",
+   "size": 2692,
+   "sha256": "d2583d670b0f33c8be51c6937cb7088e318d7246a3919ae7b47b51bb0ed6aee2"
+  },
+  {
+   "path": "22_fm_machines/fm_measure1.py",
+   "size": 2039,
+   "sha256": "fa586c9770c18e0734ae37cc56d077655a36e8e26f23fcb7ed46b7d24a075daa"
+  },
+  {
+   "path": "22_fm_machines/fm_measure2.py",
+   "size": 5498,
+   "sha256": "88cdece7ad510281f75b0491eade65f44ed02eafee7e5ad698130c6bdcda3d96"
+  },
+  {
+   "path": "22_fm_machines/fm_pitch_chain.py",
+   "size": 1853,
+   "sha256": "ba8ddd8c6732e5a0b9ddb1f08b8d285c9edf5063d10b47bc89718ff8b2b76afa"
+  },
+  {
+   "path": "22_fm_machines/fm_ratio_spec.py",
+   "size": 2491,
+   "sha256": "64978a35c7e54c3aa9d7e6cc70e3ab9e7b71ab09a4c7a82777c2dc31067df1d5"
+  },
+  {
+   "path": "22_fm_machines/mnm_fm_exact.hpp",
+   "size": 8997,
+   "sha256": "ba0c8cd04c1c2f5976f2250ea2a1549ae840d8924318dca72938367505847e4b"
+  },
+  {
+   "path": "22_fm_machines/ratio_table.txt",
+   "size": 1393,
+   "sha256": "39e81426b11a5ca4cd8a5990cad00fb240921a476b8240e2230dfe5394b3921b"
+  },
+  {
+   "path": "22_fm_machines/test_mnm_fm_exact.cpp",
+   "size": 2697,
+   "sha256": "3694c3fac91d798be6e7befe4d84577f0640edb203918abce16ad747aba99700"
+  },
+  {
+   "path": "22_fm_machines/wave_table_141880.txt",
+   "size": 1241,
+   "sha256": "e7b650acbf9bd8ee77ae6b68af057eabc2d601a6f48d6947f9a78731c6f3d4d8"
+  },
+  {
    "path": "GARBAGE_NOTICE.md",
    "size": 4232,
    "sha256": "604ae4f072d9fe99da93fcf1d5dab920817fdb72dc3a74b5960f22048d426b75"
   },
   {
    "path": "MANIFEST.json",
-   "size": 30882,
-   "sha256": "e17befd39aeb4a245fa345ab0de2fe6c4557c9604f01de404f140b44585d1e13"
+   "size": 16151,
+   "sha256": "ad0c5dddce87536b148bf0db1b9e1a0d8a35af5a8065a88cda663f464de594ca"
   },
   {
    "path": "README.md",
-   "size": 47769,
-   "sha256": "066e77dbbc9af84ccc7e84d3f2969fd19c5f48090cd104c76618695109c0f6c1"
+   "size": 53262,
+   "sha256": "e6cd1d6e30a25de0a63e74846547292b18e26fa2f4c5b0a3818258a26859cf64"
   }
  ]
 }
