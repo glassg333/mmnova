@@ -1,0 +1,254 @@
+/*
+ * MnmFilter.h — реализация DSP-фильтров Monomachine SFX-60 OS 1.32B
+ *
+ * Источник: дизассемблирование dsp1_pmem.bin (верифицировано 100% на корпусе).
+ * Две модели фильтров:
+ *
+ * 1) MnmOnePole — 1-полюсный IIR (формула y[i] = (1-a)·y[i-1] + a·x[i]).
+ *    Копия kernel'а FX-CHORUS LP / FX-REV HP+LP / FM TONE.
+ *    Коэффициент `a` выбирается из таблицы kLP_filter_coeffs[TONE_param],
+ *    TONE_param ∈ [0..127]. Таблица содержит 258 слов:
+ *      [0..127] — curve 1 (основной параметр 0..127),
+ *      [128]    — переходное значение (0x74bc9a),
+ *      [129..257] — curve 2 (для второго канала/режима).
+ *
+ * 2) MnmSVF — 2-pole state-variable фильтр (multimode) с фиксированными
+ *    коэффициентами x0 = -0.084747577, x1 = +0.581161499 (constants из kernel
+ *    P:$5D3-5FA). Голосовой multimode-фильтр (FILT-страница).
+ *
+ * Частота дискретизации: 44 100 Гц (как в оригинале).
+ * Точность: float32, для бит-в-байт точности нужен 24-bit fixed-point.
+ *
+ * Пример:
+ *   #include "MnmFilter.h"
+ *   mnm::MnmOnePole lp;
+ *   lp.setCutoffFromTable(64);       // TONE = 64 → ~695 Hz (по таблице)
+ *   for (auto x : input) out[i] = lp.process(x);
+ *
+ */
+#ifndef MNM_FILTER_H
+#define MNM_FILTER_H
+
+#include <cstdint>
+#include <cmath>
+#include <algorithm>
+#include "mnm_filter_tables.h"
+
+namespace mnm {
+
+// ─────────────────────────────────────────────────────────────────────────
+// 1-pole IIR LP/HP filter (используется в FX-CHORUS, FX-REV, FM-машинах)
+// Точная копия структуры `mac x0,y1,a / mac -x1,x0,a` из kernel listings.
+// ─────────────────────────────────────────────────────────────────────────
+class MnmOnePole {
+public:
+    MnmOnePole() : s_(0.0f) {}
+
+    void reset() { s_ = 0.0f; }
+
+    // Установить коэффициент напрямую (q.23 fraction, 0..~0.92)
+    // `a` ∈ [0, 1): a=0 → нет интеграции, a→1 → почти passthrough.
+    void setCoef(float a) {
+        a_ = std::clamp(a, 0.0f, 0.999f);
+        one_minus_a_ = 1.0f - a_;
+    }
+
+    // Установить TONE-параметр (0..127) — главная точка входа.
+    // Использует таблицу kLP_filter_coeffs (curve 1) из прошивки.
+    // TONE=0   → fc ≈ 15 Гц (sub-bass)
+    // TONE=32  → fc ≈ 104 Гц (bass)
+    // TONE=64  → fc ≈ 695 Гц (low-mid)
+    // TONE=96  → fc ≈ 4699 Гц (presence)
+    // TONE=112 → fc ≈ 13335 Гц ( brilliance)
+    // TONE=127 → fc → ∞ (passthrough, no -3dB point)
+    void setCutoffFromTable(int tone_param) {
+        tone_param = std::clamp(tone_param, 0, 127);
+        int32_t raw = kLP_filter_coeffs[tone_param];
+        // raw уже int32_t (signed 24-bit, q.23)
+        setCoef(static_cast<float>(raw) / 8388608.0f);
+    }
+
+    // Вариант для второго канала/режима (curve 2, индексы 129..256)
+    void setCutoffFromTableCurve2(int tone_param) {
+        tone_param = std::clamp(tone_param, 0, 127);
+        int32_t raw = kLP_filter_coeffs[129 + tone_param];
+        setCoef(static_cast<float>(raw) / 8388608.0f);
+    }
+
+    // Прямой расчёт -3dB cutoff для текущего коэффициента
+    // Возвращает NaN если фильтр стал passthrough (a близко к 1)
+    float cutoffHz(float fs = 44100.0f) const {
+        const float a = a_;
+        if (a <= 0.0f || a >= 1.0f) return std::nanf("");
+        const float num = 2.0f - 2.0f * a - a * a;
+        const float den = 2.0f * (1.0f - a);
+        if (den == 0.0f) return std::nanf("");
+        const float c = num / den;
+        if (c < -1.0f || c > 1.0f) return std::nanf("");
+        const float omega = std::acos(c);
+        return omega * fs / (2.0f * 3.14159265358979323846f);
+    }
+
+    // LP-режим: y[i] = (1-a)·y[i-1] + a·x[i]
+    inline float processLP(float x) {
+        s_ = one_minus_a_ * s_ + a_ * x;
+        return s_;
+    }
+
+    // HP-режим: y[i] = x[i] - state (из той же формулы, но subtraction)
+    // (как FX-REV HP: один и тот же 1-pole используется и для HP, и для LP,
+    //  разница — формула вывода)
+    inline float processHP(float x) {
+        s_ = one_minus_a_ * s_ + a_ * x;
+        return x - s_;
+    }
+
+    // stereo-process (16 сэмплов/блок как в прошивке)
+    void processBlockLP(const float* in, float* out, size_t n) {
+        for (size_t i = 0; i < n; ++i) out[i] = processLP(in[i]);
+    }
+    void processBlockHP(const float* in, float* out, size_t n) {
+        for (size_t i = 0; i < n; ++i) out[i] = processHP(in[i]);
+    }
+
+    float coef() const { return a_; }
+    float state() const { return s_; }
+
+private:
+    float a_ = 0.0f;            // q.23 fraction
+    float one_minus_a_ = 1.0f;
+    float s_ = 0.0f;            // state
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// 2-pole State Variable Filter (FILT-page multimode, kernel P:$5D3-5FA)
+// Фиксированные коэффициенты x0 = -0.0847476, x1 = +0.5811615.
+// Per-voice коэффициенты загружаются в Y:$91+/$d1+ перед каждой итерацией,
+// моделируют TONE/Q/MODE — здесь упрощено до классического Chamberlin SVF
+// с регулировкой cutoff и resonance.
+// ─────────────────────────────────────────────────────────────────────────
+class MnmSVF {
+public:
+    MnmSVF() { reset(); }
+
+    void reset() {
+        lp_ = 0.0f; bp_ = 0.0f; hp_ = 0.0f;
+    }
+
+    // Установить cutoff (Гц) и resonance (0..1).
+    // Поскольку оригинальный SVF в kernel использует КОНСТАНТЫ x0/x1
+    // (TONE/Q/MODE подаются per-voice через work-area Y:$91+),
+    // здесь мы делаем классический 2-pole Chamberlin с возможностью
+    // настройки cutoff/resonance — это удобнее для практического применения.
+    // Для бит-точной эмуляции голоса нужен порт 6 work-area coefficients
+    // из V-$18 (это требует реверса ColdFire-стороны, помечено как TODO).
+    void setParams(float cutoffHz, float resonance, float sampleRate = 44100.0f) {
+        // Ограничение cutoff до [10, 0.49·fs]
+        cutoffHz = std::clamp(cutoffHz, 10.0f, static_cast<float>(sampleRate) * 0.49f);
+        // g = 2·sin(π·fc/fs) — стандартный SVF cutoff gain
+        const float omega = 2.0f * 3.14159265358979323846f * cutoffHz / sampleRate;
+        g_ = 2.0f * std::sin(omega / 2.0f);
+        // Damping = 1/Q; resonance ∈ (0, 1] maps to Q ∈ [0.5, ~50]
+        float q = 0.5f + resonance * 49.5f;
+        d_ = 1.0f / q;
+        // Сохраняем также константы из kernel (для справки / кастомных режимов)
+        // Они доступны как kSVF_x0, kSVF_x1 из mnm_filter_tables.h
+    }
+
+    // Обработка одного сэмпла, возвращает сразу все три выхода.
+    // Полная структура: lp, bp, hp одновременно (это и есть multimode).
+    inline void process(float in, float& lp, float& bp, float& hp) {
+        // Chamberlin SVF:
+        //   hp = in - lp - d·bp
+        //   bp = bp + g·hp
+        //   lp = lp + g·bp
+        hp_ = in - lp_ - d_ * bp_;
+        bp_ = bp_ + g_ * hp_;
+        lp_ = lp_ + g_ * bp_;
+        lp = lp_; bp = bp_; hp = hp_;
+    }
+
+    // Cutoff в Гц (из текущего g)
+    float cutoffHz(float sampleRate = 44100.0f) const {
+        // g = 2·sin(ω/2) → ω = 2·asin(g/2) → fc = ω·fs/(2π)
+        float half_g = g_ * 0.5f;
+        if (half_g < -1.0f || half_g > 1.0f) return std::nanf("");
+        float omega = 2.0f * std::asin(half_g);
+        return omega * sampleRate / (2.0f * 3.14159265358979323846f);
+    }
+
+    // Variant: process N samples, output selected mode
+    enum class Mode { LP, BP, HP, NOTCH, ALLPASS, PEAK };
+    void processBlock(const float* in, float* out, size_t n, Mode mode = Mode::LP) {
+        float lp, bp, hp;
+        for (size_t i = 0; i < n; ++i) {
+            process(in[i], lp, bp, hp);
+            float y = 0.0f;
+            switch (mode) {
+                case Mode::LP:       y = lp; break;
+                case Mode::BP:       y = bp; break;
+                case Mode::HP:       y = hp; break;
+                // Standard notch: y = input - d·bp
+                // На cutoff-частоте |bp| ≈ Q·input, d = 1/Q → y = input - (1/Q)·(Q·input) = 0 (notch)
+                case Mode::NOTCH:    y = in[i] - d_ * bp; break;
+                // Allpass approximation: y = input - 2·d·bp (gives phase shift, ~flat magnitude)
+                case Mode::ALLPASS:  y = in[i] - 2.0f * d_ * bp; break;
+                // Peak (peak at cutoff, unity elsewhere):
+                case Mode::PEAK:     y = in[i] - d_ * bp - (lp + hp - in[i]); break;
+            }
+            out[i] = y;
+        }
+    }
+
+    float g() const { return g_; }
+    float d() const { return d_; }
+
+private:
+    float g_ = 0.1f;   // cutoff gain (2·sin(ωc/2))
+    float d_ = 1.0f;   // damping = 1/Q
+    float lp_ = 0.0f, bp_ = 0.0f, hp_ = 0.0f;
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Cascaded HP+LP (Base-Width фильтр, kernel P:$A5F-$ABF)
+// Три последовательных 1-pole IIR:
+//   1) HP на BASE (curve 1)
+//   2) LP на BASE+WIDTH (curve 1)
+//   3) Auxiliary filter (curve 2)
+// ─────────────────────────────────────────────────────────────────────────
+class MnmBaseWidthFilter {
+public:
+    MnmBaseWidthFilter() { reset(); }
+
+    void reset() {
+        f1_.reset(); f2_.reset(); f3_.reset();
+    }
+
+    // base ∈ [0..127] (HP cutoff), width ∈ [0..127] (LP offset)
+    void setFromParams(int base, int width, int aux = 0) {
+        f1_.setCutoffFromTable(base);
+        f2_.setCutoffFromTable(std::clamp(base + width, 0, 127));
+        f3_.setCutoffFromTableCurve2(aux);
+    }
+
+    inline float process(float x) {
+        float y = f1_.processHP(x);   // HP на BASE
+        y = f2_.processLP(y);         // LP на BASE+WIDTH
+        y = f3_.processLP(y);         // aux
+        return y;
+    }
+
+    void processBlock(const float* in, float* out, size_t n) {
+        for (size_t i = 0; i < n; ++i) out[i] = process(in[i]);
+    }
+
+    float cutoffBase() const  { return f1_.cutoffHz(); }
+    float cutoffWidth() const { return f2_.cutoffHz(); }
+
+private:
+    MnmOnePole f1_, f2_, f3_;
+};
+
+} // namespace mnm
+
+#endif // MNM_FILTER_H
