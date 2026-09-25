@@ -1,0 +1,129 @@
+#pragma once
+// DSP mode registry -- Monomachine Nova 1.6.2 patched with real filter
+// - mnm (0) = NEW REAL FILTER from decompiled data/mnm_filter_full_dump_juce_real
+//   uses kLP_filter_coeffs 258 + SVF constants $F528BD/$4A4DF0 + proper Q and AD env (BOFS/WOFS)
+// - old (1) = previous biquad approximation (kept as backup)
+// - cascade/dual/raw (2,3,4) = filter-only backups
+// - dist2 (5) = alternative dist block from 2 try/.../DistortionSaturationBlock.h (HardClip/Soft/Fold + SRR)
+// - fm2 (6) = alternative FM+ block from FMPlusBlocks.h (FM_STAT/PAR/DYN with ratio table)
+// - bbox2 (7) = alternative BBOX retrigger mode Nova_2KnobFade from DproBboxBlock.h
+
+#include <array>
+#include <cstdint>
+
+namespace monomachine {
+
+enum DspSection : int {
+    DspSynt = 0,
+    DspAmp,
+    DspFilter,
+    DspDist,
+    DspDelay,
+    DspRouting,
+    DspChorus,
+    DspSectionCount
+};
+
+inline const char* dspModeParamId(int section) {
+    switch (section) {
+        case DspSynt:   return "mode_synt";
+        case DspAmp:    return "mode_amp";
+        case DspFilter: return "mode_filt";
+        case DspDist:   return "mode_dist";
+        case DspDelay:  return "mode_dly";
+        case DspRouting:return "mode_route";
+        case DspChorus: return "mode_cho";
+        default:        return "mode_unknown";
+    }
+}
+
+inline const char* dspSectionLabel(int section) {
+    switch (section) {
+        case DspSynt:   return "SYNT";
+        case DspAmp:    return "AMP";
+        case DspFilter: return "FILT";
+        case DspDist:   return "DIST";
+        case DspDelay:  return "DLY";
+        case DspRouting:return "ROUTE";
+        case DspChorus: return "CHOR";
+        default:        return "?";
+    }
+}
+
+inline const char* dspModeProvenance(int section) {
+    switch (section) {
+        case DspSynt:   return "FM: mnm=recovered OS1.32B FmCore, old=Nova FM, fm2=FMPlusBlocks (ratio tbl P:$141A80, tone LP P:$144AC7), bbox2=Nova_2KnobFade retrig";
+        case DspAmp:    return "AMP: kernel P:$4A8-$4F5 ADSR FSM tables Y:$141800/Y:$141880, LFO $791FD0=0.94628, decay bend 150%";
+        case DspFilter: return "FILT mnm=REAL from mnm_filter_full_dump_juce_real: kLP 258 coeffs P:$144AC7 + SVF $F528BD=-0.08469 $4A4DF0=+0.5805 + Q from Y:$91+ + AD env BOFS/WOFS; old=biquad; cascade/dual/raw=backups";
+        case DspDist:   return "DIST mnm=ALU sat bset #$14,sr hardclip +-1.0 P:$1476A5, old=tanh, dist2=DistortionSaturationBlock HardClip_SRSM/Overdrive/Fold + SRR mpysu+dmac $101AFB";
+        case DspDelay:  return "DLY mnm=m32 FX-DLY X:$114000 + P:$144C49 recip, old=linear interp, routing fixed: dist->srr->filt+eq->env->dsnd";
+        case DspRouting:return "ROUTE mnm=verified chain synth->dist->srr->filt+eq->env->dsndEQ after filt (mnm-routing-100/exact/verified), old=osc->env->dist->filt->delay";
+        case DspChorus: return "CHOR mnm=OS1.32B native core 24-bit Q23 16-frame schedule, FX unity fix for dry path";
+        default:        return "";
+    }
+}
+
+// The list itself. 0=mnm, 1=old stay stable. New modes appended for menu visibility.
+inline const char* dspModeChoices() { return "mnm|old|cascade|dual|raw|dist2|fm2|bbox2"; }
+inline constexpr int dspModeMnm = 0;
+inline constexpr int dspModeOld = 1;
+inline constexpr int dspModeCascade = 2;
+inline constexpr int dspModeDual = 3;
+inline constexpr int dspModeRaw = 4;
+inline constexpr int dspModeDist2 = 5;
+inline constexpr int dspModeFm2 = 6;
+inline constexpr int dspModeBbox2 = 7;
+inline constexpr int dspModeCount = 8;
+
+// Helpers for GUI / processor: collapse section-specific modes for other sections.
+inline constexpr int dspModeFilter = DspFilter;
+inline bool dspModeIsFilterOnly(int mode) noexcept {
+    return mode == dspModeCascade || mode == dspModeDual || mode == dspModeRaw;
+}
+inline bool dspModeIsDistOnly(int mode) noexcept {
+    return mode == dspModeDist2;
+}
+inline bool dspModeIsSyntOnly(int mode) noexcept {
+    return mode == dspModeFm2 || mode == dspModeBbox2;
+}
+
+inline const char* dspModeName(int mode) {
+    switch (mode) {
+        case 0: return "mnm";
+        case 1: return "old";
+        case 2: return "cascade";
+        case 3: return "dual";
+        case 4: return "raw";
+        case 5: return "dist2";
+        case 6: return "fm2";
+        case 7: return "bbox2";
+        default: return "?";
+    }
+}
+inline const char* dspModeLabel(int mode) { return dspModeName(mode); }
+
+inline const char* dspModeProvenanceForMode(int section, int mode) {
+    // Detailed explanation per mode, visible in menu tooltip
+    if (mode==dspModeMnm){
+        switch(section){
+            case DspSynt: return "SYNT mnm: recovered OS1.32B FmCore (P:$4A8-$4F5, tone LP P:$144AC7)";
+            case DspAmp: return "AMP mnm: kernel ADSR FSM tables Y:$141800/Y:$141880";
+            case DspFilter: return "FILT mnm REAL: kLP 258 coeffs + SVF $F528BD=-0.08469 $4A4DF0=+0.5805 + Q Y:$91+ + AD BOFS/WOFS, bypass=unity THRU";
+            case DspDist: return "DIST mnm: ALU sat bset #$14,sr hardclip +-1.0";
+            case DspDelay: return "DLY mnm: m32 FX-DLY X:$114000 + recip table P:$144C49";
+            case DspRouting: return "ROUTE mnm: synth->dist->srr->filt+eq->env->dsndEQ after filt (verified)";
+            case DspChorus: return "CHOR mnm: native OS1.32B core 24-bit, dry unity fix";
+            default: return "mnm: recovered firmware";
+        }
+    }
+    if (mode==dspModeOld) return "old: previous Nova biquad/tanh approximation (backup)";
+    if (mode==dspModeCascade) return "cascade: literal $F528BD/$4A4DF0 SVF run twice per block, Q avg";
+    if (mode==dspModeDual) return "dual: HP(BASE) then LP(BASE+WIDTH) independent Q";
+    if (mode==dspModeRaw) return "raw: fixed-point SVF truthful recurrence, lacks Q and env modulation (THRU when Q~0)";
+    if (mode==dspModeDist2) return "dist2: alt DIST from DistortionSaturationBlock.h - HardClip_SRSM/Overdrive_Soft/Fold + SRR bitcrush, add digit unique";
+    if (mode==dspModeFm2) return "fm2: alt FM+ from FMPlusBlocks.h - DYN/STAT/PAR with ratio table, add digit unique";
+    if (mode==dspModeBbox2) return "bbox2: alt BBOX from DproBboxBlock Nova_2KnobFade - repeat-sample knob mode, hold length = repeat*4";
+    return "?";
+}
+
+}  // namespace monomachine
