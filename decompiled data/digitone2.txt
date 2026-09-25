@@ -43,3 +43,24 @@ https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main
 
 digitone 2 recreate
 https://github.com/lalzart/digitakt-ii-firmware-research-public/tree/main/docs/architecture
+
+octatrack emu
+https://github.com/markandrus/octemu
+https://github.com/repeat98/octamachine
+
+
+
+Repository	Role
+sambanks/octabam	Octatrack 1.40C image tooling, hardware research, ColdFire/DSP work, and verification harnesses; a possible tooling or carrier base subject to feasibility work
+markandrus/octemu	Octatrack emulation with headless scripts and an SDL front panel; our tracked source submodule
+joelanders/gearmulator-md-mm	Firmware-running Machinedrum and Monomachine reference emulator
+dsp56300/gearmulator	Upstream emulator architecture and CPU/DSP foundations
+mamedev/mame	Elektron hardware skeleton and notes; marked non-working/no-sound
+mxldyn/octamax	Earlier Octatrack image-format and memory-map research
+dsp56300/dsp56300	DSP emulation used by the surrounding projects
+joelanders/mc68k-md-mm	ColdFire/68k emulator fork used by Gearmulator MD/MM
+mischa85/elektron-firmware-tool	Elektron firmware container tools used by octemu and related work
+QEMU	CPU emulation base for octemu's patched build
+
+octatrack for firmware
+https://gitlab.com/ot-tools/ot-tools/-/releases/0.11.3
