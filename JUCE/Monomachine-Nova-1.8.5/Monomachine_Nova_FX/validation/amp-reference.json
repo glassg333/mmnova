@@ -1,0 +1,16 @@
+{
+  "source_url": "https://raw.githubusercontent.com/glassg333/mmnova/main/sine%20example%20first%20original%20monomchaine%20-%202st%20my%20vst.wav",
+  "github_blob": "50a418be833506032fcdbcd783c24ae756f2347d",
+  "sha256": "108d974c2f55c992c761d4acfa4cbe10780856e7765065535bf3b49d9056f8cc",
+  "samplerate": 44100,
+  "frames": 480200,
+  "channels": 2,
+  "seconds": 10.88888888888889,
+  "settings": {
+    "ATK": 0,
+    "HOLD": 0,
+    "DEC": 64,
+    "REL": 64
+  },
+  "order": "original Monomachine first, supplied VST second"
+}
