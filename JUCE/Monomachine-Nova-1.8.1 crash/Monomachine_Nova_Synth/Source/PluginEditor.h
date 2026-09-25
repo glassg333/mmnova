@@ -1,0 +1,17 @@
+#pragma once
+#include "PluginProcessor.h"
+class MonomachineNovaAudioProcessorEditor final : public juce::AudioProcessorEditor,private juce::Timer {
+public:
+    explicit MonomachineNovaAudioProcessorEditor(MonomachineNovaAudioProcessor&);
+    ~MonomachineNovaAudioProcessorEditor() override;
+    void paint(juce::Graphics&) override;
+    void resized() override;
+    void startLayoutEdit(); // 1.6.40: отдельная прога-редактор стартует сразу в режиме правки
+    bool keyPressed(const juce::KeyPress&) override; // 1.6.41: F1 = LAYOUT EDIT, F2 = сохранить
+private:
+    struct Surface;
+    MonomachineNovaAudioProcessor& processor;
+    std::unique_ptr<Surface> surface;
+    void timerCallback() override;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MonomachineNovaAudioProcessorEditor)
+};
