@@ -1,0 +1,21 @@
+Открой cmd в папке репозитория:
+
+text
+cd /d E:\mm\gitclone\mmnova
+Выполни:
+
+text
+git lfs migrate import --everything --above=100MB
+Это автоматически:
+
+Найдёт все файлы >100 МБ во всей истории.
+
+Перенесёт их в LFS.
+
+Больше GitHub не будет ругаться.
+
+Потом:
+
+text
+git push origin main --force
+Всё. Remote не трогается, репо не сносится, ничего не теряется.
