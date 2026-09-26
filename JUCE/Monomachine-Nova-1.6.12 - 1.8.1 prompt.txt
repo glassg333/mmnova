@@ -1335,7 +1335,21 @@ https://github.com/glassg333/mmnova/blob/main/decompiled%20data/09_dsp_models_ve
 
 
 
-
+HEADROOM for DIST 
+        v
+       EQ
+        v
+FILTER > DISTORTION
+        v
+AMPLIFICATION ENVELOPE
+        v
+VOLUME > PAN
+        v
+SAMPLE RATE REDUCTION
+        v
+      DELAY
+        v
+      LEVEL
 
 
 
