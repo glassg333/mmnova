@@ -1,0 +1,8 @@
+
+Track Delay P:$000939 (send+фидбек-кольцо), P:$000a5b, ячейки Y:$051b–$051f (TIM/SND/FDB/BAS/WID, tape-style).
+ да именно про него код то сделаешь для импорта идентичный прошивке?  и SRR крутилка типо биткраша тоже рядом находтся. 
+ потом уже реверб и потом GND-SIN m1 (159) / GND-NOIS m2 (193) после чего SID-6581 m3	323 и SWAVE-SAW m4	322	твои «пилы»: unison UNIL/UNIW/UNIX + SUB1/SUB2
+SWAVE-PULS m5	338	пульс: unison + PW/PWAD/PWRS
+SWAVE-ENS m14	462	4-голосый ансамбль PCH2/3/4 + хорус CHRL/CHRW
+DPRO-WAVE m6	258
+и напоследок VO-6 m11	2267	крупнейшая машина: формантный синтез VOC1/VOC2/VOIC/CONS/CLEN/CVOL — в порту 3 грубых bandpass

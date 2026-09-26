@@ -1,0 +1,1 @@
+Интеграция: скопировать MnmTrackDelay.hpp + mnm_trackdelay_tables.h в Source/dsp/mnm/, в NovaDSP.h подключить и завести per-track mnm::td::TrackDelayCore. Контракт параметров — TRACK_DELAY_MINING.md §«Контракт модуля».

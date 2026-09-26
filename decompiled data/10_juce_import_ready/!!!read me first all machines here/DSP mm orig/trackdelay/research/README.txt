@@ -1,0 +1,1 @@
+research/: эмулятор DSP56300 + харнес ядра + эксперименты exp31–exp42 (трассировка стадии Track Delay $0939-$0B4C, IR-замеры фильтра фидбек-лупа, SRR-пробы). Запуск теста: g++ -std=c++17 -I../Monomachine_Nova_Synth/Source/dsp/mnm -o t test_mnm_trackdelay.cpp && ./t
