@@ -34,6 +34,7 @@
 #include <unordered_map>
 #include <map>
 #include <regex>
+#include <array>
 #include <algorithm>
 #include <functional>
 
@@ -135,7 +136,14 @@ public:
     }
     std::vector<uint32_t> watch_set;          // (space<<24)|addr
     std::vector<std::string> watch_log;       // "pc sp:addr val"
+    // debug: full write log  {step, pc, (spaceY<<24)|addr, val}
+    bool log_all_writes = false;
+    std::vector<std::array<uint32_t, 4>> wlog;
     inline void wr(char sp, uint32_t ea, uint32_t val) {
+        if (log_all_writes)
+            wlog.push_back({(uint32_t)(steps - 1), pc,
+                            (uint32_t)((sp == 'y' ? 0x1000000u : 0u) | (ea & MASK24)),
+                            val & MASK24});
         if (!watch_set.empty()) {
             uint32_t key = ((sp == 'x') ? 0u : 1u << 24) | ea;
             for (auto k : watch_set)

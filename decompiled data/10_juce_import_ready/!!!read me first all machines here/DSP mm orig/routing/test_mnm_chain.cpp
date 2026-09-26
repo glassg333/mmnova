@@ -29,43 +29,42 @@ int main(int argc, char** argv) {
     Core core;
     core.parse(read_lines(dir + "/chain_program.lst"));
     fprintf(stderr, "program: %zu instructions\n", core.prog.size());
-    // tables
-    {
-        {
-            std::ifstream f(dir + "/tables_x.bin", std::ios::binary);
-            char buf[4]; uint32_t a = 0x100000;
-            while (f.read(buf, 4)) {
-                uint32_t v = (uint8_t) buf[0] | ((uint8_t) buf[1] << 8) | ((uint8_t) buf[2] << 16);
-                core.X[a] = v; ++a;
-            }
-        }
-        {
-            std::ifstream f(dir + "/tables_y.bin", std::ios::binary);
-            char buf[4]; uint32_t a = 0x100000;
-            while (f.read(buf, 4)) {
-                uint32_t v = (uint8_t) buf[0] | ((uint8_t) buf[1] << 8) | ((uint8_t) buf[2] << 16);
-                core.Y[a] = v; ++a;
-            }
-        }
-        fprintf(stderr, "tables loaded\n");
-    }
 
-    const char* sets[3] = {"A_neutral", "B_hot", "C_m14_handler"};
+    const char* sets[4] = {"A_neutral", "B_hot", "C_m14_handler", "D_real"};
     int total_checked = 0, total_fail = 0;
 
-    for (int si = 0; si < 3; ++si) {
+    for (int si = 0; si < 4; ++si) {
         std::string name = sets[si];
         std::string d = dir + "/" + name;
         // ---- init ----
         Core* c = &core;
-        // reset state
+        // reset ALL core state per dataset (the oracle builds a fresh emulator
+        // for each dataset: registers, flags, DO/REP/ret stack — everything)
         c->A = c->B = 0; c->x0 = c->x1 = c->y0 = c->y1 = 0;
         for (int i = 0; i < 8; ++i) { c->R[i] = 0; c->N[i] = 0; c->M[i] = MASK24; }
         c->f = Flags{}; c->sr_int = 0; c->pc = 0;
-        c->do_stack.clear(); c->rep_valid = false; c->ret_stack.clear();
+        c->do_stack.clear(); c->rep_valid = false; c->rep_count = 0; c->rep_after = 0;
+        c->ret_stack.clear();
         c->steps = 0;
+        // FULL per-dataset memory image (0x000000-0x14C800) at the init point —
+        // the oracle emulator runs with the complete real RAM (load_xy_memory),
+        // the sparse init.txt alone is NOT sufficient (zero cells matter!)
+        {
+            std::ifstream f(d + "/full_x.bin", std::ios::binary);
+            char buf[4]; uint32_t a = 0;
+            while (f.read(buf, 4)) {
+                uint32_t v = (uint8_t) buf[0] | ((uint8_t) buf[1] << 8) | ((uint8_t) buf[2] << 16);
+                core.X[a] = v; ++a;
+            }
+            std::ifstream g(d + "/full_y.bin", std::ios::binary);
+            a = 0;
+            while (g.read(buf, 4)) {
+                uint32_t v = (uint8_t) buf[0] | ((uint8_t) buf[1] << 8) | ((uint8_t) buf[2] << 16);
+                core.Y[a] = v; ++a;
+            }
+        }
         // NOTE: tables already loaded; init overwrites low cells only
-        std::vector<Poke> frame_pokes[32];
+        std::vector<Poke> frame_pokes[64];
         {
             std::ifstream f(d + "/init.txt");
             std::string kind;
@@ -88,7 +87,7 @@ int main(int argc, char** argv) {
             }
         }
         // ---- frames ----
-        std::vector<std::vector<Poke>> pokes(32);
+        std::vector<std::vector<Poke>> pokes(64);
         {
             std::ifstream f(d + "/frames.txt");
             std::string kind; int cur = -1;
@@ -105,12 +104,13 @@ int main(int argc, char** argv) {
             std::string kind;
             while (f >> kind) {
                 if (kind == "OUT") {
-                    int fr; f >> fr; std::vector<int32_t> o(32);
+                    int fr; f >> std::dec >> fr; std::vector<int32_t> o(32);
                     for (auto& v : o) { unsigned w; f >> std::dec >> v; }
                     // values are signed decimal
                     outs.push_back(o);
                 } else if (kind == "SNAP") {
-                    Snap s; f >> s.frame;
+                    Snap s; f >> std::dec >> s.frame;   // NOTE: hex flag may be
+                    // left set by cell parsing above — frame number is DECIMAL
                     snaps.push_back(s);
                 } else {
                     unsigned a, v; f >> std::hex >> a >> v;
@@ -120,14 +120,16 @@ int main(int argc, char** argv) {
         }
 
         int frame_fail = 0;
-        for (int fr = 0; fr < 32; ++fr) {
+        for (int fr = 0; fr < (int) pokes.size() && pokes[fr].size() > 0; ++fr) {
             // apply the TRIG poke (Y:P+$28) before the preamble
+            // NOTE: spaces in frames.txt are uppercase; wr()/rd() expect lowercase
             for (auto& p : pokes[fr])
-                if (p.addr == 0x428 && p.sp == 'Y') c->wr(p.sp, p.addr, p.val);
+                if (p.addr == 0x428 && (p.sp == 'Y' || p.sp == 'y')) c->wr('y', p.addr, p.val);
             c->run(0x00CF, 0x0100, (void (*)(uint32_t, Core&)) nullptr, 800000);
             c->run(0x0100, 0x02EB, (void (*)(uint32_t, Core&)) nullptr, 800000);
             for (auto& p : pokes[fr])
-                if (!(p.addr == 0x428 && p.sp == 'Y')) c->wr(p.sp, p.addr, p.val);
+                if (!(p.addr == 0x428 && (p.sp == 'Y' || p.sp == 'y')))
+                    c->wr((char) tolower(p.sp), p.addr, p.val);
             c->run(0x02EC, 0x0B4C, (void (*)(uint32_t, Core&)) nullptr, 800000);
             // compare outputs
             for (int i = 0; i < 32; ++i) {
@@ -150,7 +152,7 @@ int main(int argc, char** argv) {
             for (auto& s : snaps) {
                 if (s.frame != (uint32_t) fr) continue;
                 for (auto& cell : s.cells) {
-                    uint32_t got = c->rd(cell.first, cell.second.first);
+                    uint32_t got = c->rd((char) tolower(cell.first), cell.second.first);
                     uint32_t want = cell.second.second;
                     ++total_checked;
                     if (got != want) {
@@ -166,7 +168,7 @@ int main(int argc, char** argv) {
                 for (auto& s2 : snaps) {
                     if (s2.frame != (uint32_t) fr) continue;
                     for (auto& cell : s2.cells) {
-                        uint32_t got = c->rd(cell.first, cell.second.first);
+                        uint32_t got = c->rd((char) tolower(cell.first), cell.second.first);
                         if (got != cell.second.second) {
                             fprintf(stderr, "FIRST-DIFF %s f%02d %c:%04X want=%06X got=%06X\n",
                                     name.c_str(), fr, cell.first, cell.second.first,
