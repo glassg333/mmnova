@@ -1316,6 +1316,29 @@ mix chorus, inp chorus, dist, vol pan, mix page 2 - всё кликает, на странице 1 п
  я сейчас заметил что на странице p2 воспроизведение vol на 127 должно находиться на 64 что бы звук не менял громкость при включении wet сигнала и соответственно должен запас по громкости  быть
 
 
+синт впервую, но обе версии конечно. ты говоришь В FX-версии MIDI-gate поведение не менялось. так там тоже 2 страницы 
+и вообще если представлять страницы как 2 отдельных трека мономашины наверно такое там может происходит но надо сравнить 
+в ориг кодом что происходит в ампе и энвелоупе  в мономашин ещё есть режим трека соседа 
+ https://github.com/glassg333/mmnova/tree/main/decompiled%20data/10_juce_import_ready/!!!read%20me%20first%20all%20machines%20here/DSP%20mm%20orig/envelope 
+ https://github.com/glassg333/mmnova/tree/main/decompiled%20data/10_juce_import_ready/!!!read%20me%20first%20all%20machines%20here/DSP%20mm%20orig/distortion 
+ https://github.com/glassg333/mmnova/blob/main/decompiled%20data/10_juce_import_ready/01_CORE_VERIFIED/dsp/MnmRouting.h
+
+
+
+
+
+
+можно ли собрать какой то средний режим из этих намеков на оригинал? назвать mode как нибудь типо new
+https://github.com/glassg333/mmnova/blob/main/decompiled%20data/09_dsp_models_verified/09_juce_port/Source/mnm_dist.h 
+ https://github.com/glassg333/mmnova/blob/main/decompiled%20data/10_juce_import_ready/01_CORE_VERIFIED/dsp/MnMAmpDist.h 
+ https://github.com/glassg333/mmnova/tree/main/decompiled%20data/10_juce_import_ready/!!!read%20me%20first%20all%20machines%20here/DSP%20mm%20orig/distortion
+
+
+
+
+
+
+
 
    Monomachine-Nova-1.8.5
  
@@ -1344,6 +1367,10 @@ mix chorus, inp chorus, dist, vol pan, mix page 2 - всё кликает, на странице 1 п
  page-rnd, серое превью - да ты сам сделал такую функцию что серое превью показывает функцию пейдж рандм галки но подразумевалось что включаешь галку и он реально рандомит пред положения степов
  то есть не среым а видом как обычно и при выкл галки пейдж рандома не оставляет значения до включения галки а оставляет последние какие были на момент включения 
  а сейчас это будто разделилось на два потока процессов несвязных
+ 
+ 
+ 
+ 
  
    Monomachine-Nova-1.9.0
  
