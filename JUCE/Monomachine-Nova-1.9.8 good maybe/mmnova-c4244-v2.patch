@@ -1,0 +1,187 @@
+From: arena-agent
+Subject: [PATCH v2] 1.6.8: finish C4244 cleanup + C4458/C4459/C4701
+
+- drawHorizontalLine/drawVerticalLine take (int position, float, float):
+  position arg returned to int, side args stay float -> no C4244 either way.
+- MnmFm.hpp: setParameters param renamed k (was hiding member 'kind') -> no C4458;
+  carrierPhase initialized to 0.0f -> no C4701. Behaviour unchanged.
+- Removed unused global colour 'panel' (was shadowed by loop vars) -> no C4459.
+
+Apply from INSIDE Monomachine-Nova-1.6.8 (after mmnova-c4244.patch v1):
+    git apply -p1 mmnova-c4244-v2.patch
+--- a/Monomachine_Nova_Synth/Source/PluginEditor.cpp	2026-09-19 14:23:48.182808495 +0000
++++ b/Monomachine_Nova_Synth/Source/PluginEditor.cpp	2026-09-19 14:23:33.974808495 +0000
+@@ -9,7 +9,6 @@
+ const juce::Colour ink=juce::Colours::white;      // foreground on black, like the LCD
+ const juce::Colour knockout=juce::Colours::black; // ink knocked out of filled bars
+ const juce::Colour dim=juce::Colour(0xff737373);
+-const juce::Colour panel=juce::Colour(0xff181818);
+ 
+ class PixelLabel final : public juce::Label {
+ public:
+@@ -321,7 +320,7 @@
+         const int w = getWidth() / 8;
+         const int tTop = 4, tH = getHeight() - 108, vTop = getHeight() - 96, vH = 88;
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(0, 0, getWidth(), getHeight(), 1);
+-        g.drawHorizontalLine(float(tTop + tH / 2), 0.0f, float(getWidth())); g.drawHorizontalLine(float(vTop - 4), 0.0f, float(getWidth()));
++        g.drawHorizontalLine(tTop + tH / 2, 0.0f, float(getWidth())); g.drawHorizontalLine(vTop - 4, 0.0f, float(getWidth()));
+         for (int i = 0; i < 8; ++i) {
+             const int pg = juce::jlimit(0, 15, pageOf());
+             const auto pre = "arp_s" + juce::String(pg) + "_" + juce::String(i) + "_";
+@@ -329,7 +328,7 @@
+             const float ve = processor.parameters.getRawParameterValue(pre + "velocity")->load();
+             const float ho = processor.parameters.getRawParameterValue(pre + "hold")->load();
+             const int x = i * w;
+-            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(float(c * w), 0.0f, float(getHeight()));
++            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(c * w, 0.0f, float(getHeight()));
+             g.setColour(ink);
+             const int mid = tTop + tH / 2;
+             const int hgt = juce::roundToInt(tr / 24.0f * (tH / 2 - 4));
+@@ -450,7 +449,7 @@
+         for (int c = 0; c < 6; ++c) pixel::text(g, headers[c], {colX(c), 30, colWidth(c), 19}, 13, true);
+         if (sortColumn >= 2 && sortColumn <= 5) { g.setColour(ink.withAlpha(0.5f)); pixel::text(g, sortDescending ? "\xe2\x96\xbc" : "\xe2\x96\xb2", {colX(sortColumn) + colWidth(sortColumn) - 19, 30, 16, 18}, 12, true); }
+         for (int r = 0; r < 16; ++r) {
+-            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(float(y + 31), 8.0f, 1128.0f);
++            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(y + 31, 8.0f, 1128.0f);
+             for (int c = 1; c <= 5; ++c) {
+                 auto* par = cell(r, c); if (!par) continue; const int value = juce::roundToInt(par->convertFrom0to1(par->getValue()));
+                 if (c == 1) { drawCheck(g, colX(c) + 10, y + 7, value > 0); continue; }
+@@ -458,7 +457,7 @@
+                 pixel::text(g, text, {colX(c) + 5, y + 2, colWidth(c) - (c == 3 ? 32 : 8), 25}, c == 3 ? 14 : 16, c != 3);
+                 if (c == 3) drawCrosshair(g, colX(c) + colWidth(c) - 18, y + 15);
+             }
+-            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(float(colX(c) - 4), float(y), float(y + 31));
++            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(colX(c) - 4, float(y), float(y + 31));
+         }
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(8, 26, 1120, 16 * 34 + 36, 1);
+         g.setColour(dim); pixel::text(g, "DEPTH 0..100%   UNIPOLAR = ONE SIDE   BIPOLAR = TWO SIDES   GRAB EMPTY LEFT EDGE TO REORDER", {10, getHeight() - 24, 1115, 17}, 11, false);
+@@ -535,8 +534,8 @@
+         pixel::text(g, "MSEG / CURVE EDITOR", {12, 4, 600, 28}, 22);
+         pixel::text(g, juce::String(processor.msegPointCount()) + " POINTS", {620, 9, 140, 20}, 14, false);
+         g.setColour(ink.withAlpha(0.22f)); g.drawRect(graphX, graphY, graphW, graphH, 1);
+-        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(float(graphY + graphH * i / 4), float(graphX), float(graphX + graphW));
+-        for (int i = 1; i < 8; ++i) g.drawVerticalLine(float(graphX + graphW * i / 8), float(graphY), float(graphY + graphH));
++        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(graphY + graphH * i / 4, float(graphX), float(graphX + graphW));
++        for (int i = 1; i < 8; ++i) g.drawVerticalLine(graphX + graphW * i / 8, float(graphY), float(graphY + graphH));
+         juce::Path path;
+         for (int i = 0; i < processor.msegPointCount(); ++i) { const float px = pointToX(processor.msegPointX(i)), py = pointToY(processor.msegPointY(i)); if (i == 0) path.startNewSubPath(px, py); else path.lineTo(px, py); }
+         g.setColour(ink); g.strokePath(path, juce::PathStrokeType(2.0f));
+@@ -592,7 +591,7 @@
+     void paint(juce::Graphics& g)override{
+         g.fillAll(juce::Colours::black);g.setColour(ink);pixel::text(g,"AMP / ENVELOPE",{20,8,650,26},22);
+         const juce::Rectangle<float> box(30,60,1110,225);g.setColour(ink.withAlpha(0.2f));g.drawRect(box);
+-        for(int i=1;i<4;++i)g.drawHorizontalLine(float(60+i*56),30.0f,1140.0f);
++        for(int i=1;i<4;++i)g.drawHorizontalLine(60+i*56,30.0f,1140.0f);
+         for(int i=0;i<=4;++i){float x=30.0f+1110.0f*static_cast<float>(i)/4.0f;g.drawVerticalLine(juce::roundToInt(x),60,285);g.setColour(ink);g.drawText(juce::String(duration*i/4,2)+" s",juce::roundToInt(x)-25,286,70,20,juce::Justification::centred);g.setColour(ink.withAlpha(0.2f));}
+         juce::Path path;for(size_t i=0;i<trace.size();++i){float x=30+1110*static_cast<float>(i)/std::max(1.0f,static_cast<float>(trace.size()-1));float y=285-225*trace[i];if(i==0)path.startNewSubPath(x,y);else path.lineTo(x,y);}g.setColour(ink);g.strokePath(path,juce::PathStrokeType(1.8f));
+         const float off=30+1110*static_cast<float>(gate.getValue()/1000/duration);if(off<1140){g.setColour(ink.withAlpha(0.5f));g.drawVerticalLine(juce::roundToInt(off),60,285);g.drawText("NOTE OFF",juce::roundToInt(off)+4,62,85,18,juce::Justification::left);}
+--- a/Monomachine_Nova_FX/Source/PluginEditor.cpp	2026-09-19 14:23:48.182808495 +0000
++++ b/Monomachine_Nova_FX/Source/PluginEditor.cpp	2026-09-19 14:23:33.974808495 +0000
+@@ -9,7 +9,6 @@
+ const juce::Colour ink=juce::Colours::white;      // foreground on black, like the LCD
+ const juce::Colour knockout=juce::Colours::black; // ink knocked out of filled bars
+ const juce::Colour dim=juce::Colour(0xff737373);
+-const juce::Colour panel=juce::Colour(0xff181818);
+ 
+ class PixelLabel final : public juce::Label {
+ public:
+@@ -321,7 +320,7 @@
+         const int w = getWidth() / 8;
+         const int tTop = 4, tH = getHeight() - 108, vTop = getHeight() - 96, vH = 88;
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(0, 0, getWidth(), getHeight(), 1);
+-        g.drawHorizontalLine(float(tTop + tH / 2), 0.0f, float(getWidth())); g.drawHorizontalLine(float(vTop - 4), 0.0f, float(getWidth()));
++        g.drawHorizontalLine(tTop + tH / 2, 0.0f, float(getWidth())); g.drawHorizontalLine(vTop - 4, 0.0f, float(getWidth()));
+         for (int i = 0; i < 8; ++i) {
+             const int pg = juce::jlimit(0, 15, pageOf());
+             const auto pre = "arp_s" + juce::String(pg) + "_" + juce::String(i) + "_";
+@@ -329,7 +328,7 @@
+             const float ve = processor.parameters.getRawParameterValue(pre + "velocity")->load();
+             const float ho = processor.parameters.getRawParameterValue(pre + "hold")->load();
+             const int x = i * w;
+-            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(float(c * w), 0.0f, float(getHeight()));
++            g.setColour(ink.withAlpha(0.25f)); for (int c = 1; c < 8; ++c) g.drawVerticalLine(c * w, 0.0f, float(getHeight()));
+             g.setColour(ink);
+             const int mid = tTop + tH / 2;
+             const int hgt = juce::roundToInt(tr / 24.0f * (tH / 2 - 4));
+@@ -450,7 +449,7 @@
+         for (int c = 0; c < 6; ++c) pixel::text(g, headers[c], {colX(c), 30, colWidth(c), 19}, 13, true);
+         if (sortColumn >= 2 && sortColumn <= 5) { g.setColour(ink.withAlpha(0.5f)); pixel::text(g, sortDescending ? "\xe2\x96\xbc" : "\xe2\x96\xb2", {colX(sortColumn) + colWidth(sortColumn) - 19, 30, 16, 18}, 12, true); }
+         for (int r = 0; r < 16; ++r) {
+-            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(float(y + 31), 8.0f, 1128.0f);
++            const int y = rowY(r); g.setColour(ink.withAlpha(0.18f)); g.drawHorizontalLine(y + 31, 8.0f, 1128.0f);
+             for (int c = 1; c <= 5; ++c) {
+                 auto* par = cell(r, c); if (!par) continue; const int value = juce::roundToInt(par->convertFrom0to1(par->getValue()));
+                 if (c == 1) { drawCheck(g, colX(c) + 10, y + 7, value > 0); continue; }
+@@ -458,7 +457,7 @@
+                 pixel::text(g, text, {colX(c) + 5, y + 2, colWidth(c) - (c == 3 ? 32 : 8), 25}, c == 3 ? 14 : 16, c != 3);
+                 if (c == 3) drawCrosshair(g, colX(c) + colWidth(c) - 18, y + 15);
+             }
+-            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(float(colX(c) - 4), float(y), float(y + 31));
++            g.setColour(ink.withAlpha(0.22f)); for (int c = 1; c <= 5; ++c) g.drawVerticalLine(colX(c) - 4, float(y), float(y + 31));
+         }
+         g.setColour(ink.withAlpha(0.35f)); g.drawRect(8, 26, 1120, 16 * 34 + 36, 1);
+         g.setColour(dim); pixel::text(g, "DEPTH 0..100%   UNIPOLAR = ONE SIDE   BIPOLAR = TWO SIDES   GRAB EMPTY LEFT EDGE TO REORDER", {10, getHeight() - 24, 1115, 17}, 11, false);
+@@ -535,8 +534,8 @@
+         pixel::text(g, "MSEG / CURVE EDITOR", {12, 4, 600, 28}, 22);
+         pixel::text(g, juce::String(processor.msegPointCount()) + " POINTS", {620, 9, 140, 20}, 14, false);
+         g.setColour(ink.withAlpha(0.22f)); g.drawRect(graphX, graphY, graphW, graphH, 1);
+-        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(float(graphY + graphH * i / 4), float(graphX), float(graphX + graphW));
+-        for (int i = 1; i < 8; ++i) g.drawVerticalLine(float(graphX + graphW * i / 8), float(graphY), float(graphY + graphH));
++        for (int i = 1; i < 4; ++i) g.drawHorizontalLine(graphY + graphH * i / 4, float(graphX), float(graphX + graphW));
++        for (int i = 1; i < 8; ++i) g.drawVerticalLine(graphX + graphW * i / 8, float(graphY), float(graphY + graphH));
+         juce::Path path;
+         for (int i = 0; i < processor.msegPointCount(); ++i) { const float px = pointToX(processor.msegPointX(i)), py = pointToY(processor.msegPointY(i)); if (i == 0) path.startNewSubPath(px, py); else path.lineTo(px, py); }
+         g.setColour(ink); g.strokePath(path, juce::PathStrokeType(2.0f));
+@@ -592,7 +591,7 @@
+     void paint(juce::Graphics& g)override{
+         g.fillAll(juce::Colours::black);g.setColour(ink);pixel::text(g,"AMP / ENVELOPE",{20,8,650,26},22);
+         const juce::Rectangle<float> box(30,60,1110,225);g.setColour(ink.withAlpha(0.2f));g.drawRect(box);
+-        for(int i=1;i<4;++i)g.drawHorizontalLine(float(60+i*56),30.0f,1140.0f);
++        for(int i=1;i<4;++i)g.drawHorizontalLine(60+i*56,30.0f,1140.0f);
+         for(int i=0;i<=4;++i){float x=30.0f+1110.0f*static_cast<float>(i)/4.0f;g.drawVerticalLine(juce::roundToInt(x),60,285);g.setColour(ink);g.drawText(juce::String(duration*i/4,2)+" s",juce::roundToInt(x)-25,286,70,20,juce::Justification::centred);g.setColour(ink.withAlpha(0.2f));}
+         juce::Path path;for(size_t i=0;i<trace.size();++i){float x=30+1110*static_cast<float>(i)/std::max(1.0f,static_cast<float>(trace.size()-1));float y=285-225*trace[i];if(i==0)path.startNewSubPath(x,y);else path.lineTo(x,y);}g.setColour(ink);g.strokePath(path,juce::PathStrokeType(1.8f));
+         const float off=30+1110*static_cast<float>(gate.getValue()/1000/duration);if(off<1140){g.setColour(ink.withAlpha(0.5f));g.drawVerticalLine(juce::roundToInt(off),60,285);g.drawText("NOTE OFF",juce::roundToInt(off)+4,62,85,18,juce::Justification::left);}
+--- a/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm.hpp	2026-09-19 14:23:47.918808495 +0000
++++ b/Monomachine_Nova_Synth/Source/dsp/mnm/MnmFm.hpp	2026-09-19 14:23:33.974808495 +0000
+@@ -66,8 +66,8 @@
+         env.setParameters(atk, dec, rel, sustainLevel);
+     }
+ 
+-    void setParameters(FmKind kind, const std::array<float, 8>& p) {
+-        this->kind = kind;
++    void setParameters(FmKind k, const std::array<float, 8>& p) {
++        this->kind = k;
+         params = p;
+         // STAT/PAR have TONE in slot 6 and share the P:$144AC7 one-pole; FM+DYN has no TONE
+         // knob (slot 6 is 2FB), so its post stage stays open.
+@@ -128,7 +128,7 @@
+             // Operator 2 (second modulator for STAT/DYN, third parallel for PAR).
+             const float mod2 = SineTable::instance().read(phase[1]) * e;
+ 
+-            float carrierPhase;
++            float carrierPhase = 0.0f;
+             switch (kind) {
+                 case FmKind::Stat:
+                     // 2VOL modulates operator 1, 1ENV modulates the carrier (serial pair).
+--- a/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm.hpp	2026-09-19 14:23:48.094808495 +0000
++++ b/Monomachine_Nova_FX/Source/dsp/mnm/MnmFm.hpp	2026-09-19 14:23:33.978808495 +0000
+@@ -66,8 +66,8 @@
+         env.setParameters(atk, dec, rel, sustainLevel);
+     }
+ 
+-    void setParameters(FmKind kind, const std::array<float, 8>& p) {
+-        this->kind = kind;
++    void setParameters(FmKind k, const std::array<float, 8>& p) {
++        this->kind = k;
+         params = p;
+         // STAT/PAR have TONE in slot 6 and share the P:$144AC7 one-pole; FM+DYN has no TONE
+         // knob (slot 6 is 2FB), so its post stage stays open.
+@@ -128,7 +128,7 @@
+             // Operator 2 (second modulator for STAT/DYN, third parallel for PAR).
+             const float mod2 = SineTable::instance().read(phase[1]) * e;
+ 
+-            float carrierPhase;
++            float carrierPhase = 0.0f;
+             switch (kind) {
+                 case FmKind::Stat:
+                     // 2VOL modulates operator 1, 1ENV modulates the carrier (serial pair).

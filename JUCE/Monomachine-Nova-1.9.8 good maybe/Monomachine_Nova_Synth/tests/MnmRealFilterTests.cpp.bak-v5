@@ -1,0 +1,179 @@
+// Тесты основного фильтра (режим "mnm" = RealFilterCore из MnmRealFilter.hpp).
+//
+// Проверяют, что главный режим -- это РЕАЛЬНЫЙ фильтр на таблицах прошивки
+// (decompiled data/mnm_filter_full_dump_juce_real), а не приближение:
+//   1. THRU: BASE=0, WIDTH=127, Q=0 -> выход бит-в-бит равен входу (unity)
+//   2. LP-стадия совпадает с эталонными цифрами демо дампа (TEST 1, TONE=64)
+//   3. HP-стадия совпадает с эталоном демо дампа (TEST 2, TONE=64)
+//   4. Резонансная стадия устойчива и даёт подъём на срезе (реальные $F528BD/$4A4DF0)
+//   5. Огибающая (BOFS/WOFS) смещает срез и не разносит фильтр
+//   6. Каналы независимы (состояние L не течёт в R)
+//
+// Собирается без JUCE:
+//   g++ -std=c++17 -I Source tests/MnmRealFilterTests.cpp -o build/tests
+
+#include "dsp/mnm/MnmKernel.hpp"
+#include "dsp/mnm/MnmRealFilter.hpp"
+
+#include <cmath>
+#include <cstdio>
+#include <string>
+#include <vector>
+
+namespace {
+
+int failures = 0;
+
+void check(bool ok, const std::string& what, double measured, double expected, double tol) {
+    const bool pass = ok && std::fabs(measured - expected) <= tol;
+    if (!pass) ++failures;
+    std::printf("  %s %-58s изм=%8.3f ожид=%8.3f допуск=%.2f\n",
+                pass ? "OK  " : "FAIL", what.c_str(), measured, expected, tol);
+}
+
+std::vector<float> makeSine(double hz, int n) {
+    std::vector<float> v(static_cast<size_t>(n));
+    for (int i = 0; i < n; ++i)
+        v[static_cast<size_t>(i)] = static_cast<float>(0.5 * std::sin(2.0 * 3.14159265358979 * hz * i / 44100.0));
+    return v;
+}
+
+// Прирост/спад в дБ на частоте hz для текущих параметров фильтра.
+// Прогоняем 44100 сэмплов (1 с), измеряем RMS последней четверти.
+double gainDb(monomachine::mnm::FilterCore& f, double hz, bool doReset = true) {
+    const int n = 44100;
+    auto sig = makeSine(hz, n);
+    if (doReset) f.reset();
+    double sum = 0.0;
+    for (int i = 0; i < n; ++i) {
+        const float y = f.process(0, sig[static_cast<size_t>(i)]);
+        if (i >= n * 3 / 4) sum += static_cast<double>(y) * y;
+    }
+    const double outRms = std::sqrt(sum / (n / 4));
+    const double inRms = 0.5 / std::sqrt(2.0);
+    return 20.0 * std::log10(outRms / inRms);
+}
+
+void testThru() {
+    std::printf("\nTEST 1: THRU при дефолте (BASE=0 WIDTH=127 Q=0) -- как заявлено для FX\n");
+    monomachine::mnm::FilterCore f;
+    f.setSampleRate(44100.0);
+    f.setParameters(0, 127, 0, 0, 0, 0, 0, 64);
+    double maxErr = 0.0;
+    for (int i = 0; i < 4096; ++i) {
+        const float x = static_cast<float>(0.3 * std::sin(i * 0.05));
+        maxErr = std::max(maxErr, std::fabs(static_cast<double>(f.process(i & 1, x)) - x));
+    }
+    check(maxErr == 0.0, "выход == вход побитово", maxErr, 0.0, 0.0);
+}
+
+void testLpMatchesDump() {
+    std::printf("\nTEST 2: LP-стадия == эталон демо дампа (TEST 1, TONE=64 -> 695.0 Hz)\n");
+    std::printf("        эталон: 100Hz -0.1dB  500Hz -1.8dB  1kHz -4.9dB  5kHz -17.0dB  10kHz -22.4dB\n");
+    monomachine::mnm::FilterCore f;
+    f.setSampleRate(44100.0);
+    f.setParameters(0, 64, 0, 0, 0, 0, 0, 64);   // HP на 15.5 Hz (прозрачен) + LP на 695 Hz
+    check(std::fabs(f.lpCoef() - 0.094207f) < 1e-5,
+          "коэффициент LP взят из таблицы прошивки (0.094207)", f.lpCoef(), 0.094207, 1e-5);
+    check(true, "100 Hz",  gainDb(f, 100.0),   -0.2, 0.6);
+    check(true, "500 Hz",  gainDb(f, 500.0),   -1.8, 0.6);
+    check(true, "1 kHz",   gainDb(f, 1000.0),  -4.9, 0.6);
+    check(true, "5 kHz",   gainDb(f, 5000.0), -17.0, 0.8);
+    check(true, "10 kHz",  gainDb(f, 10000.0),-22.4, 0.8);
+}
+
+void testHpMatchesDump() {
+    std::printf("\nTEST 3: HP-стадия == эталон демо дампа (TEST 2, TONE=64)\n");
+    std::printf("        BASE=64 -> HP 695 Hz, WIDTH=127 -> LP выше слышимого (таблица: passthrough)\n");
+    monomachine::mnm::FilterCore f;
+    f.setSampleRate(44100.0);
+    f.setParameters(64, 127, 0, 0, 0, 0, 0, 64);
+    check(std::fabs(f.hpCoef() - 0.094207f) < 1e-5,
+          "коэффициент HP взят из таблицы прошивки", f.hpCoef(), 0.094207, 1e-5);
+    check(true, "100 Hz",  gainDb(f, 100.0),  -17.4, 0.8);
+    check(true, "500 Hz",  gainDb(f, 500.0),   -5.1, 0.8);
+    check(true, "1 kHz",   gainDb(f, 1000.0),  -2.1, 0.8);
+    check(true, "10 kHz",  gainDb(f, 10000.0), -1.2, 0.8);  // HP -0.5 + LP table[127] -0.7
+}
+
+void testResonance() {
+    std::printf("\nTEST 4: резонанс LPQ -- реальная стадия MnmSVF ($F528BD/$4A4DF0)\n");
+    monomachine::mnm::FilterCore fq0, fq;
+    fq0.setSampleRate(44100.0); fq0.setParameters(0, 64, 0, 0, 0, 0, 0, 64);
+    fq.setSampleRate(44100.0);  fq.setParameters(0, 64, 0, 110, 0, 0, 0, 64);   // LPQ ~0.87
+    const double atCut0 = gainDb(fq0, 695.0);
+    const double atCut1 = gainDb(fq, 695.0);
+    check(atCut1 > atCut0 + 1.0, "резонанс поднимает уровень на срезе", atCut1 - atCut0, 3.0, 30.0);
+    check(std::isfinite(atCut1) && atCut1 < 40.0, "устойчив, без разноса", atCut1, 0.0, 40.0);
+    double finite = 1.0;
+    fq.reset();
+    for (int i = 0; i < 44100; ++i)
+        finite = std::min(finite, std::isfinite(fq.process(i & 1, 0.9f * std::sin(i * 0.4))) ? 1.0 : 0.0);
+    check(finite == 1.0, "на всём проходе выход конечен (нет NaN/Inf)", finite, 1.0, 0.0);
+}
+
+void testEnvelope() {
+    std::printf("\nTEST 5: огибающая фильтра BOFS/WOFS сдвигает срез (таблицы ATK/DEC прошивки)\n");
+    // ATK=32 -> 0.0345 на блок (огибающая выходит на 1 примерно за 29 блоков = ~460 сэмплов)
+    // DEC=127 -> 1.0 (затухания нет), поэтому огибающая держится открытой
+    monomachine::mnm::FilterCore env, noenv;
+    env.setSampleRate(44100.0);   noenv.setSampleRate(44100.0);
+
+    noenv.reset();
+    noenv.setParameters(32, 32, 0, 0, 0, 0, 32, 127);
+    const double closed = gainDb(noenv, 3000.0, false);
+
+    env.reset();
+    env.setParameters(32, 32, 0, 0, 0, 40, 32, 127);   // WOFS = +40: огибающая открывает LP
+    env.trigger();
+    const double opened = gainDb(env, 3000.0, false);
+
+    check(opened > closed + 6.0, "огибающая открывает LP (больше ВЧ на 3 кГц)", opened - closed, 12.0, 40.0);
+    check(env.envelopeValue() > 0.9f, "огибающая вышла на максимум и держится",
+          env.envelopeValue(), 1.0, 0.1);
+    check(env.lpCoef() > noenv.lpCoef() + 0.1f, "коэффициент LP взят из таблицы уже по смещённой ручке",
+          env.lpCoef(), noenv.lpCoef(), 1.0);
+
+    env.release();
+    double finite = 1.0;
+    for (int i = 0; i < 22050; ++i) {
+        env.setParameters(32, 32, 0, 0, 0, 40, 32, 64);
+        finite = std::min(finite, std::isfinite(env.process(i & 1, 0.5f)) ? 1.0 : 0.0);
+    }
+    check(finite == 1.0, "огибающая не разносит фильтр", finite, 1.0, 0.0);
+}
+
+void testStereo() {
+    std::printf("\nTEST 6: каналы независимы (состояние L не течёт в R)\n");
+    monomachine::mnm::FilterCore f;
+    f.setSampleRate(44100.0);
+    f.setParameters(0, 64, 0, 0, 0, 0, 0, 64);
+    f.reset();
+    double rightLeak = 0.0, leftEnergy = 0.0;
+    for (int i = 0; i < 4096; ++i) {
+        const float x = (i < 64) ? 0.9f : 0.0f;             // импульс только в L
+        const float l = f.process(0, x);
+        const float r = f.process(1, 0.0f);
+        rightLeak = std::max(rightLeak, std::fabs(static_cast<double>(r)));
+        leftEnergy += std::fabs(static_cast<double>(l));
+    }
+    check(rightLeak == 0.0, "в правом канале тишина", rightLeak, 0.0, 0.0);
+    check(leftEnergy > 0.001, "левый канал обработал импульс", leftEnergy > 0.001 ? 1.0 : 0.0, 1.0, 0.0);
+}
+
+} // namespace
+
+int main() {
+    std::printf("===============================================================\n");
+    std::printf(" Реальный фильтр Monomachine -- тесты основного режима \"mnm\"\n");
+    std::printf(" Данные: decompiled data/mnm_filter_full_dump_juce_real\n");
+    std::printf("===============================================================\n");
+    testThru();
+    testLpMatchesDump();
+    testHpMatchesDump();
+    testResonance();
+    testEnvelope();
+    testStereo();
+    std::printf("\n%s\n", failures == 0 ? "ВСЕ ТЕСТЫ РЕАЛЬНОГО ФИЛЬТРА ПРОЙДЕНЫ" : "ЕСТЬ ПАДЕНИЯ");
+    return failures == 0 ? 0 : 1;
+}

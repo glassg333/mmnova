@@ -1,0 +1,258 @@
+#pragma once
+// =============================================================================
+// MnmRealFilter.hpp -- РЕАЛЬНЫЙ фильтр Monomachine (режим DSP MODE -> "mnm")
+// =============================================================================
+// Источник данных: decompiled data/mnm_filter_full_dump_juce_real
+//   src/MnmFilter.h          -> локальная копия: MnmFilterRealDump.hpp
+//   src/mnm_filter_tables.h  -> локальная копия: MnmFilterTablesReal.hpp
+//
+// Что берётся из дампа (без выдумок):
+//   * Таблица kLP_filter_coeffs[258] (P:$144AC7) -- 2 кривые по 129 значений,
+//     q.23 коэффициенты 1-полюсных IIR. Кривая 1 = голосовой base/width,
+//     кривая 2 = aux-стадия.
+//   * Класс ::mnm::MnmOnePole -- 1-полюсный IIR, точная копия структуры
+//     `mac x0,y1,a / mac -x1,x0,a` (kernel P:$A5F-$ABF).
+//   * Класс ::mnm::MnmSVF -- 2-полюсный multimode SVF (kernel P:$5D3-$5FA)
+//     с фиксированными константами kSVF_x0 = $F528BD, kSVF_x1 = $4A4DF0.
+//
+// Структура голосового фильтра (kernel P:$A5F-$ABF, как в дампе):
+//   HP(BASE)  ->  LP(BASE+WIDTH)  ->  aux(curve 2)
+// Резонанс HPQ/LPQ: в самом дампе у 1-полюсной base/width стадии резонанса нет
+// (per-voice коэффициенты Y:$91+ помечены в дампе как TODO). Поэтому резонанс
+// реализован ОТДЕЛЬНЫМИ стадиями ::mnm::MnmSVF с реальными константами
+// $F528BD/$4A4DF0, и включается только когда HPQ/LPQ > 0. При HPQ=LPQ=0 сигнал
+// идёт строго через реальные табличные 1-полюсные стадии (то есть ровно то, что
+// считает MnmBaseWidthFilter из дампа).
+//
+// Огибающая: BASE' = BASE + env*BOFS, WIDTH' = WIDTH + env*WOFS, шаг раз в
+// 16 сэмплов (kBlock) -- каденция прошивки.
+//
+// Файл является ЕДИНСТВЕННЫМ местом, где определяется monomachine::mnm::FilterCore
+// (режим "mnm"). Раньше тот же класс и те же константы были продублированы в
+// MnmKernel.hpp -- отсюда шли MSVC C2374/C2084/C2371 и лавина ложных C2568.
+// =============================================================================
+
+#include "MnmKernel.hpp"          // kBlock, kDspRate, kEnvAttackRate/kEnvDecayRate
+#include "MnmFilterRealDump.hpp"  // ::mnm::MnmOnePole, ::mnm::MnmSVF, kLP_filter_coeffs, kSVF_x0/x1
+
+namespace monomachine {
+namespace mnm {
+
+// Реальные константы SVF из прошивки (те же значения, что в дампе).
+inline constexpr float kRealSVF_x0_F528BD = ::mnm::kSVF_x0;  // -0.084747575
+inline constexpr float kRealSVF_x1_4A4DF0 = ::mnm::kSVF_x1;  // +0.581161499
+inline constexpr int   kRealLPTableSize   = 258;             // kLP_filter_coeffs
+inline constexpr int   kRealLPCurve2Base  = 129;             // кривая 2 начинается здесь
+
+namespace real_detail {
+
+inline float clampf(float v, float lo, float hi) noexcept { return v < lo ? lo : (v > hi ? hi : v); }
+
+// Коэффициент 1-полюсного фильтра прямо из таблицы прошивки (кривая 1).
+inline float tableCoefCurve1(int tone) noexcept {
+    const int t = static_cast<int>(clampf(static_cast<float>(tone), 0.0f, 127.0f));
+    return static_cast<float>(::mnm::kLP_filter_coeffs[t]) / 8388608.0f;
+}
+// Кривая 2 (aux-стадия), индексы 129..256.
+inline float tableCoefCurve2(int tone) noexcept {
+    const int t = static_cast<int>(clampf(static_cast<float>(tone), 0.0f, 127.0f));
+    return static_cast<float>(::mnm::kLP_filter_coeffs[kRealLPCurve2Base + t]) / 8388608.0f;
+}
+
+// Обратная формула дампа (MnmOnePole::cutoffHz): коэффициент -> -3dB частота.
+// Для "passthrough" записей таблицы (TONE >= ~120) возвращает NaN -- вызывающий
+// код трактует это как «среза нет».
+inline float coefToCutoffHz(float a, double fs) noexcept {
+    if (a <= 0.0f || a >= 1.0f) return std::nanf("");
+    const float num = 2.0f - 2.0f * a - a * a;
+    const float den = 2.0f * (1.0f - a);
+    if (den == 0.0f) return std::nanf("");
+    const float c = num / den;
+    if (c < -1.0f || c > 1.0f) return std::nanf("");
+    const float omega = std::acos(c);
+    return omega * static_cast<float>(fs) / (2.0f * 3.14159265358979323846f);
+}
+
+// TONE (0..127) -> частота среза через РЕАЛЬНУЮ таблицу прошивки.
+// Табличная частота считается для частоты прошивки (44.1 кГц), затем
+// используется как уставка для резонансных стадий SVF на текущей частоте хоста.
+inline float knobToCutoffHz(float knob, double sr) noexcept {
+    const float a = tableCoefCurve1(static_cast<int>(knob + 0.5f));
+    const float fc = coefToCutoffHz(a, kDspRate);
+    if (!std::isfinite(fc)) return static_cast<float>(sr) * 0.49f;  // таблица: passthrough
+    return clampf(fc, 10.0f, static_cast<float>(sr) * 0.49f);
+}
+
+// Совместимость с прежним API (использовалось старой версией фильтра).
+inline float cutoffToG(float hz, double sr) noexcept {
+    const float w = 3.14159265358979f * clampf(hz, 5.0f, static_cast<float>(sr) * 0.45f) /
+                    static_cast<float>(sr);
+    return clampf(2.0f * std::sin(w), 0.0015f, 1.95f);
+}
+
+// HPQ/LPQ (0..127) -> resonance для ::mnm::MnmSVF (0..1).
+// Закон Q = 0.5 + res*49.5 -- родной закон класса MnmSVF из дампа.
+// Q=0..127 -> 0..1, с нелинейностью, чтобы мелкие значения ручки были плавными.
+inline float qKnobToResonance(float q) noexcept {
+    const float n = clampf(q, 0.0f, 127.0f) / 127.0f;
+    return clampf(n * n * 0.5f + n * 0.5f, 0.0f, 1.0f);
+}
+
+} // namespace real_detail
+
+// -----------------------------------------------------------------------------
+// RealFilterCore -- режим "mnm": реальный фильтр на таблицах прошивки.
+// API сохранён 1:1 с прежним FilterCore, поэтому NovaDSP.h не меняется.
+// -----------------------------------------------------------------------------
+class RealFilterCore {
+public:
+    static constexpr float kResonanceThreshold = 0.001f;  // ниже -- резонансная стадия не включается
+
+    void reset() noexcept {
+        for (int c = 0; c < 2; ++c) {
+            hp1_[c].reset(); lp2_[c].reset(); aux_[c].reset();
+            svfHp_[c].reset(); svfLp_[c].reset();
+        }
+        envLevel_ = 0.0f; envActive_ = false; blockCounter_ = 0; bypass_ = false;
+        apply();
+    }
+    void setSampleRate(double sr) noexcept {
+        host_ = sr > 0.0 ? sr : kDspRate;
+        apply();
+    }
+    void setParameters(float base, float width, float hpq, float lpq,
+                       float bofs, float wofs, float envAtk, float envDec) noexcept {
+        baseParam_ = base; widthParam_ = width; hpqParam_ = hpq; lpqParam_ = lpq;
+        bofsParam_ = bofs; wofsParam_ = wofs; atkParam_ = envAtk; decParam_ = envDec;
+        apply();
+    }
+    // aux-стадия (кривая 2 таблицы). По умолчанию 127 = «выключена»
+    // (kLP_filter_coeffs[129+127] ~ 0.9118, срез выше звукового диапазона).
+    // Значение 0 повторяет буквальный дефолт MnmBaseWidthFilter из дампа
+    // (aux = 240 Гц), если нужен ровно дамповый вариант.
+    void setAuxKnob(int knob) noexcept { auxKnob_ = knob < 0 ? 0 : (knob > 127 ? 127 : knob); apply(); }
+
+    void trigger() noexcept { envActive_ = true; envLevel_ = 0.0f; blockCounter_ = 0; apply(); }
+    void release() noexcept { envActive_ = false; }
+
+    inline float process(int ch, float x) noexcept {
+        // Каденция блоков прошивки: шаг огибающей раз в kBlock сэмплов,
+        // считаем только по нулевому каналу (стерео идёт парами 0,1).
+        if (ch == 0) {
+            if (blockCounter_ == 0 && envActive_) { envStep(); apply(); }
+            if (++blockCounter_ >= kBlock) blockCounter_ = 0;
+        }
+        // THRU для ЛЮБОГО канала: BASE=0, WIDTH=127, Q=0, без огибающей -> unity.
+        if (bypass_) return x;
+        const int c = (ch == 0) ? 0 : 1;
+
+        float y = x;
+        // 1) резонанс HP-секции (реальная константа $F528BD/$4A4DF0 в MnmSVF)
+        if (resHp_ > kResonanceThreshold) {
+            float lp, bp, hp;
+            svfHp_[c].process(y, lp, bp, hp);
+            y = hp;
+        }
+        // 2) HP на BASE  -- реальная таблица, кривая 1 (kernel P:$A5F-$ABF)
+        y = hp1_[c].processHP(y);
+        // 3) LP на BASE+WIDTH -- реальная таблица, кривая 1
+        y = lp2_[c].processLP(y);
+        // 4) aux-стадия -- реальная таблица, кривая 2 (по умолчанию выключена)
+        if (auxActive_) y = aux_[c].processLP(y);
+        // 5) резонанс LP-секции
+        if (resLp_ > kResonanceThreshold) {
+            float lp, bp, hp;
+            svfLp_[c].process(y, lp, bp, hp);
+            y = lp;
+        }
+
+        // Числовая страховка: Chamberlin SVF при большом g*Q может уйти в разнос.
+        // Это защита порта, а не часть алгоритма -- при срабатывании состояние
+        // сбрасывается и сэмпл проходит как есть.
+        if (!std::isfinite(y)) {
+            for (int i = 0; i < 2; ++i) { svfHp_[i].reset(); svfLp_[i].reset(); }
+            return x;
+        }
+        return y;
+    }
+
+    float envelopeValue() const noexcept { return envLevel_; }
+    bool  bypassed() const noexcept { return bypass_; }
+    // Диагностика (для тестов/UI): реальные коэффициенты текущих стадий.
+    float hpCoef() const noexcept { return hp1_[0].coef(); }
+    float lpCoef() const noexcept { return lp2_[0].coef(); }
+
+private:
+    void envStep() noexcept {
+        const int a = static_cast<int>(real_detail::clampf(atkParam_, 0.0f, 127.0f));
+        const int d = static_cast<int>(real_detail::clampf(decParam_, 0.0f, 127.0f));
+        if (envLevel_ < 1.0f) {
+            envLevel_ += kEnvAttackRate[static_cast<size_t>(a)];
+            if (envLevel_ > 1.0f) envLevel_ = 1.0f;
+        } else {
+            envLevel_ *= kEnvDecayRate[static_cast<size_t>(d)];
+        }
+    }
+
+    void apply() noexcept {
+        // BASE' = BASE + env*BOFS, WIDTH' = WIDTH + env*WOFS (BOFS/WOFS биполярные)
+        const float baseMod  = real_detail::clampf(baseParam_ + bofsParam_ * envLevel_, 0.0f, 127.0f);
+        const float widthMod = real_detail::clampf(widthParam_ + wofsParam_ * envLevel_, 0.0f, 127.0f);
+        const float lpKnob   = real_detail::clampf(baseMod + widthMod, 0.0f, 127.0f);
+
+        // Реальные табличные коэффициенты (то же, что MnmBaseWidthFilter из дампа)
+        for (int c = 0; c < 2; ++c) {
+            hp1_[c].setCutoffFromTable(static_cast<int>(baseMod + 0.5f));
+            lp2_[c].setCutoffFromTable(static_cast<int>(lpKnob + 0.5f));
+            aux_[c].setCutoffFromTableCurve2(auxKnob_);
+        }
+        auxActive_ = (auxKnob_ < 127);
+
+        // Резонансные стадии: включаются только при Q > 0
+        const float resHp = real_detail::qKnobToResonance(hpqParam_);
+        const float resLp = real_detail::qKnobToResonance(lpqParam_);
+        resHp_ = (hpqParam_ <= 0.5f) ? 0.0f : resHp;
+        resLp_ = (lpqParam_ <= 0.5f) ? 0.0f : resLp;
+
+        const float fc1 = real_detail::knobToCutoffHz(baseMod, host_);
+        const float fc2 = real_detail::knobToCutoffHz(lpKnob, host_);
+        if (resHp_ > kResonanceThreshold)
+            for (int c = 0; c < 2; ++c) svfHp_[c].setParams(fc1, resHp_, static_cast<float>(host_));
+        if (resLp_ > kResonanceThreshold)
+            for (int c = 0; c < 2; ++c) svfLp_[c].setParams(fc2, resLp_, static_cast<float>(host_));
+
+        // THRU при дефолте: BASE=0, WIDTH=127, Q=0, BOFS/WOFS=0, огибающая ~0.
+        // kLP_filter_coeffs[127] в прошивке помечен как passthrough, так что это
+        // согласуется с таблицей и сохраняет unity THRU для FX (см. FIXES_APPLIED_v2).
+        bypass_ = (baseParam_ <= 0.5f && widthParam_ >= 126.5f &&
+                   hpqParam_ <= 0.5f && lpqParam_ <= 0.5f &&
+                   std::abs(bofsParam_) < 0.5f && std::abs(wofsParam_) < 0.5f &&
+                   envLevel_ < 0.001f);
+    }
+
+    double host_ = kDspRate;
+    float baseParam_ = 0.0f,  widthParam_ = 127.0f;
+    float hpqParam_ = 0.0f,   lpqParam_ = 0.0f;
+    float bofsParam_ = 0.0f,  wofsParam_ = 0.0f;
+    float atkParam_ = 0.0f,   decParam_ = 64.0f;
+    int   auxKnob_ = 127;
+    float envLevel_ = 0.0f;
+    bool  envActive_ = false;
+    int   blockCounter_ = 0;
+    bool  bypass_ = false;
+
+    float resHp_ = 0.0f, resLp_ = 0.0f;
+    bool  auxActive_ = false;
+
+    // По экземпляру на канал: стерео не делит состояние между L и R.
+    ::mnm::MnmOnePole hp1_[2], lp2_[2], aux_[2];   // реальные табличные стадии
+    ::mnm::MnmSVF     svfHp_[2], svfLp_[2];        // резонансные стадии (реальные константы)
+};
+
+// Режим "mnm" (dspModeMnm, index 0) -- это реальный фильтр. NovaDSP.h использует
+// имя FilterCore, поэтому оно указывает сюда. Старый приближённый фильтр остался
+// как monomachine::mnm::FilterCoreLegacy в MnmKernel.hpp (резервный режим "old").
+using FilterCore = RealFilterCore;
+
+} // namespace mnm
+} // namespace monomachine
