@@ -1,4 +1,4 @@
-// Copyright 2025 tilr
+
 // Based of Vital Sallen-Key filter
 #pragma once
 
