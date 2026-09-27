@@ -1,0 +1,38 @@
+﻿{
+    "WinH":  668,
+    "DeleteBuilds":  true,
+    "ErrorReport":  false,
+    "NoPdb":  {
+                  "IsPresent":  true
+              },
+    "Formats":  [
+                    "VST3"
+                ],
+    "OtherDir":  "",
+    "Flat":  {
+                 "IsPresent":  true
+             },
+    "MSBuild":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe",
+    "WinW":  893,
+    "WinY":  319,
+    "Projucer":  "C:\\JUCE\\Projucer.exe",
+    "GlobalModules":  {
+                          "IsPresent":  true
+                      },
+    "NoManifest":  {
+                       "IsPresent":  true
+                   },
+    "CleanModules":  {
+                         "IsPresent":  true
+                     },
+    "WinX":  986,
+    "AsyncDelete":  {
+                        "IsPresent":  true
+                    },
+    "LastDirs":  [
+                     "E:\\mm\\Monomachine-Nova-1.6.7\\Monomachine_Nova_FX",
+                     "E:\\mm\\Monomachine-Nova-1.6.7\\Monomachine_Nova_Synth"
+                 ],
+    "Vst3Dir":  "C:\\Program Files\\Common Files\\VST3\\!build test",
+    "CloseHosts":  true
+}
