@@ -1,0 +1,1 @@
+> **Текущий source-only пакет 1.9.17 (без DAW-прослушивания):** MODE L = HP/low-cut, MODE H = LP/high-cut, BP собран в общей папке, Hyperion перенесён в конец response-папок. `R HUV/KRAJ/MICRO/MUSIC/OBERHEIM/DVAL HP4` находятся только в последней MODE L папке `DRY`, поскольку строятся через прямой вход. Подробнее: [`README_1.9.17.md`](README_1.9.17.md).
