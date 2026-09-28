@@ -1,0 +1,9 @@
+c31b20f20c23d741f48bc37e28889616  00_README_FIRST_RU.txt
+f20e45e0c8dc6fd5b616b128b718c181  01_SCREEN_PATCH_PluginEditor.md
+8f57259888e8e2eb07805ad446fbc918  02_WHATS_NEW_vs_old_packs.md
+fefdf4e0c202be63f51b4ea7285c29b5  apply_patch.py
+cc78bb6be7d2701c8f1c15e0a15b9b02  dsp/mnm/MnmFm.hpp
+787d68cb7b0fec5357c606045706b280  dsp/mnm/MnmFmDsp.hpp
+8b6b1b693fa87e905ba77b17e35313b5  dsp/mnm/MnmFmDyn.hpp
+4f51dd9d1de8491135639c618e2d168f  dsp/mnm/MnmFmPar.hpp
+fda840b0b9f64f2f366eef4422d36b21  dsp/mnm/MnmFmSineTable.h
