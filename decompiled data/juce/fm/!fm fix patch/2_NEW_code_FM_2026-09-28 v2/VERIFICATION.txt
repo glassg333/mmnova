@@ -1,0 +1,26 @@
+=== [1/5] Ядро STAT vs эмулятор (400 блоков) ===
+FM-STAT: 400 blocks, 52800 words, mismatches = 0  [100% BIT-EXACT]
+=== [2/5] Ядро PAR vs эмулятор (7168 слов) ===
+=== [3/5] Ядро DYN vs эмулятор (8192 слов) ===
+FM-PAR  : 224 blocks, 29568 words, mismatches = 0  [100% BIT-EXACT]
+FM-DYN  : 256 blocks, 33792 words, mismatches = 0  [100% BIT-EXACT]
+=== [4/5] Свип всех ручек 3 машин (168 сетов) ===
+/tmp/my-project/scripts/test_fm_all_knobs.cpp: In function ‘int main(int, char**)’:
+/tmp/my-project/scripts/test_fm_all_knobs.cpp:143:16: warning: deleting ‘void*’ is undefined [-Wdelete-incomplete]
+  143 |         delete m;
+
+TOTAL: 1344 blocks, 177408 words, mismatches = 0  [100% BIT-EXACT]
+=== [5/5] Новая обёртка FmCore: транзит + питч + TUNE ===
+  транзит STAT: 32/32 слов совпали
+  транзит PAR: 32/32 слов совпали
+  транзит DYN: 32/32 слов совпали
+  питч C4 STAT: 261.50 Гц OK
+  TUNE=0 STAT: 233.00 Гц (ожид ~232.7) OK
+  питч C4 PAR: 261.50 Гц OK
+  TUNE=0 PAR: 233.00 Гц (ожид ~232.7) OK
+  питч C4 DYN: 261.50 Гц OK
+  TUNE=0 DYN: 233.00 Гц (ожид ~232.7) OK
+WRAPPER: OK (bad=0)
+
+===============================================
+ИТОГ: блоков пройдено 5/5, провалено 0

@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "purpose": "Behavioral oracle matrix for a future independent native JUCE FM+ implementation.",
+  "reference": {
+    "project": "glassg333/mmnova Monomodule",
+    "commit": "38403947914a2e523e6162ddd608803a4cd9bb2c",
+    "engine": "DSP56300 JIT executing a locally supplied Elektron SFX-6/SFX-60 OS 1.32B file",
+    "firmware_included": false
+  },
+  "host": {
+    "sample_rate": 44100,
+    "note": 69,
+    "level": 100,
+    "held_amp": [0, 0, 127, 127, 64, 64, 64, 0],
+    "default_amp": [0, 0, 64, 64, 64, 64, 64, 0],
+    "default_filt": [0, 127, 0, 0, 0, 32, 64, 64],
+    "default_efx": [64, 64, 0, 64, 64, 28, 0, 127],
+    "held_duration_seconds": 0.125,
+    "held_tail_seconds": 0.0,
+    "envelope_duration_seconds": 0.25,
+    "envelope_tail_seconds": 0.25
+  },
+  "machines": [
+    {
+      "id": "stat",
+      "renderer_name": "FM+ STAT",
+      "machine_index": 8,
+      "labels": ["1FRQ", "1FIN", "1ENV", "1FB", "2FRQ", "2VOL", "TONE", "TUNE"],
+      "factory_raw": [60, 64, 80, 30, 80, 64, 98, 64]
+    },
+    {
+      "id": "par",
+      "renderer_name": "FM+ PAR",
+      "machine_index": 9,
+      "labels": ["1FRQ", "1ENV", "2FRQ", "2ENV", "3FRQ", "3ENV", "TONE", "TUNE"],
+      "factory_raw": [60, 64, 80, 64, 102, 80, 98, 64]
+    },
+    {
+      "id": "dyn",
+      "renderer_name": "FM+ DYN",
+      "machine_index": 10,
+      "labels": ["1FRQ", "1FEN", "1VOL", "1VEN", "2FRQ", "2ENV", "2FB", "TUNE"],
+      "factory_raw": [64, 64, 64, 64, 74, 80, 30, 64]
+    }
+  ],
+  "families": [
+    {
+      "id": "factory_hold",
+      "kind": "factory",
+      "amp_profile": "held"
+    },
+    {
+      "id": "syn_sweep",
+      "kind": "one_syn_knob",
+      "raw_values": [0, 64, 127],
+      "amp_profile": "held"
+    },
+    {
+      "id": "pitch_sweep",
+      "kind": "note",
+      "notes": [36, 60, 84],
+      "amp_profile": "held"
+    },
+    {
+      "id": "factory_envelope",
+      "kind": "factory",
+      "amp_profile": "default"
+    }
+  ]
+}

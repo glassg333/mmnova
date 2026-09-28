@@ -1,0 +1,26 @@
+СБОРКА ЭТАЛОНА mnm-render ПОД LINUX x64 (без JUCE) — как было сделано 2026-09-28
+
+1. Компоненты: исходники monomod (этот пак, папка monomod/) + dsp56300
+   (скачивает CMake, пин c051afad31612c2d2c7a81a7ab23e1c5ac9e61af + патч monomod).
+
+2. Инструменты: cmake >= 3.22 (ставится `pip install cmake`), g++ (Debian 14.2), make.
+
+3. Команды:
+   pip install cmake
+   cmake -S <monomod> -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release \
+         -DMNM_BUILD_PLUGIN=OFF -DMNM_BUILD_TESTS=OFF \
+         -DMNM_OS_SYX="<monomod>/Elektron_SFX6-60_OS1.32B.syx"
+   cmake --build build --target mnm-render -j$(nproc)
+
+4. Результат: build/src/cli/mnm-render
+   Приложен в паке: mnm_render_bin/mnm-render (собран здесь, glibc, только pthread/dl).
+
+5. Наш дампер таблиц (п. KNOWLEDGE, раздел 5) собран вручную:
+   g++ -std=c++17 -O2 -I<monomod>/src/core -I<dsp56300-src>/source \
+       dump_etalon_tables.cpp \
+       build/src/core/libmnmcore.a build/dsp56300/dsp56kEmu/libdsp56kEmu.a \
+       build/dsp56300/dsp56kBase/libdsp56kBase.a build/dsp56300/asmjit/libasmjit.a \
+       build/dsp56300/vtuneSdk/libvtuneSdk.a -lpthread -ldl -o dump_tables
+
+6. Проверка: ./mnm-render --machine "FM+ STAT" --note 60 --dur 0.5 --tail 0.5 --out t.wav
+   -> "firmware 1.32B", 2765 блоков, ~7000 инстр/блок, 0.18 с на 1 с аудио.
