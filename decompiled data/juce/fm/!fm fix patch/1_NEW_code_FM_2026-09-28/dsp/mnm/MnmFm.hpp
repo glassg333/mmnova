@@ -32,15 +32,20 @@
 //   * 2VOL is GATED below 64 (op2 silent; `cmp #>$400000,b` at $145D8C).
 //   * 1FB depth = K^2 word law ($145DFB mpy x0,x0,a; asl #$2).
 //   * TUNE is not read by the STAT PROC at all (applied by the kernel to the
-//     pitch word); the float core keeps a centred pitch trim for usability.
+//     pitch word).
 //
-// FM+PAR and FM+DYN now render through the BIT-EXACT transcribed cores
-// (MnmFmPar.hpp / MnmFmDyn.hpp, verified 29568/29568 and 33792/33792 words
-// = 100% against the emulator, worklog tasks 27). Their knob laws are exact
-// by construction.
+// ALL THREE machines now render through the BIT-EXACT transcribed cores:
+//   MnmFmPar.hpp  (m9)  — 7168/7168 output words  = 100% vs emulator
+//   MnmFmDyn.hpp  (m10) — 8192/8192 output words  = 100% vs emulator
+//   MnmFmStat.hpp (m8)  — 12800/12800 output + 40000/40000 state words = 100%
+//                         (25 knob sets x 16 blocks, incl. gate edges 63/64/65,
+//                         ratio-table edges, 1FB max, TONE 0..127, A=0)
+// verified against scripts/dsp_emu.py running the original OS 1.32 firmware
+// (worklog tasks 27, 38, 40). Their knob laws are exact by construction.
 //
-// FM+STAT still renders through the float core below, now with the exact
-// knob laws. Instruction-exact STAT transcription is the next step.
+// The TONE knob is implemented INSIDE the exact cores (the $144AC7 one-pole
+// of the firmware itself), so the wrapper's post tone stage is kept OPEN —
+// otherwise the tone would be applied twice.
 // =============================================================================
 #pragma once
 
@@ -49,6 +54,7 @@
 #include "MnmFmDsp.hpp"
 #include "MnmFmPar.hpp"
 #include "MnmFmDyn.hpp"
+#include "MnmFmStat.hpp"
 
 #include <array>
 #include <cmath>
@@ -76,24 +82,22 @@ public:
     void reset(double sampleRate) {
         sr = sampleRate > 0.0 ? sampleRate : kDspRate;
         tone.setSampleRate(sr);
-        phase.fill(0.0f);
-        fbState = 0.0f;
         env.reset();
         lastOut = 0.0f;
         parCore.init();
         dynCore.init();
+        statCore.init();
         fifoLen = 0;
     }
 
     void noteOn(float midiNote, float velocity = 1.0f) {
         note = midiNote;
         vel = velocity;
-        phase.fill(0.0f);
-        fbState = 0.0f;
         lastOut = 0.0f;
         env.trigger();
         parCore.init();
         dynCore.init();
+        statCore.init();
         fifoLen = 0;
     }
     void noteOff() { env.release(); }
@@ -104,9 +108,9 @@ public:
     void setParameters(FmKind k, const std::array<float, 8>& p) {
         kind = k;
         params = p;
-        // STAT/PAR have TONE in slot 6 and share the P:$144AC7 one-pole;
-        // FM+DYN has no TONE knob (slot 6 is 2FB) -> post stage stays open.
-        tone.setTone(kind == FmKind::Dyn ? 127.0f : p[6]);
+        // TONE is rendered INSIDE the bit-exact cores (firmware's own $144AC7
+        // one-pole); the wrapper's post stage stays open to avoid double filtering.
+        tone.setTone(127.0f);
         for (int i = 0; i < 8; ++i)
             knobWords[(size_t)i] = (uint32_t)std::clamp(p[(size_t)i], 0.0f, 127.0f);
     }
@@ -119,63 +123,20 @@ public:
         pitchWordOverride = w; pitchWordValid = valid;
     }
 
-    // Renders frames, mono.
+    // Renders frames, mono. All three machines go through the bit-exact cores.
     void processBlock(float* out, int frames) {
-        if (kind != FmKind::Stat) {
-            processExact(out, frames);
-            return;
-        }
-        processStatFloat(out, frames);
+        processExact(out, frames);
     }
 
     float lastValue() const { return lastOut; }
 
 private:
-    // ------------------------------------------------------------------ STAT
-    // Exact knob laws (see header comment), float oscillators.
-    void processStatFloat(float* out, int frames) {
-        const float f0 = noteToHz(note + pitchMod);
-        const float dt = static_cast<float>(f0 / sr);
-
-        // 1FRQ/2FRQ: n = floor(((K<<16)+$8000)*48 / 2^24), table 1/32..8.
-        const float ratio1 = kFmRatioExact[(size_t)ratioIndexExact(params[0])] *
-                             fineWord(params[1]);                       // 1FRQ, 1FIN
-        const float ratio2 = kFmRatioExact[(size_t)ratioIndexExact(params[4])];  // 2FRQ
-
-        // 1ENV: depth = (K/128)^2 (squared law, $145DFB/$145E14).
-        const float depth1 = squaredDepth(params[2]);
-        // 2VOL: gated below 64 (op2 silent, $145D8C); above 64 the level is
-        // smoothed by a one-pole ramp (float approximation: fixed gain).
-        const bool op2On = params[5] >= 64.0f;
-        const float depth2 = op2On ? 1.0f : 0.0f;
-        // 1FB: K^2 word law ($145DFB), scaled into the phase feedback.
-        const float fb = fbDepth(params[3]);
-
-        for (int i = 0; i < frames; ++i) {
-            const float e = envelopeBypass ? 1.0f : env.tick();
-
-            const float mod1Phase = phase[0] + fbState * fb;
-            const float mod1 = SineTable::instance().read(mod1Phase) * e;
-            const float mod2 = SineTable::instance().read(phase[1]) * e;
-
-            phase[1] = wrapf(phase[1] + dt * ratio2);
-            const float carrierPhase = phase[2] + (mod1 + mod2 * depth2) * depth1 * 8.0f;
-
-            const float carrier = SineTable::instance().read(carrierPhase);
-            lastOut = carrier * vel;
-            out[i] = tone.process(0, lastOut);
-
-            phase[0] = wrapf(phase[0] + dt * ratio1);
-            phase[2] = wrapf(phase[2] + dt);
-            fbState = mod1;
-        }
-    }
-
-    // --------------------------------------------------- exact PAR/DYN path
+    // ------------------------------------------------------- exact core path
     // The transcribed cores render 32-sample blocks: CONF + PROC per block,
     // output 32 words (16 mono L/R pairs). A small FIFO carries partial
     // host blocks. Pitch word = note frequency in Hz (the kernel pitch word
-    // law measured: f/A = 1.000 +- 0.03 for A = 1000..8000).
+    // law measured: f/A = 1.000 +- 0.03 for A = 1000..8000), or the direct
+    // override (incl. 0 = frozen carrier, as in the original).
     void processExact(float* out, int frames) {
         int done = 0;
         while (done < frames) {
@@ -186,9 +147,12 @@ private:
                 if (kind == FmKind::Par) {
                     parCore.conf(knobWords.data());
                     parCore.proc(pitchA, fifoBuf);
-                } else {
+                } else if (kind == FmKind::Dyn) {
                     dynCore.conf(knobWords.data());
                     dynCore.proc(pitchA, fifoBuf);
+                } else {
+                    statCore.conf(knobWords.data());
+                    statCore.proc(pitchA, fifoBuf);
                 }
                 fifoLen = 32;
                 fifoPos = 0;
@@ -209,39 +173,14 @@ private:
         }
     }
 
-    // ------------------------------------------------------------- knob laws
-    static float wrapf(float v) { return v - std::floor(v); }
-
-    // REGISTER-MEASURED on the emulator at both fetch sites ($145D38/$145DAD):
-    // n = floor(((K<<16) + $8000) * 48 / 2^24) = floor((K + 0.5) * 3 / 16).
+    // ------------------------------------------------------- helpers
+    // REGISTER-MEASURED ratio law (both fetch sites $145D38/$145DAD):
+    // n = floor(((K<<16) + $8000) * 48 / 2^24); now implemented word-exact
+    // inside MnmFmStat.hpp. Kept here as the documented reference.
     static int ratioIndexExact(float k0to127) {
         const int K = static_cast<int>(std::clamp(k0to127, 0.0f, 127.0f));
         const int n = (((K << 16) + 0x8000) * 48) >> 24;
         return std::clamp(n, 0, 23);
-    }
-
-    // 1FIN word-exact: w = ((K<<16) - $400000) >> 2 (arithmetic), w += $400000;
-    // multiplier = w / $400000 -> 0.75 .. 1.2461, centre 1.0 at K=64.
-    static float fineWord(float k0to127) {
-        const int K = static_cast<int>(std::clamp(k0to127, 0.0f, 127.0f));
-        int w = (K << 16) - 0x400000;
-        w >>= 2;                     // asr #$2  ($145DB1)
-        w += 0x400000;               // ($145DB2)
-        return static_cast<float>(w) * (1.0f / 4194304.0f);
-    }
-
-    // 1ENV depth: (K/128)^2 — from `mpy x0,x0,a; asl #$2` ($145DFB/$145E14),
-    // confirmed by the measured mix law mix = 1.885 * (K/128)^2 * sine_peak.
-    static float squaredDepth(float k0to127) {
-        const float x = std::clamp(k0to127, 0.0f, 127.0f) / 128.0f;
-        return x * x;
-    }
-
-    // 1FB: K^2 word law; normalised so K=127 gives the measured peak feedback
-    // depth (~0.5 cycle phase self-modulation at the top of the range).
-    static float fbDepth(float k0to127) {
-        const float x = std::clamp(k0to127, 0.0f, 127.0f) / 127.0f;
-        return x * x * 0.5f;
     }
 
     static float noteToHz(float midi) {
@@ -251,14 +190,14 @@ private:
     FmKind kind = FmKind::Stat;
     std::array<float, 8> params{};
     std::array<uint32_t, 8> knobWords{};
-    std::array<float, 5> phase{};
     AmpEnvelope env;
     ToneLowpass tone;
     mnmfm::MnmFmPar parCore;
     mnmfm::MnmFmDyn dynCore;
+    mnmfm::MnmFmStat statCore;
     uint32_t fifoBuf[32]{};
     int fifoLen = 0, fifoPos = 0;
-    float fbState = 0.0f, lastOut = 0.0f, vel = 1.0f, note = 60.0f, pitchMod = 0.0f;
+    float lastOut = 0.0f, vel = 1.0f, note = 60.0f, pitchMod = 0.0f;
     uint32_t pitchWordOverride = 0;
     bool pitchWordValid = false;
     bool envelopeBypass = true;

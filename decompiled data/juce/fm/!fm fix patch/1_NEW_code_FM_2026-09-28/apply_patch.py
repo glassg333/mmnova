@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""apply_patch.py — ставит починенные FM-файлы в дерево плагина.
+"""apply_patch.py — ставит бит-точные FM-файлы (все 3 машины) в дерево плагина.
 
 Понимает любой из путей (какой удобнее):
     <репо>/JUCE/Monomachine-Nova-1.9.7/Monomachine_Nova_Synth/Source
@@ -8,10 +8,11 @@
     <репо>                     (корень репозитория, внутри папка JUCE)
 
 Копирует в <Source>/dsp/mnm/:
-    MnmFm.hpp        (ядро интеграции: точные законы ручек STAT + диспетчер PAR/DYN)
-    MnmFmDsp.hpp     (Q23-примитивы, бит-точно)
-    MnmFmPar.hpp     (FM+PAR, 100% на векторах эмулятора OS 1.32)
-    MnmFmDyn.hpp     (FM+DYN, 100% на векторах эмулятора OS 1.32)
+    MnmFm.hpp        (обёртка: все 3 машины через бит-точные ядра)
+    MnmFmDsp.hpp     (Q23-примитивы DSP56300, бит-точно)
+    MnmFmStat.hpp    (m8 FM+STAT — НОВЫЙ, 100% на векторах эмулятора)
+    MnmFmPar.hpp     (m9 FM+PAR, 100% на векторах эмулятора)
+    MnmFmDyn.hpp     (m10 FM+DYN, 100% на векторах эмулятора)
     MnmFmSineTable.h (ROM-синус X/Y:$14A000)
 
 NovaDSP.h менять не надо — публичный API сохранён.
@@ -21,8 +22,9 @@ NovaDSP.h менять не надо — публичный API сохранён
 import os, sys, glob, shutil, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FILES = ["MnmFm.hpp", "MnmFmDsp.hpp", "MnmFmPar.hpp", "MnmFmDyn.hpp",
-         "MnmFmSineTable.h"]
+FILES = ["MnmFm.hpp", "MnmFmDsp.hpp", "MnmFmStat.hpp", "MnmFmPar.hpp",
+         "MnmFmDyn.hpp", "MnmFmSineTable.h"]
+
 
 def pack_file(name):
     """Файл пака лежит либо рядом со скриптом, либо в dsp/mnm/ рядом."""
@@ -39,20 +41,16 @@ def sha16(p):
 def find_source(p):
     """Возвращает путь к .../Monomachine_Nova_Synth/Source из любого намёка."""
     p = os.path.abspath(p)
-    # 1) путь уже .../Source
     if os.path.basename(p) == "Source" and os.path.isdir(os.path.join(p, "dsp")):
         return p
-    # 2) путь .../Monomachine_Nova_Synth (внутри Source)
     cand = os.path.join(p, "Monomachine_Nova_Synth", "Source")
-    if os.path.isdir(os.path.join(cand, "dsp")) or os.path.isdir(cand):
+    if os.path.isdir(cand):
         return cand
-    # 3) корень репозитория: ищем JUCE/*/Monomachine_Nova_Synth/Source
     for hit in sorted(glob.glob(os.path.join(p, "JUCE", "*", "Monomachine_Nova_Synth", "Source"))):
         return hit
-    # 4) путь .../dsp сам по себе
     if os.path.basename(p) == "dsp":
         return os.path.dirname(p)
-    return cand  # вернём дефолт — скрипт честно ругнётся ниже
+    return cand
 
 
 def main():
@@ -67,7 +65,7 @@ def main():
         print("Укажи путь к .../Monomachine_Nova_Synth/Source и повтори.")
         return 1
     if not os.path.isdir(dst):
-        os.makedirs(dst)  # папки mnm может не быть — создадим
+        os.makedirs(dst)
         print("создана папка: %s" % dst)
     print("цель: %s\n" % dst)
     changed = 0
@@ -88,8 +86,8 @@ def main():
         changed += 1
     print("\nготово: обновлено %d из %d." % (changed, len(FILES)))
     if changed:
-        print("Доказательство бит-точности: векторы fm_par (7168 слов) и")
-        print("fm_dyn (8192 слов) с эмулятора OS 1.32 — 0 расхождений.")
+        print("Бит-точность всех трёх машин подтверждена векторами эмулятора:")
+        print("STAT 52800/52800, PAR 7168/7168, DYN 8192/8192 слов — 0 расхождений.")
     return 0
 
 
