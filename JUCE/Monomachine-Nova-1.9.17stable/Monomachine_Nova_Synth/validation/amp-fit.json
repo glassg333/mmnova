@@ -1,0 +1,13 @@
+{
+  "original": {
+    "slope_db_per_second": -34.89590588008711,
+    "tau_seconds": 0.24890855872641274,
+    "residual_db_rms": 0.09807613365365128
+  },
+  "vst": {
+    "slope_db_per_second": -11.41554958611077,
+    "tau_seconds": 0.7608823011581592,
+    "residual_db_rms": 0.0928963738900554
+  },
+  "time_ratio": 0.32713148715319357
+}

@@ -1,0 +1,1 @@
+> **Текущий source-only пакет 1.9.17:** MODE L показывает реальные HP/low-cut, MODE H — LP/high-cut; Hyperion стоит последним в своей папке, BP собран вместе. Шесть LP-derived direct-input HP вынесены в последнюю MODE L папку `DRY`, поэтому не маскируются под обычные HP. Native FILT/Q/BOFS не объявлен исправленным. Границы проверки: [`README_1.9.17.md`](README_1.9.17.md).
