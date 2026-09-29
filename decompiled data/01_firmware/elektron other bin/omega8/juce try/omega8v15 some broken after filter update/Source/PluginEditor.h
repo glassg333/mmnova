@@ -111,6 +111,12 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         vol.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
         addAndMakeVisible (vol);
         volAtt = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (ps, "volume", vol);
+        vol.setTooltip ("Master output level.");
+        volLab.setText ("VOLUME", juce::dontSendNotification);
+        volLab.setFont (juce::Font (9.0f, juce::Font::bold));
+        volLab.setColour (juce::Label::textColourId, juce::Colour (0xffcfd8e0));
+        volLab.setJustificationType (juce::Justification::centred);
+        addAndMakeVisible (volLab);
 
         arpOn.setClickingTogglesState (true);
         arpOn.setButtonText ("START/STOP");
@@ -132,11 +138,13 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
 
         // r9: карта AUX1 (OB SVF / OB-X / TB303) — конфиг слота, не байт патча
         auxCardLab.setText ("AUX1 CARD", juce::dontSendNotification);
+        auxCardLab.setTooltip ("AUX1 is an expansion-filter slot. The three menu entries are the currently implemented models, not an exhaustive official card list.");
         auxCardLab.setFont (juce::Font (10.0f));
         auxCardLab.setColour (juce::Label::textColourId, juce::Colour (0xff9fb2c4));
         auxCardLab.setJustificationType (juce::Justification::centredLeft);
         addAndMakeVisible (auxCardLab);
-        auxCardBox.addItemList (juce::StringArray { "OB SVF", "OB-X", "TB303" }, 1);
+        auxCardBox.addItemList (juce::StringArray { "OB SVF", "OB-X", "TB-303" }, 1);
+        auxCardBox.setTooltip ("Implemented AUX1 models: Oberheim SVF, OB-X-style filter, TB-303-style filter. These are DSP approximations; see the manual for the instrument's optional AUX slots.");
         addAndMakeVisible (auxCardBox);
         auxCardAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (ps, "auxCard", auxCardBox);
 
@@ -164,7 +172,8 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         typeLab.setColour (juce::Label::textColourId, juce::Colour (0xff9fb2c4));
         typeLab.setJustificationType (juce::Justification::centred);
         addAndMakeVisible (typeLab);
-        typeBox.addItemList (juce::StringArray { "SEM", "BP", "HP", "BR", "MIN", "OB", "CS" }, 1);
+        typeBox.addItemList (juce::StringArray { "SEM LP", "SEM BP", "SEM HP", "SEM BR", "MINI LP", "AUX1", "AUX2" }, 1);
+        typeBox.setTooltip ("Filter TYPE: SEM low-pass/band-pass/high-pass/band-reject, MINI low-pass, AUX1, AUX2.");
         typeBox.addListener (this);
         addAndMakeVisible (typeBox);
 
@@ -199,6 +208,8 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         addAndMakeVisible (morphLab);
         addAndMakeVisible (octLabel);
         addAndMakeVisible (tuneLabel);
+        octLabel.setTooltip ("Oscillator octave offset; MID is the neutral octave.");
+        tuneLabel.setTooltip ("Patch Tune amount. Raw value 64 corresponds to 100% in the original editor; lower values add intentional tuning variation.");
         addAndMakeVisible (glideLed);
         addAndMakeVisible (subLed);
         for (auto* w : { &wv1t, &wv1s, &wv1p, &wv2t, &wv2s, &wv2p }) addAndMakeVisible (*w);
@@ -242,7 +253,7 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         addKnob ("ENV3 AMT",  omega8::off::ENV3_AMT);
 
         const char* envNames[3][5] = {
-            { "A", "D", "Dk2", "S", "R" }, { "A", "D", "Dk2", "S", "R" }, { "A", "D", "Dk2", "S", "R" } };
+            { "A", "D", "DKY2", "S", "R" }, { "A", "D", "DKY2", "S", "R" }, { "A", "D", "DKY2", "S", "R" } };
         const int envBase[3] = { omega8::off::ENV1_ATK, omega8::off::ENV2_ATK, omega8::off::ENV3_ATK };
         for (int e = 0; e < 3; ++e)
             for (int k = 0; k < 5; ++k)
@@ -275,14 +286,20 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         }
         createMatrix();
 
-        // r6: волны/глид кликабельны как на железе
-        for (auto* w : { &wv1t, &wv1s, &wv1p }) w->setClickingTogglesState (true);
+        // r15: every faceplate switch has a listener; previously several toggles
+        // changed their lamp state but never wrote the decoded patch byte.
+        for (auto* w : { &wv1t, &wv1s, &wv1p, &wv2t, &wv2s, &wv2p })
+        {
+            w->setClickingTogglesState (true);
+            w->addListener (this);
+        }
         glideLed.setClickingTogglesState (true);
+        glideLed.addListener (this);
         subLed.setClickingTogglesState (true);
         subLed.addListener (this);
 
         rebuildPatchList();
-        setSize (1180, 470);
+        setSize (1180, 506);
         startTimerHz (20);
     }
 
@@ -293,37 +310,27 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
 
     //==========================================================================
     // r11: круговое вращение ручки (тянешь по дуге = крутишь; у центра — вертикаль)
+    // r14: свободный драг — тянется в ЛЮБОМ направлении (вверх/вниз/влево/вправо/
+    // по диагонали), 1px ~ 1 байт, полный ход = 120px. Круговой драг r11 заменён:
+    // аккумулятор (dx - dy) надёжно работает при любом движении руки.
     struct ArcSlider : juce::Slider
     {
-        float lastAng = 0;
-        float angleOf (juce::Point<float> p) const noexcept
-        {
-            auto c = getLocalBounds().getCentre().toFloat();
-            return std::atan2 (c.getY() - p.y, p.x - c.getX());
-        }
+        float lastX = 0.0f, lastY = 0.0f;
         void mouseDown (const juce::MouseEvent& e) override
         {
-            lastAng = angleOf (e.position);
+            lastX = e.position.x; lastY = e.position.y;
             juce::Slider::mouseDown (e);
         }
         void mouseDrag (const juce::MouseEvent& e) override
         {
-            auto c = getLocalBounds().getCentre().toFloat();
-            const float rad = e.position.getDistanceFrom (c);
-            const float ang = angleOf (e.position);
-            float d = ang - lastAng;
-            while (d >  juce::MathConstants<float>::pi) d -= 2.0f * juce::MathConstants<float>::pi;
-            while (d < -juce::MathConstants<float>::pi) d += 2.0f * juce::MathConstants<float>::pi;
-            lastAng = ang;
-            if (rad < 10.0f || std::abs (d) > 1.2f)      // у центра/скачком — вертикальный fallback
-            {
-                juce::Slider::mouseDrag (e);
-                return;
-            }
+            const float dx = e.position.x - lastX, dy = e.position.y - lastY;
+            lastX = e.position.x; lastY = e.position.y;
             const double range = getMaximum() - getMinimum();
-            setValue (juce::jlimit (getMinimum(), getMaximum(),
-                          getValue() + (double) d / (2.0f * juce::MathConstants<float>::pi) * range * 1.5),
-                      juce::dontSendNotification);
+            const double dd = ((double) dx - (double) dy) * range / 120.0;
+            if (dd != 0.0)
+                // Send a synchronous change so addKnob::onValueChange writes the byte.
+                setValue (juce::jlimit (getMinimum(), getMaximum(), getValue() + dd),
+                          juce::sendNotificationSync);
         }
         void mouseUp (const juce::MouseEvent& e) override { juce::Slider::mouseUp (e); }
     };
@@ -346,8 +353,11 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         k->title = title;
         k->slider.setSliderStyle (juce::Slider::Rotary);
         k->slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
-        k->slider.setRange (0.0, 127.0, 1.0);   // байты патча 0..127 (был дефолт 0..1!)
-        // r8: удобное вращение: ~1px тяги = 1 байт + число-попап под курсором
+        const double maxValue = (ofs == omega8::off::SUB_WAVE ? 6.0 : 127.0);
+        k->slider.setRange (0.0, maxValue, 1.0); // SUB_WAVE is an enum 0..6; other byte values are 0..127
+        k->slider.setTooltip (knobTooltip (title, ofs));
+        // r15: свободный линейный drag; value changes are sent to onValueChange.
+        // r8: число-попап под курсором
         k->slider.setMouseDragSensitivity (128);
         k->slider.setPopupDisplayEnabled (true, true, this);   // (hover, click, parent)
         // r11: явное значение без процентов/иероглифов: только число 0..127
@@ -356,11 +366,13 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         k->label.setJustificationType (juce::Justification::centred);
         k->label.setFont (juce::Font (10.0f));
         k->label.setColour (juce::Label::textColourId, juce::Colour (0xffcfd8e0));
+        k->label.setTooltip (k->slider.getTooltip());
         // r5: ручка ПИШЕТ байт в слот, который правишь (A при morph<=50%, иначе B)
         k->slider.onValueChange = [this, dk = k.get()]
         {
             if (dk->ofs < 0) return;
-            int v = juce::jlimit (0, 127, (int) std::lround (dk->slider.getValue()));
+            const int maxByte = (dk->ofs == omega8::off::SUB_WAVE ? 6 : 127);
+            int v = juce::jlimit (0, maxByte, (int) std::lround (dk->slider.getValue()));
             proc.setPatchByte (proc.editSlot(), dk->ofs, (uint8_t) v);
             // r11: значение уходит на LCD (строка курсора как на железе)
             lastEdit = dk->title;
@@ -370,6 +382,50 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         addAndMakeVisible (k->slider);
         addAndMakeVisible (k->label);
         knobs.push_back (std::move (k));
+    }
+
+    juce::String knobTooltip (const juce::String& t, int ofs) const
+    {
+        if (ofs == omega8::off::SUB_WAVE) return "Oscillator 1 sub-waveform: OFF plus the decoded sub-wave options (0-6).";
+        if (t == "GLIDE") return "Portamento / glide time.";
+        if (t == "OSC1 FREQ") return "Oscillator 1 pitch / tuning offset. r15 restores the centered raw-32 mapping from r10; confirm absolute tuning with a tuner on a neutral patch.";
+        if (t == "OSC2 FREQ") return "Oscillator 2 pitch / tuning offset. r15 restores the centered raw-32 mapping from r10; confirm absolute tuning with a tuner on a neutral patch.";
+        if (t == "PWM 1" || t == "PWM 2") return "Pulse width of the selected oscillator's pulse waveform.";
+        if (t == "OSC1 LEV" || t == "OSC2 LEV") return "Oscillator mix level.";
+        if (t == "NOISE") return "White-noise mix level.";
+        if (t == "FINE") return "Oscillator 2 fine tuning.";
+        if (t == "TUNE") return "Patch Tune field: the original editor shows raw byte 64 as 100%. This build displays and stores it; the undocumented random-variation depth is not yet modeled in DSP.";
+        if (t == "EXT IN") return "External-input level.";
+        if (t == "CUTOFF") return "Filter cutoff / centre frequency.";
+        if (t == "RESO") return "Filter resonance (Q).";
+        if (t == "TRACKING") return "Keyboard tracking amount for the filter.";
+        if (t == "HPF") return "AUX2 / CS-80 high-pass frequency control.";
+        if (t == "HPR") return "AUX2 / CS-80 high-pass resonance control.";
+        if (t == "ENV1 AMT") return "Envelope 1 amount routed to filter frequency.";
+        if (t == "ENV3 AMT") return "Envelope 3 amount for destination 1.";
+        if (t.endsWith (" A")) return "Envelope attack time.";
+        if (t.endsWith (" D")) return "Envelope decay time.";
+        if (t.endsWith (" DKY2")) return "Envelope decay 2 time: additional held-note decay stage.";
+        if (t.endsWith (" S")) return "Envelope sustain level.";
+        if (t.endsWith (" R")) return "Envelope release time.";
+        if (t.contains (" POS")) return "Pan position for this voice.";
+        if (t.contains (" RATE") && t.startsWith ("P")) return "Pan movement rate for this voice.";
+        if (t.contains (" DPTH")) return "Pan movement depth for this voice.";
+        if (t.contains (" RATE")) return "Low-frequency oscillator rate.";
+        if (t.contains (" D1")) return "Modulation amount for destination 1.";
+        if (t.contains (" D2")) return "Modulation amount for destination 2.";
+        if (t.contains (" D3")) return "Modulation amount for destination 3.";
+        if (t == "XMOD") return "Cross-modulation depth: Oscillator 2 audio-rate modulation.";
+        if (t.startsWith ("MW ")) return "Mod wheel amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("DY ")) return "Keyboard dynamics / velocity amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("BN ")) return "Pitch-bend amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("PR ")) return "Aftertouch / pressure amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("C1 ")) return "Continuous controller 1 amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("C2 ")) return "Continuous controller 2 amount; A1/A2 means destination amount 1/2.";
+        if (t.startsWith ("E3 A")) return "Envelope 3 modulation amount for the matching destination slot.";
+        if (t.startsWith ("DLY")) return "Delay before the matching envelope starts.";
+        if (t.startsWith ("DYN")) return "Dynamic / velocity sensitivity for the matching envelope.";
+        return "Decoded Omega 8 patch parameter.";
     }
 
     //==========================================================================
@@ -493,6 +549,15 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         if (! typeBox.isMouseButtonDown() && typeBox.getSelectedId() != ft + 1)
             typeBox.setSelectedId (ft + 1, juce::dontSendNotification);
 
+        // r14: байт FILT_TYPE -> параметр хоста (панель/Ableton всегда в согласии)
+        if (auto* fpp = proc.apvts.getParameter ("filtType"))
+            if (auto* fpv = proc.apvts.getRawParameterValue ("filtType"))
+            {
+                const int want = p.at (omega8::off::FILT_TYPE);
+                if ((int) fpv->load() != want && ! typeBox.isMouseButtonDown())
+                    fpp->setValueNotifyingHost (fpp->convertTo0to1 ((float) want));
+            }
+
         // waveform LEDs: osc1 = bitmask (0 shows SAW), osc2 = enum 75 {0=pulse,1=tri,2=saw}
         int wb = p.at (omega8::off::WAVE_BITS);
         int m1 = (wb & 7) != 0 ? (wb & 7) : 2;
@@ -522,9 +587,13 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         }
 
         int ob = p.at (omega8::off::OCTAVE);
-        octLabel.setText ("OCT: " + juce::String (((ob >> 4) & 0x0F) - 4), juce::dontSendNotification);
-        tuneLabel.setText ("TUNE: " + juce::String (p.at (omega8::off::MASTER_TUNE)) + "%",
-                           juce::dontSendNotification);
+        const int oct = ((ob >> 4) & 0x0F) - 4;
+        const juce::String octText = (oct == 0 ? juce::String ("MID")
+                                              : (oct > 0 ? juce::String ("+") + juce::String (oct)
+                                                         : juce::String (oct)));
+        octLabel.setText ("OCT: " + octText, juce::dontSendNotification);
+        const int tunePct = juce::jlimit (0, 200, (int) std::lround (100.0 * p.at (omega8::off::MASTER_TUNE) / 64.0));
+        tuneLabel.setText ("TUNE: " + juce::String (tunePct) + "%", juce::dontSendNotification);
     }
 
     //==========================================================================
@@ -542,19 +611,7 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
         g.fillRect (0, 0, getWidth(), 6);
         g.fillRect (0, getHeight() - 6, getWidth(), 6);
 
-        // brand strip
-        g.setColour (juce::Colour (0xff14171a));
-        g.fillRect (4, 8, 26, getHeight() - 16);
-
-        // vertical brand text
-        g.saveState();
-        g.setColour (juce::Colours::white.withAlpha (0.85f));
-        g.setFont (juce::Font (11.0f, juce::Font::bold));
-        g.addTransform (juce::AffineTransform::rotation ((float) -juce::MathConstants<double>::halfPi,
-                                                         17.0f, (float) (getHeight() - 14)));
-        g.drawText ("STUDIO ELECTRONICS  OMEGA 8 / CODE",
-                    0.0f, 0.0f, (float) (getHeight() - 28), 14.0f, juce::Justification::centred);
-        g.restoreState();
+        // r15: clean horizontal faceplate; brand sits on the lower rail as in the reference.
 
         // section separators + titles
         auto line = [&] (float x, float top = 8.0f, float bot = -8.0f)
@@ -562,37 +619,28 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
             g.setColour (juce::Colours::white.withAlpha (0.25f));
             g.drawVerticalLine ((int) x, top, bot < 0 ? (float) getHeight() + bot : bot);
         };
-        for (float x : { 150.0f, 306.0f, 470.0f, 756.0f, 892.0f }) line (x);
+        for (float x : { 176.0f, 318.0f, 518.0f, 794.0f, 894.0f }) line (x);
 
         g.setColour (juce::Colours::white);
         g.setFont (juce::Font (12.0f, juce::Font::bold));
-        g.drawText ("Multi/Midi",   36, 10, 110, 14, juce::Justification::centred);
-        g.drawText ("Modulation",  154, 10, 148, 14, juce::Justification::centred);
-        g.drawText ("Programmer",  310, 10, 156, 14, juce::Justification::centred);
-        g.drawText ("Oscillators", 474, 10, 278, 14, juce::Justification::centred);
-        g.drawText ("Filter",      760, 10, 128, 14, juce::Justification::centred);
-        g.drawText ("Envelopes",   896, 10, 276, 14, juce::Justification::centred);
+        g.drawText ("MULTI / MIDI", 10, 10, 166, 14, juce::Justification::centred);
+        g.drawText ("MODULATION",  176, 10, 142, 14, juce::Justification::centred);
+        g.drawText ("PROGRAMMER",  318, 10, 200, 14, juce::Justification::centred);
+        g.drawText ("OSCILLATORS", 518, 10, 276, 14, juce::Justification::centred);
+        g.drawText ("FILTER",      794, 10, 100, 14, juce::Justification::centred);
+        g.drawText ("ENVELOPES",   894, 10, 276, 14, juce::Justification::centred);
 
-        // env row titles
-        g.setFont (juce::Font (10.0f));
-        g.drawText ("VCF (1)",   896, 44, 44, 12, juce::Justification::centredLeft);
-        g.drawText ("VCA (2)",   896, 150, 44, 12, juce::Justification::centredLeft);
-        g.drawText ("ASSIGN (3)",896, 256, 52, 12, juce::Justification::centredLeft);
+        // Envelope row identifiers and full terms live on each control's tooltip.
+        g.setFont (juce::Font (10.0f, juce::Font::bold));
+        g.drawText ("ENV 1  /  FILTER", 902, 40, 262, 12, juce::Justification::centredLeft);
+        g.drawText ("ENV 2  /  AMPLIFIER", 902, 124, 262, 12, juce::Justification::centredLeft);
+        g.drawText ("ENV 3  /  ASSIGNABLE", 902, 208, 262, 12, juce::Justification::centredLeft);
 
-        // filter type LEDs
-        static const char* ftNames[7] = { "SEM", "BP", "HP", "BR", "MINI", "OBER", "CS80" };
-        (void) ftNames;
-
-        // lcd frame
-        g.setColour (juce::Colour (0xff05070a));
-        g.fillRoundedRectangle (314, 34, 148, 46, 5);
-        g.setColour (juce::Colour (0xff5a6a75));
-        g.drawRoundedRectangle (314, 34, 148, 46, 5, 1.0f);
-
-        // omega badge (всегда на базовой панели, даже когда extend открыт)
+        // r15 brand plaque on the lower rail.
         g.setColour (juce::Colour (0xffd8dee6));
-        g.setFont (juce::Font (16.0f, juce::Font::bold));
-        g.drawText ("omega 8", 900, kPanelH - 44, 260, 30, juce::Justification::centredRight);
+        g.setFont (juce::Font (10.0f, juce::Font::bold));
+        g.drawText ("STUDIO ELECTRONICS  |  OMEGA 8 / CODE", 14, kPanelH - 22, 400, 14,
+                    juce::Justification::centredLeft);
 
         // ---- r6: extend window background (LCD-стиль как на скрине OMEGACODE/SE-1X) ----
         if (matrixOpen)
@@ -610,62 +658,91 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
                         juce::Justification::centredLeft);
             g.drawText ("LFO1 / LFO2 / ENV3 / XMOD", e2.getX() + 404, e2.getY() + 2, 376, 14,
                         juce::Justification::centredLeft);
-            g.drawText ("ENV DLY / DYN      PAN 1-4", e2.getX() + 784, e2.getY() + 2, 360, 14,
+            g.drawText ("ENV DLY / DYN / DKY2      PAN 1-4", e2.getX() + 784, e2.getY() + 2, 360, 14,
                         juce::Justification::centredLeft);
         }
     }
 
     void resized() override
     {
-        auto area = getLocalBounds().removeFromTop (kPanelH).reduced (10);
-        area.removeFromLeft (28);   // brand strip
-
-        // ---- Multi/Midi column ----
+        // Hide GLOBAL-only controls when the extension is closed. Without this they
+        // remained at their old coordinates and overlaid the faceplate after resize.
+        auto isGlobalKnob = [] (const juce::String& t)
         {
-            auto c = area.removeFromLeft (112).reduced (4, 4);
-            auto r2 = c.removeFromTop (70);
-            // volume (automatable) + glide display
-            vol.setBounds (r2.removeFromLeft (56).reduced (4));
-            auto gk = findKnob ("GLIDE");
+            return t.startsWith ("MW ") || t.startsWith ("DY ") || t.startsWith ("BN ")
+                || t.startsWith ("PR ") || t.startsWith ("C1 ") || t.startsWith ("C2 ")
+                || t.startsWith ("E3 A") || t.startsWith ("DYN") || t.startsWith ("DLY")
+                || t.startsWith ("P1 ") || t.startsWith ("P2 ") || t.startsWith ("P3 ")
+                || t.startsWith ("P4 ") || t.contains (" DKY2");
+        };
+        for (auto& k : knobs)
+            if (isGlobalKnob (k->title))
+            {
+                k->slider.setVisible (matrixOpen);
+                k->label.setVisible (matrixOpen);
+            }
+        for (auto& d : dests) { d->box.setVisible (matrixOpen); d->lab.setVisible (matrixOpen); }
+        for (auto& l : envExtLab) l.setVisible (matrixOpen);
+        for (auto& l : panLab) l.setVisible (matrixOpen);
+        typeBox.setVisible (matrixOpen);
+
+        auto area = getLocalBounds().removeFromTop (kPanelH).reduced (10);
+        area.removeFromTop (24); // reserve the original faceplate title strip; no controls over headings
+
+        // ---- Multi / MIDI ----
+        {
+            auto c = area.removeFromLeft (166).reduced (4, 4);
+            auto row = c.removeFromTop (82);
+            const int half = row.getWidth() / 2;
+            auto vr = row.removeFromLeft (half);
+            vol.setBounds (vr.getX() + 4, vr.getY() + 2, vr.getWidth() - 8, 58);
+            volLab.setBounds (vr.getX(), vr.getY() + 61, vr.getWidth(), 14);
+            auto* gk = findKnob ("GLIDE");
             if (gk != nullptr)
             {
-                gk->slider.setBounds (r2.removeFromLeft (52).reduced (4));
-                gk->label.setBounds (gk->slider.getX(), r2.getY() - 12, 52, 12);
+                gk->slider.setBounds (row.getX() + 4, row.getY() + 2, row.getWidth() - 8, 58);
+                gk->label.setBounds (row.getX(), row.getY() + 61, row.getWidth(), 14);
             }
-            glideLed.setBounds (c.removeFromTop (20).reduced (8, 2));
-            octLabel.setBounds (c.removeFromTop (18));
-            tuneLabel.setBounds (c.removeFromTop (18));
+            glideLed.setBounds (c.removeFromTop (24).reduced (18, 1));
+            octLabel.setBounds (c.removeFromTop (20));
+            tuneLabel.setBounds (c.removeFromTop (20));
         }
 
-        // ---- Modulation column ----
+        // ---- Modulation: 2 x 2 layout like the reference; all six LFO depths stay editable ----
         {
-            auto c = area.removeFromLeft (150).reduced (4, 4);
+            auto c = area.removeFromLeft (142).reduced (4, 4);
             auto l1 = c.removeFromTop (14);
             lfo1Dest.setText (destText (1), juce::dontSendNotification);
+            lfo1Dest.setFont (juce::Font (8.5f));
+            lfo1Dest.setTooltip ("LFO 1 destinations 1, 2 and 3. Full destination names are listed in docs/ENGLISH_LABELS_R15.md.");
             addAndMakeVisible (lfo1Dest);
             lfo1Dest.setBounds (l1);
-            placeKnobs ({ "LFO1 RATE", "LFO1 D1", "LFO1 D2", "LFO1 D3" }, c.removeFromTop (62));
+            placeKnobs ({ "LFO1 RATE", "LFO1 D1" }, c.removeFromTop (66));
+            placeKnobs ({ "LFO1 D2", "LFO1 D3" }, c.removeFromTop (66));
+
             auto l2 = c.removeFromTop (14);
             lfo2Dest.setText (destText (2), juce::dontSendNotification);
-            lfo2Dest.setFont (juce::Font (10.0f));
+            lfo2Dest.setFont (juce::Font (8.5f));
             lfo2Dest.setColour (juce::Label::textColourId, juce::Colour (0xff9fb2c4));
+            lfo2Dest.setTooltip ("LFO 2 destinations 1, 2 and 3. Full destination names are listed in docs/ENGLISH_LABELS_R15.md.");
             addAndMakeVisible (lfo2Dest);
             lfo2Dest.setBounds (l2);
-            placeKnobs ({ "LFO2 RATE", "LFO2 D1", "LFO2 D2", "LFO2 D3" }, c.removeFromTop (62));
-            placeKnobs ({ "XMOD", "ENV3 AMT" }, c.removeFromTop (62));
+            placeKnobs ({ "LFO2 RATE", "LFO2 D1" }, c.removeFromTop (66));
+            placeKnobs ({ "LFO2 D2", "LFO2 D3" }, c.removeFromTop (66));
+            placeKnobs ({ "XMOD" }, c.removeFromTop (66));
             env3Dest.setText (env3Text(), juce::dontSendNotification);
-            env3Dest.setFont (juce::Font (10.0f));
+            env3Dest.setFont (juce::Font (8.5f));
             env3Dest.setColour (juce::Label::textColourId, juce::Colour (0xff9fb2c4));
+            env3Dest.setTooltip ("Envelope 3 destination assignments. ENV3 amount is in the envelope section.");
             addAndMakeVisible (env3Dest);
-            env3Dest.setBounds (c.removeFromTop (16));
+            env3Dest.setBounds (c.removeFromTop (18));
         }
 
-        // ---- Programmer column ----
+        // ---- Programmer ----
         {
-            auto c = area.removeFromLeft (158).reduced (4, 4);
+            auto c = area.removeFromLeft (200).reduced (4, 4);
             lcd.setBounds (c.removeFromTop (46).reduced (2));
             c.removeFromTop (2);
-            // r11: 8 ламп программ (скрин CODE: ряд LED под LCD)
             {
                 auto lr = c.removeFromTop (16);
                 const int lw = lr.getWidth() / 8;
@@ -673,14 +750,17 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
                     lamp[i].setBounds (lr.getX() + i * lw, lr.getY(), lw - 2, 16);
             }
             c.removeFromTop (4);
-            // r11: Q-dial (энкодер = выбор патча) + Bank ◀ ▲▼ Part ▶
             {
                 auto er = c.removeFromTop (46);
                 enc.setBounds (er.getX(), er.getY(), 46, 46);
-                arrL.setBounds (er.getX() + 50, er.getY() + 13, 20, 20);
-                arrR.setBounds (er.getX() + 72, er.getY() + 13, 20, 20);
-                arrU.setBounds (er.getX() + 98, er.getY() + 2,  20, 20);
-                arrD.setBounds (er.getX() + 98, er.getY() + 24, 20, 20);
+                arrL.setBounds (er.getX() + 52, er.getY() + 13, 24, 20);
+                arrR.setBounds (er.getX() + 78, er.getY() + 13, 24, 20);
+                arrU.setBounds (er.getX() + 108, er.getY() + 2,  28, 20);
+                arrD.setBounds (er.getX() + 108, er.getY() + 24, 28, 20);
+                arrL.setTooltip ("Previous part / patch.");
+                arrR.setTooltip ("Next part / patch.");
+                arrU.setTooltip ("Previous bank.");
+                arrD.setTooltip ("Next bank.");
             }
             c.removeFromTop (4);
             auto rowA = c.removeFromTop (22);
@@ -699,14 +779,13 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
             c.removeFromTop (4);
             {
                 auto rowLoad = c.removeFromTop (22);
-                matrixBtn.setBounds (rowLoad.removeFromLeft (58));   // GLOBAL -> extend window
+                matrixBtn.setBounds (rowLoad.removeFromLeft (64));
                 loadBtn.setBounds (rowLoad.reduced (2, 0));
             }
             c.removeFromTop (6);
-            arpPanel.setBounds (c);
-            addAndMakeVisible (arpPanel);
-            // arp internals (children of the editor — offset by panel origin)
-            auto ap = arpPanel.getBounds();
+            // Use a local layout rectangle only. A visible blank Component here
+            // would sit above its sibling controls and swallow their mouse clicks.
+            auto ap = c;
             arpOn.setBounds (ap.getX() + 4, ap.getY() + 4, ap.getWidth() - 8, 22);
             arpRate.setBounds (ap.getX() + 4, ap.getY() + 30, 56, 56);
             arpPat.setBounds (ap.getX() + 64, ap.getY() + 32, ap.getWidth() - 70, 24);
@@ -715,82 +794,93 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
 
         // ---- Oscillators ----
         {
-            auto c = area.removeFromLeft (278).reduced (4, 4);
-            auto waveRow1 = c.removeFromTop (20);
-            wv1t.setBounds (waveRow1.removeFromLeft (44));
-            wv1s.setBounds (waveRow1.removeFromLeft (44));
-            wv1p.setBounds (waveRow1.removeFromLeft (44));
-            subLed.setBounds (waveRow1.removeFromLeft (44));
-            placeKnobs ({ "OSC1 FREQ", "PWM 1", "OSC1 LEV", "NOISE" }, c.removeFromTop (74));
-            auto waveRow2 = c.removeFromTop (20);
-            wv2t.setBounds (waveRow2.removeFromLeft (44));
-            wv2s.setBounds (waveRow2.removeFromLeft (44));
-            wv2p.setBounds (waveRow2.removeFromLeft (44));
-            placeKnobs ({ "OSC2 FREQ", "PWM 2", "OSC2 LEV", "FINE" }, c.removeFromTop (74));
-            placeKnobs ({ "SUB", "TUNE", "EXT IN" }, c.removeFromTop (74));
+            auto c = area.removeFromLeft (276).reduced (4, 4);
+            auto waveRow1 = c.removeFromTop (22);
+            const int w1 = waveRow1.getWidth() / 4;
+            wv1t.setBounds (waveRow1.removeFromLeft (w1));
+            wv1s.setBounds (waveRow1.removeFromLeft (w1));
+            wv1p.setBounds (waveRow1.removeFromLeft (w1));
+            subLed.setBounds (waveRow1);
+            placeKnobs ({ "OSC1 FREQ", "PWM 1" }, c.removeFromTop (70));
+            auto waveRow2 = c.removeFromTop (22);
+            const int w2 = waveRow2.getWidth() / 3;
+            wv2t.setBounds (waveRow2.removeFromLeft (w2));
+            wv2s.setBounds (waveRow2.removeFromLeft (w2));
+            wv2p.setBounds (waveRow2);
+            placeKnobs ({ "OSC2 FREQ", "PWM 2" }, c.removeFromTop (70));
+            placeKnobs ({ "OSC1 LEV", "OSC2 LEV", "NOISE" }, c.removeFromTop (70));
+            placeKnobs ({ "FINE", "TUNE", "EXT IN", "SUB" }, c.removeFromTop (70));
         }
 
-        // ---- Filter ----
+        // ---- Filter: legible knobs, full English filter names, wide click targets ----
         {
-            auto c = area.removeFromLeft (130).reduced (4, 4);
-            placeKnobs ({ "CUTOFF", "RESO" }, c.removeFromTop (74));
-            placeKnobs ({ "TRACKING", "ENV1 AMT" }, c.removeFromTop (74));
-            placeKnobs ({ "HPF", "HPR" }, c.removeFromTop (74));
-            auto ft = c.removeFromTop (90);
-            static const char* ftNames[7] = { "SEM", "BP", "HP", "BR", "MIN", "OB", "CS" };
+            auto c = area.removeFromLeft (100).reduced (4, 4);
+            placeKnobs ({ "CUTOFF", "RESO" }, c.removeFromTop (62));
+            placeKnobs ({ "TRACKING", "HPF" }, c.removeFromTop (62));
+            placeKnobs ({ "HPR" }, c.removeFromTop (62));
+            typeLab.setText ("FILTER TYPE", juce::dontSendNotification);
+            typeLab.setFont (juce::Font (9.0f, juce::Font::bold));
+            typeLab.setTooltip ("Click one of the seven filter types below. AUX1/AUX2 are hardware expansion slots.");
+            typeLab.setBounds (c.removeFromTop (16));
+            static const char* ftNames[7] = { "SEM LP", "SEM BP", "SEM HP", "SEM BR", "MINI LP", "AUX1", "AUX2" };
+            static const char* ftTips[7] = {
+                "SEM 12 dB low-pass", "SEM 12 dB band-pass", "SEM high-pass", "SEM band-reject / notch",
+                "Moog-style MINI 24 dB low-pass", "AUX1 expansion card; selected model is set below",
+                "AUX2 expansion slot; CS-80 is the documented fixed card"
+            };
             if (filtTypes.empty())
             {
                 for (int i = 0; i < 7; ++i)
                 {
                     auto b = std::make_unique<juce::ToggleButton> (ftNames[i]);
                     b->setClickingTogglesState (false);
-                    b->addListener (this);                 // r11: галочки TYPE кликабельны
+                    b->setTooltip (ftTips[i]);
+                    b->onClick = [this, i] { setFilterTypeFromUI (i); };
                     addAndMakeVisible (*b);
                     filtTypes.push_back (std::move (b));
                 }
             }
             for (int i = 0; i < 7; ++i)
-                filtTypes[(size_t) i]->setBounds (ft.removeFromTop (12));
-            // r9: карта AUX1 под индикаторами TYPE
-            c.removeFromTop (8);
+                filtTypes[(size_t) i]->setBounds (c.removeFromTop (18));
+            c.removeFromTop (4);
             auxCardLab.setBounds (c.removeFromTop (14));
             auxCardBox.setBounds (c.removeFromTop (22));
         }
 
-        // ---- Envelopes: 3 rows x 5 knobs ----
+        // ---- Envelopes: match the original four-knob ADSR face; DKY2 remains in GLOBAL ----
         {
             auto c = area.reduced (4, 4);
-            c.removeFromTop (26);   // section title
+            c.removeFromTop (16); // row title is painted in the header strip below
             for (int e = 0; e < 3; ++e)
             {
-                c.removeFromTop (14);   // row label
-                juce::Array<juce::String> titles { "A", "D", "Dk2", "S", "R" };
                 juce::Array<juce::String> names;
-                for (auto& t : titles) names.add (juce::String ("E") + juce::String (e + 1) + " " + t);
-                placeKnobs (names, c.removeFromTop (74));
-                c.removeFromTop (32);
+                for (auto suffix : { "A", "D", "S", "R" })
+                    names.add (juce::String ("E") + juce::String (e + 1) + " " + suffix);
+                placeKnobs (names, c.removeFromTop (68));
+                c.removeFromTop (16);
             }
+            placeKnobs ({ "ENV1 AMT", "ENV3 AMT" }, c.removeFromTop (68));
         }
 
-        // ---- r6: extend zone — модульная матрица (как у SE-1X/Omega CODE) ----
+        // ---- Global/extension window: all extra decoded controls stay available ----
         if (matrixOpen)
         {
             auto ext = getLocalBounds().removeFromBottom (kExtH).reduced (12);
-            ext.removeFromTop (16);   // полоса заголовка (paint)
-
+            ext.removeFromTop (16);
             auto putKnob = [this] (const juce::String& t, juce::Rectangle<int> cell)
             {
                 auto* k = findKnob (t);
-                if (k == nullptr) return;
-                k->slider.setBounds (cell.getX(), cell.getY(), cell.getWidth(), cell.getWidth());
-                k->label.setBounds (cell.getX(), cell.getY() + cell.getWidth(), cell.getWidth(), 12);
+                if (k == nullptr || cell.isEmpty()) return;
+                const int d = juce::jmax (16, juce::jmin (cell.getWidth(), cell.getHeight() - 12));
+                juce::Rectangle<int> dial (d, d);
+                dial.setCentre (cell.getCentreX(), cell.getY() + d / 2);
+                k->slider.setBounds (dial);
+                k->label.setBounds (cell.getX(), cell.getY() + d, cell.getWidth(), juce::jmax (10, cell.getHeight() - d));
             };
 
-            // -- колонка 1: контроллеры (6 строк × 2 dest + 2 amt) --
+            // -- column 1: controller destinations and their two amounts --
             {
                 auto c = ext.removeFromLeft (400);
-                static const char* ctrlLabs[6] = { "modwhl", "dynamics", "bender",
-                                                   "pressure", "cont1", "cont2" };
                 static const char* amtT[6][2] = { { "MW A1", "MW A2" }, { "DY A1", "DY A2" },
                                                   { "BN A1", "BN A2" }, { "PR A1", "PR A2" },
                                                   { "C1 A1", "C1 A2" }, { "C2 A1", "C2 A2" } };
@@ -805,62 +895,53 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
                     auto b2 = row.removeFromLeft (104).removeFromTop (40);
                     dests[(size_t) (r * 2 + 1)]->box.setBounds (b2.getX(), b2.getY() + 14, b2.getWidth(), 22);
                     putKnob (amtT[r][1], row.removeFromLeft (34).removeFromTop (34));
-                    juce::ignoreUnused (ctrlLabs);
                 }
             }
 
-            // r11: TYPE фильтра в матрице (в железе — F Table в меню)
+            // TYPE is selected from the clickable faceplate list; this host dropdown remains here too.
             {
                 auto c = ext;
                 c.removeFromTop (6 * 46 + 6);
                 auto trow = c.removeFromTop (30);
-                typeLab.setBounds (trow.removeFromLeft (30));
-                typeBox.setBounds (trow.removeFromLeft (150).removeFromTop (22));
+                typeBox.setBounds (trow.removeFromLeft (180).removeFromTop (22));
             }
 
-            // -- колонка 2: LFO1/LFO2/ENV3 dests + amts + XMOD + волны --
+            // -- column 2: destinations, amounts, XMOD and waveform selectors --
             {
                 auto c = ext.removeFromLeft (380);
-
                 auto row = c.removeFromTop (46);
-                auto lr = row.removeFromLeft (44);
-                dests[12]->lab.setBounds (lr);
+                auto lr = row.removeFromLeft (44); dests[12]->lab.setBounds (lr);
                 dests[12]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
                 dests[13]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
                 dests[14]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
 
                 row = c.removeFromTop (46);
-                lr = row.removeFromLeft (44);
-                dests[15]->lab.setBounds (lr);
+                lr = row.removeFromLeft (44); dests[15]->lab.setBounds (lr);
                 dests[15]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
                 dests[16]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
                 dests[17]->box.setBounds (row.removeFromLeft (108).removeFromTop (22));
 
                 row = c.removeFromTop (46);
-                lr = row.removeFromLeft (44);
-                dests[18]->lab.setBounds (lr);
+                lr = row.removeFromLeft (44); dests[18]->lab.setBounds (lr);
                 dests[18]->box.setBounds (row.removeFromLeft (112).removeFromTop (22));
                 dests[19]->box.setBounds (row.removeFromLeft (112).removeFromTop (22));
                 dests[20]->box.setBounds (row.removeFromLeft (112).removeFromTop (22));
 
                 row = c.removeFromTop (46);
-                lr = row.removeFromLeft (44);
-                dests[21]->lab.setBounds (lr);
+                lr = row.removeFromLeft (44); dests[21]->lab.setBounds (lr);
                 dests[21]->box.setBounds (row.removeFromLeft (100).removeFromTop (22));
                 putKnob ("E3 A1", row.removeFromLeft (36).removeFromTop (34));
                 putKnob ("E3 A2", row.removeFromLeft (36).removeFromTop (34));
                 putKnob ("E3 A3", row.removeFromLeft (36).removeFromTop (34));
 
                 row = c.removeFromTop (46);
-                lr = row.removeFromLeft (30);
-                dests[22]->lab.setBounds (lr);
+                lr = row.removeFromLeft (30); dests[22]->lab.setBounds (lr);
                 dests[22]->box.setBounds (row.removeFromLeft (76).removeFromTop (22));
-                lr = row.removeFromLeft (30);
-                dests[23]->lab.setBounds (lr);
+                lr = row.removeFromLeft (30); dests[23]->lab.setBounds (lr);
                 dests[23]->box.setBounds (row.removeFromLeft (76).removeFromTop (22));
             }
 
-            // -- колонка 3: env DLY/DYN + PAN 1..4 --
+            // -- column 3: envelope delay/dynamics/decay-2 + per-voice pan --
             {
                 auto c = ext;
                 for (int e = 0; e < 3; ++e)
@@ -868,18 +949,17 @@ struct Omega8AudioProcessorEditor : juce::AudioProcessorEditor,
                     auto row = c.removeFromTop (45);
                     auto lr = row.removeFromLeft (38);
                     envExtLab[(size_t) e].setBounds (lr);
-                    envExtLab[(size_t) e].setText ("E" + juce::String (e + 1),
-                                                   juce::NotificationType::dontSendNotification);
+                    envExtLab[(size_t) e].setText ("E" + juce::String (e + 1), juce::dontSendNotification);
                     putKnob ("DLY" + juce::String (e + 1), row.removeFromLeft (36).removeFromTop (34));
                     putKnob ("DYN" + juce::String (e + 1), row.removeFromLeft (36).removeFromTop (34));
+                    putKnob ("E" + juce::String (e + 1) + " DKY2", row.removeFromLeft (44).removeFromTop (34));
                 }
                 for (int v = 0; v < 4; ++v)
                 {
                     auto row = c.removeFromTop (45);
                     auto lr = row.removeFromLeft (38);
                     panLab[(size_t) v].setBounds (lr);
-                    panLab[(size_t) v].setText (juce::String (v + 1),
-                                                juce::NotificationType::dontSendNotification);
+                    panLab[(size_t) v].setText (juce::String (v + 1), juce::dontSendNotification);
                     putKnob ("P" + juce::String (v + 1) + " POS",  row.removeFromLeft (36).removeFromTop (34));
                     putKnob ("P" + juce::String (v + 1) + " RATE", row.removeFromLeft (36).removeFromTop (34));
                     putKnob ("P" + juce::String (v + 1) + " DPTH", row.removeFromLeft (36).removeFromTop (34));
@@ -899,11 +979,11 @@ private:
     juce::ComboBox arpPat, arpOct { "" };
     juce::ComboBox auxCardBox;          // r9
     juce::Label    auxCardLab;          // r9
+    juce::Label    volLab;
     // ---- r11: Programmer по скрину CODE (8 ламп, энкодер, стрелки Bank/Part) ----
     juce::ToggleButton lamp[8];
     ArcSlider           enc { };        // Q-dial: выбор патча (параметр presetA)
-    juce::TextButton    arrL { "\xe2\x97\x80" }, arrR { "\xe2\x97\xb6" },
-                        arrU { "\xe2\x96\xb2" }, arrD { "\xe2\x96\xbc" };
+    juce::TextButton    arrL { "<" }, arrR { ">" }, arrU { "^" }, arrD { "v" };
     juce::ComboBox typeBox;             // r11: TYPE фильтра в матрице
     juce::Label    typeLab { "", "TYPE" };
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> encAtt;
@@ -922,8 +1002,11 @@ private:
         juce::String text;
         void paint (juce::Graphics& g) override
         {
+            auto box = getLocalBounds().toFloat().reduced (1.0f);
             g.setColour (juce::Colour (0xff0b0d0e));
-            g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (2.0f), 4.0f);
+            g.fillRoundedRectangle (box, 4.0f);
+            g.setColour (juce::Colour (0xff5a6a75));
+            g.drawRoundedRectangle (box, 4.0f, 1.0f);
             g.setColour (juce::Colour (0xffe9e4d4));
             g.setFont (juce::Font (13.0f, juce::Font::bold));
             g.drawFittedText (text, getLocalBounds().reduced (6), juce::Justification::centred, 3);
@@ -937,16 +1020,15 @@ private:
     juce::TextButton loadBtn;
     juce::TextButton matrixBtn { "GLOBAL" };  // r7: как на железе (Programmer Global)
     bool matrixOpen = false;
-    static constexpr int kPanelH  = 470;       // базовая панель
+    static constexpr int kPanelH  = 506;       // r15: пропорции интерфейса как на референсе (~2.33:1)
     static constexpr int kExtH    = 360;       // extend-окно матрицы
-    juce::Component arpPanel;
     juce::ComboBox arpPat2;   // reserved
     juce::Label lfo1Dest, lfo2Dest, env3Dest, morphLab { "", "BLEND  A - B" }, octLabel, tuneLabel;
     juce::Label envExtLab[3];   // r6: метки E1..E3 в extend-зоне
     juce::Label panLab[4];      // r6: метки 1..4 (PAN) в extend-зоне
     juce::ToggleButton glideLed { "GLIDE" }, subLed { "SUB" },
-                       wv1t { "tri" }, wv1s { "saw" }, wv1p { "pwm" },
-                       wv2t { "tri" }, wv2s { "saw" }, wv2p { "pwm" };
+                       wv1t { "TRI" }, wv1s { "SAW" }, wv1p { "PULSE" },
+                       wv2t { "TRI" }, wv2s { "SAW" }, wv2p { "PULSE" };
 
     std::vector<std::unique_ptr<DisplayKnob>> knobs;
     std::vector<std::unique_ptr<juce::ToggleButton>> filtTypes;
@@ -989,16 +1071,19 @@ private:
     void placeKnobs (const juce::Array<juce::String>& titles, juce::Rectangle<int> r)
     {
         if (titles.isEmpty() || r.isEmpty()) return;
-        int w = r.getWidth() / titles.size();
+        const int cellW = r.getWidth() / titles.size();
         for (int i = 0; i < titles.size(); ++i)
         {
             auto* k = findKnob (titles[(size_t) i]);
+            auto cell = r.removeFromLeft (cellW);
             if (k == nullptr) continue;
-            auto cell = r.removeFromLeft (w);
-            k->slider.setBounds (cell.getX(), cell.getY() + 2, cell.getWidth(), cell.getWidth());
-            int sh = juce::jmin (cell.getWidth(), 52);
-            k->label.setBounds (cell.getX(), cell.getY() + cell.getWidth() - 2, cell.getWidth(), 14);
-            juce::ignoreUnused (sh);
+            const int dialSize = juce::jmax (16, juce::jmin (cellW - 4, cell.getHeight() - 18));
+            juce::Rectangle<int> dial (dialSize, dialSize);
+            dial.setCentre (cell.getCentreX(), cell.getY() + 2 + dialSize / 2);
+            k->slider.setBounds (dial);
+            const int labelY = cell.getY() + dialSize + 4;
+            const int labelH = juce::jmax (10, cell.getBottom() - labelY);
+            k->label.setBounds (cell.getX(), labelY, cell.getWidth(), labelH);
         }
     }
 
@@ -1007,6 +1092,18 @@ private:
         patchList.clear (juce::dontSendNotification);
         for (int i = 0; i < 128; ++i)
             patchList.addItem (juce::String (i + 1).paddedLeft ('0', 3) + " " + proc.patchNameAt (i), i + 1);
+    }
+
+    void setFilterTypeFromUI (int type)
+    {
+        type = juce::jlimit (0, 6, type);
+        if (auto* fp = proc.apvts.getParameter ("filtType"))
+        {
+            fp->beginChangeGesture();
+            fp->setValueNotifyingHost (fp->convertTo0to1 ((float) type));
+            fp->endChangeGesture();
+        }
+        proc.setPatchByte (proc.editSlot(), omega8::off::FILT_TYPE, (uint8_t) type);
     }
 
     //==========================================================================
@@ -1061,9 +1158,9 @@ private:
             return;
         }
         for (int i = 0; i < (int) filtTypes.size(); ++i)
-            if (b == filtTypes[(size_t) i].get())            // r11: TYPE кликается
+            if (b == filtTypes[(size_t) i].get())
             {
-                proc.setPatchByte (proc.editSlot(), omega8::off::FILT_TYPE, (uint8_t) i);
+                setFilterTypeFromUI (i);
                 return;
             }
         if (b == &prevA) setPreset (0, -1);
@@ -1115,9 +1212,8 @@ private:
     {
         if (cb == &typeBox)
         {
-            int id = typeBox.getSelectedId();               // r11: TYPE фильтра из матрицы
-            if (id >= 1)
-                proc.setPatchByte (proc.editSlot(), omega8::off::FILT_TYPE, (uint8_t) (id - 1));
+            int id = typeBox.getSelectedId();
+            if (id >= 1) setFilterTypeFromUI (id - 1);
             return;
         }
         if (cb == &arpOct)

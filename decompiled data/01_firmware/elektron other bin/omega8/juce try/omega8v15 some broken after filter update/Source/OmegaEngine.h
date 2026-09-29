@@ -344,6 +344,7 @@ struct Voice
 
     Env env1, env2, env3;                 // filter / VCA / mod
     Patch pg;                             // r11: патч, захваченный на момент ноты
+    float vgP = 0.35f;                    // r15: overwritten from this voice's VOLUME on noteOn
 
     Svf     svf;
     Ladder  ladder;
@@ -401,7 +402,6 @@ public:
         dcR   = std::exp (-2.0f * (float) M_PI * 12.0f / s); // DC blocker ~12 Hz
         xfN   = std::max (16, (int) (0.004 * sampleRate)); // 4 ms change xfade
         mgSm = masterGain;
-        vgSm = -1.0f;                                      // впервые = target в updateGlobals
         dcXLp = dcXRp = dcYL = dcYR = 0.0f;
         for (auto& v : voices) { v.reset(); v.obx.setSampleRate ((float) sampleRate); }
     }
@@ -432,6 +432,15 @@ public:
                     if (p.raw[i] != old.raw[i]) v.pg.raw[i] = p.raw[i];
     }
 
+    // r15: вернуть уровневую кривую r10 — она ближе к оригиналу по тесту пользователя.
+    // Громкость всё ещё хранится per-voice, поэтому браузинг пресетов не меняет
+    // уровень уже звучащих нот; меняется только прежняя, проверенная кривая.
+    static float volGain (int v) noexcept
+    {
+        const float x = (float) std::clamp (v, 0, 127) / 127.0f;
+        return 1.4f * x * x;
+    }
+
     void noteOn (int note, float vel) noexcept
     {
         // retrigger same note
@@ -454,7 +463,10 @@ public:
         v->active = true;
         v->age = ageCounter++;
         v->pg = patch;                     // r11: голос живёт со СВОИМ патчом (нет взрывов при BLEND/смене)
-        v->needGlide = glideOn && ! fresh;
+        v->vgP = volGain (v->pg.i (off::VOLUME));
+        // r15: вернуться к поведению r10: свежая нота сразу строит заданную высоту,
+        // glide не стартует с дефолтных 440 Hz. Bit2 пока не трактуем без надёжного декода.
+        v->needGlide = ((v->pg.raw[off::GLIDE_FLAGS] & 0x40) != 0) && ! fresh;
         v->hpS1 = v->hpS2 = 0;
         v->holdXf = 0;
         // r11: ADSR из захваченного патча — активные ноты не перестраиваются
@@ -506,7 +518,6 @@ public:
         {
             // r5: smoothed gains (anti-click on patch/morph/volume changes)
             mgSm += aGain * (masterGain - mgSm);
-            vgSm += aGain * (voiceGain - vgSm);
 
             // LFOs are global
             lfo1.process (1.0 / sr);
@@ -567,14 +578,15 @@ public:
                 mod[D_FILT] += env1v * ((float) v.pg.i (off::ENV1_AMT) / 127.0f);
 
                 // ---- pitch ----
-                // r11: FRE = полутонов ОТ ноты (map conf3 «panel scale 0..63; =24 editor»;
-                // фабричные байты кратны 12) — старый -32 сдвигал всё на 2.6 октавы вниз.
-                float semi1 = (float) v.pg.i (off::OSC1_FREQ);
-                float semi2 = (float) v.pg.i (off::OSC2_FREQ)
-                            + ((int) v.pg.raw[off::OSC2_FINE] - 64) / 32.0f;
-                const int ob11 = v.pg.i (off::OCTAVE);
-                const int hi11 = (ob11 >> 4) & 0x0F, lo11 = ob11 & 0x0F;
-                const float oct11 = (float) ((hi11 - 4) * 12) + (lo11 > 8 ? lo11 - 16 : lo11) * 0.1f;
+                // r15: вернуть центр 32 из r10 для OSC FREQ. Проверка factory INIT:
+                // raw=32/32 задаёт unison; editor screenshot REVELATION 24/36 сохраняет
+                // октавный интервал (разность 12). Убирать -32 сдвигало оба VCO на +32st.
+                const float fine2 = ((int) v.pg.raw[off::OSC2_FINE] - 64) / 32.0f;
+                float semi1 = (float) v.pg.i (off::OSC1_FREQ) - 32.0f;
+                float semi2 = (float) v.pg.i (off::OSC2_FREQ) - 32.0f + fine2;
+                const int ob = v.pg.i (off::OCTAVE);
+                const int hi = (ob >> 4) & 0x0F, lo = ob & 0x0F;
+                const float octSemis = (float) ((hi - 4) * 12) + (lo > 8 ? lo - 16 : lo) * 0.1f;
                 semi1 += 24.0f * (mod[D_FRE1] + mod[D_12F]);
                 semi2 += 24.0f * (mod[D_FRE2] + mod[D_12F]);
                 semi1 += 12.0f * mod[D_12D];  semi2 += 12.0f * mod[D_12D];
@@ -582,8 +594,8 @@ public:
                 semi1 += bend * 2.0f;         // bender: ±2 semis base
 
                 double base = 440.0 * std::pow (2.0, (v.note - 69) / 12.0);
-                double want1 = base * std::pow (2.0, (semi1 + oct11) / 12.0);
-                double want2 = base * std::pow (2.0, (semi2 + oct11) / 12.0);
+                double want1 = base * std::pow (2.0, (semi1 + octSemis) / 12.0);
+                double want2 = base * std::pow (2.0, (semi2 + octSemis) / 12.0);
 
                 // glide
                 if (v.needGlide && (v.pg.raw[off::GLIDE_FLAGS] & 0x40) != 0)
@@ -674,6 +686,8 @@ public:
                 cutHz = v.cutSm;
                 v.resSm += aCut * (res - v.resSm);
                 res = v.resSm;
+                // r14: громкость голоса из ЕГО патча (VOLUME не «плавает» при смене пресета)
+                v.vgP += aGain * (volGain (v.pg.i (off::VOLUME)) - v.vgP);
 
                 int ftype = v.pg.i (off::FILT_TYPE);
                 float fOut = 0;
@@ -712,11 +726,8 @@ public:
                     default: fOut = drive; break;
                 }
 
-                // r11: AGC по мануалу (FILTER CONTROL): высокий резонанс не должен
-                // «взрывать» уровень — компенсация, как в железе.
-                const float agcQ = (ftype == F_MINI ? 1.6f : (ftype >= F_AUX1 ? 1.0f : 0.6f));
-                fOut *= 1.0f / (1.0f + agcQ * res * res);
-
+                // r15: статический gain cut r11/r14 снят: он ухудшал чистоту и
+                // выравнивал все фильтры одинаково. Оставляем оригинальный r10 путь.
                 float out = fOut * vca;
                 if (! std::isfinite (out))                 // r5: NaN/Inf recovery
                 {
@@ -743,7 +754,7 @@ public:
                     v.panSmR += aPan * (pr - v.panSmR);
                 }
 
-                float g = out * vgSm * mgSm;
+                float g = out * v.vgP * mgSm;
 
                 // r5: 4 ms crossfade from last output on topology change (no clicks)
                 if (v.holdXf > 0)
@@ -791,36 +802,19 @@ private:
     Lfo   lfo1, lfo2;
     int   ageCounter = 0;
 
-    // cached globals from patch
-    float voiceGain = 1.0f, extEnv3Amt = 0, extGlideTime = 0, extDyn2 = 127,
-          extExtIn = 0, osc2Fine = 0, vOctSemis = 0;
-    bool  glideOn = false;
+    // Cached globals which are genuinely shared (external input and LFO setup).
+    float extExtIn = 0.0f;
 
     // r5: smoothing / anti-click state
     float aGain = 0.003f, aCut = 0.004f, aPan = 0.01f;
     float dcR = 0.9983f;
-    float mgSm = 1.0f, vgSm = 1.0f;
+    float mgSm = 1.0f;
     float dcXLp = 0, dcXRp = 0, dcYL = 0, dcYR = 0;
     int   xfN = 176;
 
     void updateGlobals() noexcept
     {
-        float vol = (float) patch.i (off::VOLUME) / 127.0f;
-        voiceGain = vol * vol * 1.4f;
-        if (vgSm < 0.0f) vgSm = voiceGain;   // первая инициализация
-        extEnv3Amt = (float) patch.i (off::ENV3_AMT);
-        extGlideTime = (float) patch.i (off::GLIDE_TIME);
-        glideOn = (patch.raw[off::GLIDE_FLAGS] & 0x40) != 0;
-        extDyn2 = (float) patch.i (off::DYN2);
         extExtIn = (float) patch.i (off::EXT_IN);
-
-        // octave nibble: hi = octave (4 = MID), lo = fine 0..15
-        int ob = patch.i (off::OCTAVE);
-        int hi = (ob >> 4) & 0x0F, lo = ob & 0x0F;
-        vOctSemis = (hi - 4) * 12 + (lo > 8 ? lo - 16 : lo) * 0.1f;
-
-        // osc2 fine (64 centre) in semitones ±2
-        osc2Fine = ((int) patch.raw[off::OSC2_FINE] - 64) / 32.0f;
 
         // LFO setup
         lfo1.setRate (patch.i (off::LFO1_RATE));

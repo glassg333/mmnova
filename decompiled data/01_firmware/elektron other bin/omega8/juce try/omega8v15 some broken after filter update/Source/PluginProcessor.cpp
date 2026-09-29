@@ -58,8 +58,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout Omega8AudioProcessor::create
              juce::StringArray { "Up", "Down", "Up-Down", "Random" }, 0));
     l.add (std::make_unique<juce::AudioParameterInt> (P { "arpOct", 1 }, "Arp Octaves", 1, 4, 1));
     // r9: карта в слоте AUX1 (конфиг железа оригинала — не байт патча)
-    l.add (std::make_unique<juce::AudioParameterChoice> (P { "auxCard", 1 }, "AUX1 Card",
-             juce::StringArray { "OB SVF", "OB-X", "TB303" }, 0));
+    l.add (std::make_unique<juce::AudioParameterChoice> (P { "auxCard", 1 }, "AUX1 Card (implemented models)",
+             juce::StringArray { "OB SVF", "OB-X", "TB-303" }, 0));
+    // r14: host-automatable TYPE; IDs 0..6 match the original filter table.
+    l.add (std::make_unique<juce::AudioParameterChoice> (P { "filtType", 1 }, "Filter Type",
+             juce::StringArray { "SEM LP", "SEM BP", "SEM HP", "SEM BR", "MINI LP", "AUX1", "AUX2" }, 0));
     return l;
 }
 
@@ -140,6 +143,18 @@ void Omega8AudioProcessor::refreshPatchFromParams()
     int a = (int) getParamValue ("presetA");
     int b = (int) getParamValue ("presetB");
     float t = getParamValue ("morph");
+    // r14: параметр Filter Type -> байт текущего редактируемого патча
+    // (первое чтение лишь калибрует lastFiltParam — не затираем байты банка!)
+    int ft = (int) getParamValue ("filtType");
+    if (lastFiltParam < 0)
+        lastFiltParam = ft;
+    else if (ft != lastFiltParam)
+    {
+        auto& slot = bank[juce::jlimit (0, 127, editSlot())];
+        if (ft != slot.raw[omega8::off::FILT_TYPE])
+            slot.raw[omega8::off::FILT_TYPE] = (uint8_t) ft;
+    }
+    lastFiltParam = ft;
     // r11: «прыжок» = смена A/B или BLEND (активные голоса НЕ трогаем —
     // каждый голос играет патч, захваченный на его ноте); без прыжка —
     // живая правка ручками, слышна на звучащих нотах сразу.
@@ -238,7 +253,13 @@ void Omega8AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             arp.held.erase (std::remove (arp.held.begin(), arp.held.end(), msg.getNoteNumber()), arp.held.end());  // r11: всегда
             if (! arp.on) engine.noteOff (msg.getNoteNumber());
         }
-        else if (msg.isPitchWheel()) curBend = juce::jlimit (-1.0f, 1.0f, msg.getPitchWheelValue() / 8192.0f);
+        else if (msg.isPitchWheel())
+        {
+            // MIDI pitch wheel is unsigned 0..16383 with centre 8192; subtract centre first.
+            // The old value/8192 mapping treated centre as +1 and detuned every note by +2 semitones.
+            const int wheel = msg.getPitchWheelValue();
+            curBend = juce::jlimit (-1.0f, 1.0f, (wheel - 8192) / 8192.0f);
+        }
         else if (msg.isAftertouch() || msg.isChannelPressure())
             curPressure = (msg.getRawDataSize() > 1 ? msg.getRawData()[1] : 0) / 127.0f;
         else if (msg.isController())

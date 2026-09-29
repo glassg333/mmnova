@@ -5,10 +5,10 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "OmegaEngine.h"
 
-// Ревизия сборки: ищи "r12-20260929" в логе MSBuild — если нет, скомпилированы старые файлы.
-inline constexpr const char* kOmega8BuildRev = "r12-20260929";
+// Ревизия сборки: ищи "r15-20260929" в логе MSBuild — если нет, скомпилированы старые файлы.
+inline constexpr const char* kOmega8BuildRev = "r15-20260929";
 #if defined(_MSC_VER)
-  #pragma message ("omega8 build rev r12-20260929")
+  #pragma message ("omega8 build rev r15-20260929")
 #endif
 
 struct Omega8AudioProcessor : juce::AudioProcessor
@@ -68,6 +68,7 @@ private:
     omega8::Engine engine;
     // r11: детекция «прыжка» (смена пресета/BLEND) против живой правки ручками
     int   lastPA = -1, lastPB = -1;
+    int   lastFiltParam = -1;        // r14: синк параметра Filter Type -> байт
     float lastMorphT = -1.0f;
     omega8::Patch  bank[128];
     int            bankCount = 0;
