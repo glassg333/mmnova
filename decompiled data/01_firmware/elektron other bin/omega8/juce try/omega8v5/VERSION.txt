@@ -1,0 +1,26 @@
+omega8 VST — ревизия r5 (2026-09-29)
+Архив: omega8_vst_r5.tar.gz
+
+История:
+  r1 — первый тар
+  r2 — фикс C1189 (JuceHeader.h первым include)
+  r3 — фикс 8 ошибок MSVC (hpS1, w1, setInteractionStateKey,
+       BinaryData -> OmegaBankData.h, getProgramName, loadFileAsData,
+       getPitchWheelValue, getBus)
+  r4 — нумерация ревизий (#pragma message в коде)
+  r5 — юзабилити-раунд:
+       * ручки реально редактируют патч (слот ближе к морфу), диапазон 0..127,
+         не сбрасываются во время вращения
+       * имена патчей только ASCII (убраны «иероглифы» на LCD)
+       * DC-блокер 12 Гц на выходе (патчи с DC-смещением)
+       * сглаживания: громкость 6мс, cutoff/reso 4мс, пан 1мс,
+         микро-кроссфейд 4мс на смену волны/фильтра (щелчки морфа/свитча)
+       * NaN/Inf-защита фильтров (лечит «не звучат»)
+       * гонки bank[]/engine под SpinLock
+
+Проверка после распаковки:
+  findstr /c:"r5-20260929" E:\mm\omega8\Source\PluginProcessor.h
+  в логе сборки: "omega8 build rev r5-20260929"
+
+Правильная распаковка: tar -xzf omega8_vst_r5.tar.gz -C E:\mm
+(должно получиться E:\mm\omega8\Source\...; вложенностей E:\mm\omega8\omega8 быть не должно)

@@ -1,0 +1,23 @@
+omega8 VST — ревизия r6 (2026-09-29)
+Архив: omega8_vst_r6.tar.gz
+
+История:
+  r1 — первый тар
+  r2 — фикс C1189 (JuceHeader.h первым include)
+  r3 — фикс 8 ошибок MSVC
+  r4 — нумерация ревизий (#pragma message)
+  r5 — юзабилити: ручки пишут патч, ASCII-имена, DC-блокер,
+       сглаживания/кроссфейды, NaN-защита, SpinLock
+  r6 — МАТРИЦА МОДУЛЯЦИЙ (кнопка MATRIX, extend-window как у SE-1X):
+       * CONTROLLERS: modwhl/dynamics/bender/pressure/cont1/cont2
+         x (2 dest dropdown + 2 amount) = 24 поля
+       * LFO1/LFO2/ENV3: dest1-3 dropdown (был только текст)
+       * ENV3 amounts E3 A1..A3, XMOD dest (FREQ/PW/CUTOFF), LFO wave SIN/SQR
+       * ENV DLY1..3 подключены в движок (стадия Delay перед Attack)
+       * DYN1..3, PAN 1-4 (pos/rate/dpth — «летающая панорама» редактируется)
+       * волны OSC1 tri/saw/pwm и GLIDE кликабельны
+
+Проверка: findstr /c:"r6-20260929" E:\mm\omega8\Source\PluginProcessor.h
+В логе сборки: "omega8 build rev r6-20260929"
+
+Распаковка: tar -xzf omega8_vst_r6.tar.gz -C E:\mm

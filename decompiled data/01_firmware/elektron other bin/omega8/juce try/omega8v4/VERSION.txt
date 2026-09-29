@@ -1,0 +1,18 @@
+omega8 VST — ревизия r4 (2026-09-29)
+Архив: omega8_vst_r4.tar.gz
+
+Что в этой ревизии:
+  r1 — первый тар
+  r2 — фикс C1189 (JuceHeader.h первым include)
+  r3 — фикс 8 ошибок MSVC (hpS1, w1, setInteractionStateKey,
+       BinaryData -> OmegaBankData.h, getProgramName, loadFileAsData,
+       getPitchWheelValue, getBus)
+  r4 — НУМЕРАЦИЯ: эта проверка + #pragma message в коде
+
+Проверка после распаковки (PowerShell, из E:\mm\omega8):
+  findstr /c:"r4-20260929" Source\PluginProcessor.h
+  findstr /c:"omega8 build rev" <лог MSBuild>
+
+Ничего не нашлось или в логе другой номер => собраны СТАРЫЕ файлы.
+Вложенностей быть не должно: правильный путь — E:\mm\omega8\Source\...
+(если есть E:\mm\omega8\omega8 — распаковка пошла внутрь, удалить её)

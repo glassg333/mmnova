@@ -1,0 +1,1359 @@
+
+===== PAGE 1 =====
+ 
+ 1
+
+
+===== PAGE 2 =====
+CIRCUIT AND SOFTWARE DESIGN 
+Tim Caswell 
+USER INTERFACE, CIRCUIT BENDER & FEATURE SPECIALIST 
+Greg St. Regis 
+ 
+GRAPHIC DESIGN 
+Nova Musik John Greczula/Xenolab Design Marc St. Regis 
+SOUND PROGRAMMING 
+Marc St. Regis Greg St. Regis Featured Designers 
+USER MANUAL 
+Greg St. Regis Marc St. Regis Tim Caswell 
+NEAR TOTALITARIAN EDITORS 
+Daniel Wendell Carlo St. Regis 
+LEAD VENDOR LIAISON & RANKING GRAMMAR GENIUS 
+Daniel Wendell 
+VERY SPECIAL THANKS 
+Mary Capretta Theriot St. Regis Val (VE) St. Regis Rachael Herbison Lucy Bauer 
+Rev. 9.27.2024 
+Information contained in this CODE/Omega8 Manual, including but not limited to speci cations and appearances, are subject to change 
+without notice and do not represent a commitment on behalf of ANALOGIA INC. No portion of this manual may be produced or 
+transmitted in any form, or by any means whether electronic or mechanical, or for any purpose other than purchaser s personal use 
+without the explicit written permission of ANALOGIA INC. All other products, logos or company names mentioned herein are trademarks 
+or registered trademarks of their respective owners. All STUDIO ELECTRONICS logos are trademarks of Analogia Inc./Studio Electronics. 
+COPYRIGHT 2024 ANALOGIA INC. / STUDIO ELECTRONICS. All Rights Reserved. 
+A N A L O G I A I N C. 
+5306West6Palm6Ave.,6El6Segundo6California6902456
+Tel:60310)6640-3546666Web:6studioelectronics.com66Email:6support@studioelectronics.com6
+facebook.com/StudioElectronics66 6youtube.com/user/StudioElectronics6
+soundcloud.com/studio-electronics 
+ 2
+
+===== PAGE 3 =====
+TABLE OF CONTENTS 
+4 THANK YOU
+5 LIMITED WARRANTY
+6-7 SAFETY ESSENTIALS - SEC. 1
+8 UNPACKING & INSPECTION - SEC. 2
+8 SETUP, CONNECTIONS & CARE - SEC. 3
+9 REGISTRATION - SEC. 4
+10 BASIC VOICE ARCHITECTURE - SEC. 5
+10 FEATURE HIGHLIGHTS - SEC. 6
+11 TUNING - SEC. 7
+11 COMMON FUNCTIONS - SEC. 8
+12-25 FRONT PANEL - SEC. 9
+14-16 MULTI/MIDI - SEC. 9a
+17-18 MODULATION - SEC. 9b
+19 PROGRAMMER - SEC. 9c
+20 OSCILLATORS - SEC. 9d
+21-22 FILTER - SEC. 9e
+23 - 24 ENVELOPES - SEC. 9f
+25 EXTERNAL INPUT REVISIT - SEC. 10
+26-30 FACTORY PATCH BANKS - SEC. 11
+31 BACK PANEL - SEC. 12
+32 GLOSSARY - SEC. 13
+33-34 MIDI DOCUMENTATION - SEC. 14
+35 TROUBLESHOOTING - SEC. 15
+36-39 SPECIFICATIONS & ARCHITECTURE - SEC. 16
+40 LEGAL - SEC. 17
+41 NOTES
+ 3
+
+===== PAGE 4 =====
+1 A LITTLE THANK YOU 
+For saving our company ;)
+! And we really do appreciate your purchase of a CODE/Omega8. In a time of abundant and head-spinning 
+software offerings, you have chosen to put your bets on our discrete sound engine Polyphonic Analog 
+Synthesizer: The world s first completely programmable Discrete Analog Synth BTW. Bravo and happy root-
+level programming and sound designing; or perhaps peaceful patch surfing and tasteful tweaking of the rich 
+SE program library. Consider Emmanuel Santoul s standalone and VST omega/CODE editor to organize your 
+patches or to create a new CODE/O8 space, for your analog thoughts and final decisions. 
+When we first conceived, designed and manufactured the Omega8, we no had no idea that decades later 
+orders would still be constant; but it appears that Phat, Commanding, Dimension Building, TRUE ANALOG 
+SOUND still has a place in the hearts of actual analog synth folks world-wide especially when produced in 
+spine tingling stereo! Could it be the custom front panel designs and finishes that have won hearts & minds? 
+Still there is more: For venerable yet still very viable analog processing, use each voice s auto-triggering 
+external input: all voices are capable of selecting up to four analog filters (not to mention their modes). That s 
+a lot of processing juice, as this bouncy Omega 8 demo of 16 years previous still proves: https://
+soundcloud.com/studio-electronics/attheomegainn?in=studio-electronics/sets/code-omega 
+So get started already with massive and yet mindful modulation, a user-aware operating system, arpeggiation 
+(Omega 8, if you must), newish Filter Control Section (CODE) and multimode Multitimbrality. 
+Enjoy, 
+Greg St. Regis 
+Marc St. Regis 
+Tim Caswell 
+ 4
+
+===== PAGE 5 =====
+LIMITED WARRANTY TERMS AND CONDITIONS 
+This Limited Warranty applies only to ANALOGIA INC./STUDIO ELECTRONICS products purchased in the United States of 
+America. Outside the USA, warranty policy and service is determined by the laws of the country of purchase and followed by 
+our local authorized distributor. A listing of our authorized distributors is available at http://www. studioelectronics.com/shop/
+distributors/ 
+ANALOGIA INC./STUDIO ELECTRONICS warrants to the 1st owner of a covered product purchased directly from 
+ANALOGIA INC./STUDIO ELECTRONICS, or an authorized ANALOGIA INC./STUDIO ELECTRONICS dealer in the US, that 
+this product will be free from defects in materials and or workmanship for a period of one year from the date of purchase. 
+Please register this product online via https://studioelectronics.com/register/ to establish the date of purchase (NOT A 
+REQUIREMENT FOR WARRANTY SERVICE BUT A GOOD IDEA). 
+To exercise your rights under this Warranty as the 1st owner/purchaser, YOU MUST SHIP THIS PRODUCT IN ITS 
+ORIGINAL PACKAGING (which we can replace and send to you for $10) at your expense, with proof of purchase 
+documentation and the ANALOGIA INC./STUDIO ELECTRONICS supplied power adapter, to ANALOGIA INC. An RMA 
+(Return Material Authorization) number from ANALOGIA INC./STUDIO ELECTRONICS must be obtained 1st before returning 
+any product. Email RMA requests to rma@studioelectronics.com, or call us at (310) 640-3546 to secure an RMA #. Products 
+shipped to ANALOGIA INC. without an RMA will be refused and returned. Shipping insurance is optional, but highly 
+recommended. 
+ANALOGIA INC./STUDIO ELECTRONICS will repair or replace this product at its sole option and at no charge to you for 
+parts and labor when deemed necessary and within the warranty period provided that ANALOGIA INC./STUDIO 
+ELECTRONICS reserves the right to determine whether the product is defective for purposes of this Limited Warranty. This 
+Warranty does not apply if damage to this product occurs as a result of abuse or misuse, abnormal use or handling, improper 
+packaging, another product s interaction, exposure to temperature extremes, or if the product has been altered or modi ed/
+customized in any way, or the damage was caused by unauthorized repair or service. The original product must return to 
+ANALOGIA INC. unaltered. 
+IN NO EVENT SHALL ANALOGIA INC./STUDIO ELECTRONICS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, 
+COLLATERAL, EXEMPLARY, PUNITIVE, CONSEQUENTIAL OR SPECIAL DAMAGES OR LOSSES ARISING OUT OF 
+YOUR PURCHASE OF PRODUCTS AND/OR OUT OF THIS WARRANTY, INCLUDING WITHOUT LIMITATION, LOSS OF 
+USE, PROFITS, GOODWILL OR SAVINGS OR LOSS OF DATA, MUSIC, ELECTRONIC FILES, OR PREFERENCES 
+THAT MAY HAVE BEEN STORED BY A USER OF THE PRODUCT, EVEN IF ANALOGIA INC./STUDIO ELECTRONICS 
+HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES OR CLAIMS, SOME STATES DO NOT ALLOW THE 
+EXCLUSION OR LIMITATION OF INCIDENTAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES, SO THE ABOVE 
+LIMITATION OR EXCLUSION MAY NOT APPLY TO YOU. 
+This Limited Warranty and the right of replacement is in lieu of any and all other warranties which you hereby waive and it 
+gives US purchasers speci c legal rights. You may also have other rights which vary from State to State.
+ANALOGIA INC., 530 West Palm Ave. El Segundo, CA 90245 
+ 5
+
+===== PAGE 6 =====
+1 SAFETY ESSENTIALS 
+! 
+Warnings, Precautions, and Advice 
+WARNING! - When using electric products basic precautions should always be followed to avoid the possibility of 
+serious injury or even death to you or others, as well as damage to the device or other property from electrical shock, 
+or other risks. These precautions include, but are not limited to, the following to do list 
+ Read (and save) all of the instructions before using product. 
+ Do not use product near any water source such as a bathtub, wash basin, kitchen sink, or swimming pool. 
+ Clean with a soft, dry cloth with unit unplugged from AC outlet. 
+ This product, either alone or in combination with an ampli er and headphones or speakers, may be capable of 
+producing sound levels that could cause permanent hearing loss. Do not operate for a long period of time at a high 
+volume level or at a level that is uncomfortable. If you experience any hearing loss or ringing in the ears, you should 
+consult an Audiologist. 
+ Do not place anything heavy on the instrument. 
+ The product should be situated so that its location or position does not interfere with its proper ventilation. 
+ The product should be located away from heat sources such as radiators, heat registers, or other items that produce 
+heat. 
+ Avoid using the product where it may be a ected by dust or hot sunlight. 
+ Make sure the line voltage in your location matches the input voltage speci cations on the DC power adapter. 
+ Mute channel volume before making audio connections to prevent malfunction and speaker damage. 
+ Protect the unit from strong jolts and vibration and never apply strong pressure to the front, back or side panels, or 
+strike them in any manner. 
+The product should be serviced by quali ed service personnel when: 
+a) The power supply cord or the plug has been damaged. 
+b) Solid objects or liquid either have fallen or spilled into the product. 
+c) The product has been exposed to rain. 
+d) The product does not appear to operate normally or exhibits a marked change in performance. 
+e) The product has been dropped, or the enclosure is damaged.
+ Do not attempt to service the product beyond that described in the user maintenance instructions. All other servicing 
+should be referred to quali ed technicians. 
+ 6
+
+===== PAGE 7 =====
+DANGER! INSTRUCTIONS RELEVANT TO RISK OF FIRE, ELECTRIC SHOCK, OR INJURY TO PERSONS: 
+Do not open the chassis. There are no user serviceable parts inside. Refer all servicing to quali ed personnel only. 
+ Unplug power supply cord from outlet when not in use for an extended period. 
+ Do not trample on the power-supply cord, trip over it, nor pull at it, but grasp the plug portion when unplugging. 
+ Care should be taken so that objects do not fall and liquid is not spilled into the enclosure through openings. 
+ Protect the unit from strong jolts and vibration and never apply strong pressure to the front, back or side panels, or 
+strike them in any manner. 
+GROUNDING INSTRUCTIONS: This product must be grounded. If it should malfunction or break down, grounding 
+provides a path of least resistance for electric current to reduce the risk of electric shock. This product is equipped with 
+a cord with equipment grounding conductor and a grounding plug, which must be plugged into an appropriate outlet 
+that is properly installed and grounded in accordance with all local codes and ordinances. 
+DANGER! Improper connection of the equipment grounding conductor can result in a risk of electric shock. Check with 
+a quali ed electrician or serviceman if you are in doubt as to whether the product is properly grounded. Do not modify 
+the plug provided with the product. If it does not t the outlet, have a proper outlet installed by a quali ed electrician.
+SAVE THESE INSTRUCTIONS! 
+ 7
+
+
+===== PAGE 8 =====
+2 UNPACKING & INSPECTION 
+! 
+Check the contents of the shipping carton. Be careful when unpacking your MidiMini to insure nothing is missing or 
+damaged. Save the carton and packing materials for possible factory calibration or repair issues in the future. 
+CODE/Omega8 ships with the following items: 
+1. IEC power cord 
+2. User Manual 
+3. SE Sticker 
+3 SETUP, CONNECTIONS & CARE 
+! 
+WHAT YOU WILL NEED 
+1. A clean and sturdy surface where you can set your CODE/Omega8. 
+2. A properly grounded AC outlet supplying 115 Volts to 240 Volts AC; 50/60 Hz. 
+3. One 1/4 Inch (TS) Male Instrument Cable, and means of ampli cation or monitoring: there is no headphone 
+connection. 
+POWER 
+Plug the included IEC cable s female end into the IEC power jack on the back of your CODE/Omega8, and then plug 
+the male end of the cable into an AC outlet. The CODE/Omega8 s auto-switching regulated supply will operate 
+properly on either 115 volt or 240 volt AC line voltage. 
+NOTE: Allow CODE/Omega8 5-10 minutes to warm up before use, as it is an Analog Instrument. If the unit has been 
+subjected to temperatures under 60 degrees for an extended period, optimal Oscillator tuning and stability may 
+require 15-20 minutes of warm-up time, during which time you could dig deeper into this manual. Avoid operation 
+in direct sunlight. 
+AUDIO OUTPUT 
+With the CONTROL VOLUME knob turned to 0, plug one end of a 1/4 instrument cable into the Audio output and 
+the other end of the cable into your mixer, ampli er, or audio interface. Adjust VOLUME to desired level. 
+NOTE: The AUDIO out jack is TS and TRS 1/4 cable compatible. 
+CARING AND CLEANING 
+Clean the CODE/Omega with a soft, nearly dry cloth only; do not use solvents or abrasive detergents. The semi-
+matte nish is unique and requires thoughtful handling and maintenance like anything of beauty; it s a luxury 
+ nish to be sure. 
+ 8
+
+===== PAGE 9 =====
+4 REGISTRATION 
+! 
+Registering your CODE/Omega8 synth creates a handshake between owner and manufacturer, insures access to 
+Analogia Inc. tech. support, warranty service, product updates, and if desired, promotional o ers. As always, our 
+Facebook, SoundCloud, and Instagram outlets are current and generally helpful, so swing by. 
+ 9
+
+
+===== PAGE 10 =====
+5 BASIC VOICE ARCHITECTURE 
+! 
+Two Voltage-Controlled Oscillators 
+Two Voltage-Controlled Filters standard units include Minimoog & 4-mode Oberheim S.E.M. 
+One dynamic gain stereo Voltage-Controlled Ampli er 
+3 Multi stage variable curve Envelopes 
+External Input processing 
+3 Low Frequency Oscillators 
+1 Arpeggiator (Omega) 
+Filter Control Section (CODE) 
+6 FEATURE HIGHLIGHTS 
+! 
+ 
+ 8 independent stereo/panning analog synthesizers with auto-triggering External Inputs 
+ Stackable Sine, Triangle, Sawtooth and variable Pulse Width Oscillators 
+ Six classic Hardware Filter choices when fully loaded: Mini, S.E.M, 303, 2600, CS-80, Juno/Jupiter 
+ Multi-timbral for layering, splitting and 8 part channelizing with Prepared mode 
+ Audio frequency modulation, oscillator sync, multiple triggering, envelope inverting 
+ Up to 30+ simultaneous modulations, numerous continuous controller assignments 
+ Exponential polyphonic glide, dynamic sensitive auto glide 
+ MIDI transmission of front panel knobs and switches 
+ 256 patches in ROM, 256 patches in RAM, 128 Multi patches 
+ Extensive supplemental patch library 
+OPERATING SYSTEM 
+The OS of the CODE/Omega8 is easy to use and simple to program. It gives the user complete control of the numerous 
+functions and features quickly and e ciently. The front panel knobs give you instant access to all major parameters 
+and the edit switches in each section allow access to over 30 on screen Edit Pages. However, with the CODE/Omega8 
+you are never more than four button presses away from any Edit Page, quite unlike other synthesizers with Multiple 
+Edit Pages. This allows for in-depth patch programming without punishing menu diving. 
+ 10
+
+===== PAGE 11 =====
+7 TUNING 
+! 
+For the Omega series, we developed a very accurate, but not perfect, software routine of computer-corrected Oscillator 
+tuning. It looks at each note and corrects it to a pre-de ned value. The goal was to keep all 16 Oscillators in near 
+perfect tune over the wide range of the keyboard, but not so perfect as to eliminate the element of randomness, which 
+is the nature, and beauty of analog synthesis. There is some tempering at the very low and high pitch ranges. Adjust as 
+needed. 
+The tuning of the lters is done in hardware and is not part of the Tune routine. You may hear with each voice a very 
+slight di erence in timbre or tone; this is not a fault of our design. Rather, we have chosen to be faithful and follow the 
+chosen path, blazed by our history shaping predecessors, manufacturers of the classic mono/polyphonic analog 
+synthesizers of the past. It is precisely this slight variance from voice to voice that gives discrete and Curtis chip based 
+analog synthesizers their vibrancy and soul-pleasing warmth and character. 
+Occasionally, after the Tune procedure, some of the voices may return in pitch a half step o . The tuning procedure 
+works best when performed in a ROM sound. We have created a special patch for this procedure: B128. Set to patch 
+B128, press a low note on your MIDI keyboard and run the tuning procedure again. 
+8 COMMON FUNCTIONS 
+! 
+Change Midi Channel: Multi/Midi UTILITY switch - see also Edit Page 2 
+Adjust Master Tune: Oscillator EDIT switch - Edit Page 1 
+Change Patch Banks: When on main program page press UP/DOWN cursor switches. 
+Go To Multi Bank: Press & hold Programmer BANK/PART switch, then press left arrow switch. 
+Save Patch: SAVE switch: Select patch and bank location in RAM, press SAVE again. 
+X10 Value Jumps (pan pages only): Press and hold Programmer X10 switch, then rotate encoder. 
+Upload Ram Into Rom: Programmer GLOBAL switch - Edit Page 3 
+Set Number OF VoIces: Programmer GLOBAL switch - Edit Page 1 
+Back Up Data / System ExclusIve Dump: Multi/Midi UTILITY switch - see also Edit Page 4 
+ 11
+
+===== PAGE 12 =====
+9 FRONT PANEL (pg. 1) 
+! 
+ 12
+
+
+===== PAGE 13 =====
+FRONT PANEL (pg. 2) 
+! 
+ 13
+
+
+===== PAGE 14 =====
+9a MULTI/MIDI 
+!
+Letter A Functionality & Prepared 
+Multimbral Fantasy 
+Begin the Beguine with baby steps, setting Volume & MIDI channel, and 
+peak with mastering Cont1 and Cont2 modulation depth overrides in 
+Dynamics, Modwheel and Aftertouch It can be done. 1st off: In Edit 
+Pages, words or abbreviations in brackets [ ] indicate top line of display. 
+Cursor moves along the bottom line to edit selected parameter, except on 
+certain Pan, LFO, and Envelope pages: the cursor will also move along the 
+top row to edit parameters. Two ** indicate a future voice board function . 
+KNOBS 
+VOLUME: Master volume control. 
+GLIDE: Glide amount and auto glide rate. 
+SWITCHES 
+MULTI 
+To get to Multi bank, press and hold the Bank switch, then press the left arrow 
+switch. 
+SETUP 
+Page 1: Select type Prepared, Split, Layer, or Multi. Prepared allows for 
+programming di erent patches on each voice with MIDI reception on a single 
+channel. Note: If the rst patch in a Prepared Multi is a unison patch, the 
+Prepared Multi will be in unison. The number of voices played by the Multi will 
+also be determined by the [UNI] (quantity) parameter of that same rst patch. 
+You will still be able to assign each voice a di erent patch. Use this unison Multi 
+for creating thick and intricate layered sounds. 
+Page 2: Set split point: determines where keyboard split or division occurs in a 
+Layer patch. 
+EDIT 
+Page 1: Part editing, use the bank/part switch to cycle through the Multi parts, [BANK] - bank select, [PTCH] - patch 
+number, [VCS] - number of voices [TYPE] - mono or poly, [VOL] - part volume. 
+Page 2: Remove voices (per each part) from master outputs. 
+ 14
+
+
+===== PAGE 15 =====
+PAN POSITIONS IN A MULTI 
+The Multi preset stores its own Pan Position, Pan Rate, and Pan Depth for each voice. Waveform, key trigger, and MIDI 
+sync information is carried into the Multi preset from the patches used in the Multi preset. 
+Note: Edits made to patches while in the Multi bank are savable. The Multi part you are in determines which patch you 
+are editing and saving. Edits made to the patch must be saved before you go to another Multi part otherwise the edits 
+are lost. Press save and select RAM location you want to save the patch to. 
+DETERMINING MIDI CHANNELS IN A CHANNELIZED MULTI PATCH 
+The rst Multi part is received on the current MIDI channel that the Omega is set to, additional parts receive on 
+successive MIDI channels. Example: if the unit is set to MIDI channel 3, Multi part 2 receives on channel 4, Multi part 3 
+receives on channel 5, etc. 
+GLIDE 
+Page 1: [ON] glide on / o , **[TYP] linear or exponential glide response, [MDE] in regular mode glide is active with every 
+key trigger, in legato mode, glide is active only between legato notes, [DST] destinations for glide. 
+Page 2: [GLS] glissando or quantized glide on / o , [AUT] auto glide on / o , [INT] auto glide interval, [DYN] dynamic 
+sensitivity to auto glide interval. 
+Pan (the x10 value moves for these pages are helpful; hold solo then rotate encoder) 
+Page 1: The position of each voice in the stereo eld: minus - left, plus - right. 
+Page 2: The rate of each voice s Pan LFO. 
+Page 3: The depth of each voice s Pan LFO. 
+Page 4: [WAVE] - waveform of all Pan LFOs, [KEY] - key trigger modes for Pan LFOs, [CLK] - MIDI clock synchronization 
+times for Pan LFOs. 
+KEYBOARD 
+Page 1: [UNI] - quantity of voices triggered when unison mode is on, [VMODE] - rst available voice or voice cycle 
+mode, [PRIOR] - note priority modes. 
+Page 2: [OCT] - overall pitch transpose, [MTRIG] - Multiple trigger response for the envelopes. 
+UNISON 
+Unison mode On/O . Number of voices triggered selected on keyboard Edit Page 1. The unison button also sends an 
+all notes o message when pressed. 
+MIDI 
+Press to cycle through the MIDI controllers. Dynamics, modwheel, and pressure have two destinations and depths. 
+Bender modulates Oscillator Frequency and lter cuto Frequency. Cont1 allows an additional two destinations for 
+modwheel pressure, or breath Controller. Cont2 allows an additional two destinations for dynamics and key tracking. 
+Note: Cont2 allows for positive and negative modulation. 
+(MIDI) - EDIT 
+Page 1: [CON1] - modulator assignment for cont1, [CON2] - modulator assignment for cont2. 
+ 15
+
+===== PAGE 16 =====
+UTILITY 
+Page 1: Patch name page. 
+Page 2: [CHAN] MIDI - channel assignment, [TUNE] - Tune percentage (100% is full strength; lesser settings randomize 
+tuning or intentional imperfection), [INIT] - sets current patch to basic default settings; will not erase over current patch 
+unless save procedure is carried out. 
+Page 3: [MPRO] - memory protect, ON1 knobs will not respond, ON2 no editing can be done, **[KNOB] - knob 
+response modes, [LCD] - sets display contrast, 0 being most sharp. 
+Page 4: initiates system exclusive dump procedure; select individual patch or entire bank to back up your data. 
+NOTE: Regarding dynamics modulation of a given parameter. When using dynamics to modulate any destination the 
+last dynamic value played will stay with that destination unless a zero dynamic value is sent or the selected destination 
+is edited from the front panel or at its on screen cursor location. Changing the destination or setting the amount to 0 
+does not send a zero dynamics value to the parameter. This only applies if after selecting a dynamics destination a 
+dynamic value is sent via your keyboard or sequencer. If you are playing while you are scrolling through the 
+destinations dynamic values will be sent to those parameters a ecting their values in the edit bu er. Scrolling through 
+the destination list while no dynamics value is being sent does not a ect the parameters. This will also occur with the 
+mod wheel if you do not move the wheel to the zero position before you change destinations. 
+IMPORTANT: Cont1 and Cont2 modulation depths override duplicate assignments in the dedicated dynamics, 
+modwheel, and aftertouch Edit Pages. Confusing? Yes, because you can assign the same destination to any modulator. 
+Keep track of your modulators when programming whenever possible for sanity s sake. 
+ 
+ 16
+
+
+===== PAGE 17 =====
+9b MODULATION 
+! 
+ Be it fast or slow, it doesn t let go 
+Modulation is the use of a control signal to create an often repetitive 
+pattern of pitch, level, or harmonic and rhythmic content changes, 
+pressing and pushing into the sound with desired movement, color, or 
+intriguing unpredictability, where randomness is allowed. If a quaint 
+vibrato is all that is needed so be it. Keep it plain preach er. 
+KNOBS 
+RATE x2: Speed of LFO. 
+DEPTH x2: Depth of LFO. Front panel knob controls amount of destination 1 
+only. You can also use the Q dial to edit this parameter as well. Value is displayed 
+on LFO Edit Page 1. Depths for destinations 2 and 3 are accessed via the Q dial. 
+DEPTH (Xmod): Depth of Oscillator 2 Frequency modulating Oscillator 1 or Filter 
+Frequency; each LFO can modulate up to three di erent destinations. If a same 
+destination is selected in more than one location, the location furthest left will 
+override and determine the ultimate depth. 
+NOTE: Destinations 1&2 are assignable to MIDI controllers; destination is 3 is 
+modulated by Envelope 3. 
+SWITCHES 
+LFO EDIT (Both LFO 1 and LFO 2 Edit Pages are the same) 
+Page 1: Destination assignments and amounts. 
+Page 2: [WAVE] waveform, [MODE] mono or polyphonic, [SYNC] MIDI clock synch 
+times. 
+Page 3: [KEY] key trigger modes, [QUAN] quantized LFO modulation. 
+Xmod: Selects the destination for Oscillator 2 audio Frequency modulation; the 
+front panel LEDS will indicate the routing. 
+MODULATION DESTINATIONS FOR LFO 1 AND 2: 
+FRE1 - OSC 1 Frequency, FRE2 - OSC 2 Frequency, 1&2F - OSC 1&2 Frequency 
+LEV1 - OSC 1 level, LEV2 - OSC 2 level, PW1 - OSC 1 Pulse Width 
+PW2 - OSC 2 Pulse Width, 1&2P - OSC 1&2 Pulse Width, FILT - Filter Frequency 
+RESO - Filter Resonance, LEVN - Noise Level, Xmod - Xmod Depth 
+EXT - External Input Mix Level, VOL Volume 
+ 17
+
+
+===== PAGE 18 =====
+MODULATION DESTINATIONS FOR MODWHEEL, DYNAMICS, AND PRESSURE: 
+FRE1 - OSC 1 Frequency, FRE2 - OSC 2 Frequency, 1&2F - OSC 1&2 Frequency 
+LEV1 - OSC 1 level, LEV2 - OSC 2 level, PW1 - OSC 1 Pulse Width 
+PW2 - OSC 2 Pulse Width, 1&2P - OSC 1&2 Pulse Width, FILT - Filter Frequency 
+RESO - Filter Resonance, LEVN - Noise Level, Xmod - Xmod Depth 
+EA1 - Envelope 1 Amount, EA3 - Envelope 3 Amount, EXT - External Input Mix Level 
+LF1R - LFO 1 rate, LF2R - LFO2 rate, LF1D - LFO 1 depth 
+LF2D - LFO 2 depth, 1&2D - LFO 1&2 Depth, 1&2R - LFO 1&2 Rate 
+PAND - Pan Depth, PANR - Pan Rate, PAN- Pan Position 
+ 
+ 18
+
+
+===== PAGE 19 =====
+9c PROGRAMMER 
+! 
+Flatten Out or Globalize Your Value 
+Q Dial for light or heavy lifting and saving your patches digital soul, OK? 
+KNOBS 
+Q dial: Use for changing patches or banks and editing on-screen 
+parameters. 
+SWITCHES 
+LEFT ARROW: Moves the cursor left. 
+RIGHT ARROW: Moves the cursor right. 
+UP DOWN ARROWS, BANK / PART: Moves the cursor up and down, 
+changes patch bank when the display is on the main page. 
+COMPARE: Compares edited patch to programmed patch. Press to 
+compare; press again to return to you edits. 
+EXIT: Returns display to main patch page. Won t erase edits: rotate 
+encoder or press the bank button to enter an unedited patch. 
+SAVE: Saves current patch to same or chosen location. Edited ROM 
+patches can only be saved to RAM banks (C & D). Press SAVE and select 
+bank and patch number. Press SAVE again. 
+X10: For edits in the Pan page; numbers adjust in multiples of 10 Press 
+and hold X10 and rotate encoder. 
+TUNE: Tunes the Oscillators. Select Patch B128 Tune Don t Erase ; play 
+the lowest note on your MIDI keyboard and press TUNE; follow on-
+screen instructions. Procedure takes about 22 seconds. 
+GLOBAL 
+Page 1: Set to the corresponding number of voices in your Omega. 
+Page 2: Upload RAM banks to ROM banks; rotate encoder after Are you sure? to initiate. Download the factory 
+patches to reset the ROM bank memory, using the same procedure, saving o your RAM sounds 1st. 
+Page 3: Set number of lters active in unit. Standard units set to 2, for hardwired SEM and Slot 1 Mini. 
+ 19
+
+
+===== PAGE 20 =====
+9d OSCILLATORS 
+! 
+Trust and Bless the Source 
+Oscillators are the biogenesis of Analog Synthesis, 
+producing periodic or regularly repeating waveforms
+ familiar pitched sounds when in the right ranges. 
+Tuning controls alter pitch of the Oscillators; 
+waveform selectors, Pulse Width, and Sync controls 
+craft the harmonic spectrum of the signal its basic 
+timbre, or tone coloration. Vibration therapy at best. 
+KNOBS 
+FREQUENCY: Adjusts Oscillator pitch or tuning. 
+PULSE WIDTH: Adjusts width of Square wave near 
+perfect, rubbery square at 12:00, and an ideal sweet 
+spot for deep, soul-sweeping modulation by an LFO. 
+OSCILLATOR LEVEL: Adjusts Oscillators mix. 
+NOISE: Adjusts White Noise ( at noise) mix level. 
+SWITCHES 
+SINE (CODE), TRIANGLE, SAWTOOTH, SQUARE: 
+Combinable Oscillator waveforms can transform the 
+single harmonic SINE with fully-loaded sawtooth (has 
+all harmonics of the fundamental pitch), and odd 
+harmonic square (at 50% of its duty cycle), into gold. 
+SUB: Oscillator 1 subharmonic waveform: A divided 
+frequency below the fundamental in a ratio of 1/x. 
+SYNC: Hard syncs frequency of Oscillator 2 to 
+Oscillator 1 frequency, so OSC 1 synchronizes the phase or cycle of OSC 2, resulting in the same base frequency. 
+Amplitude modulation results when the two oscillators are near the same frequency, and when near identical, a, 
+phase-shifted vibe. Higher OSC 2 freqs. will dramatically color OSC 1 s pitch & timbre. 
+ EDIT 
+Page 1: Master Tune, Oscillator 1 and 2 Frequency. When in this page the Q dial may also be used to edit 
+Oscillator frequencies. 
+Page 2: [FINE] - Oscillator 2 ne tuning, [MODE] - Oscillator 2 pitch modes, [ENV1] - Amount of Oscillator 2 
+Frequency modulated by envelope 1. 
+ 20
+
+
+===== PAGE 21 =====
+9e FILTERS 
+! 
+You Know What You Want to Hype or Silence 
+The Filter Frequency attenuates the higher frequency components those which lie above the 
+adjustable cuto frequency and passes the lower frequency components of the audio signal. 
+The Resonate boosts the cuto frequency region, making the presence of harmonics more 
+dominant. Self-oscillation, as the knob passes 3 o clock, results in a pure sine wave satisfaction 
+which should be used as a separate tone source, as often as band members will permit. 
+Resonance is in fact positive feedback perhaps the signature sound of subtractive synthesis. 
+Your CODE/Omega is a lter wonderland especially fully loaded: Mini, SEM, 303, 2600, Juno/
+Jupiter, CS-80. You can t t them all, but deciding on favorites is a worthy and honorable pursuit. 
+KNOBS 
+FREQUENCY: Cuto Frequency. Lower Frequency values reduce waveform harmonic content, 
+and curtail white noise s in nite partials, uniform distribution dance in the frequency domain. If 
+you contained every frequency, amplitude, and phase relation of a sine wave throughout the 
+audible spectrum (if diced into harmonic components), you would be dancing too. 
+RESONATE: Filter Resonance level or Q. Except for the SEM lter, self-oscillation happily chirps in 
+near or beyond a 3:00 setting, and will track reasonably well over several octaves with TRACK at 
+10. Expect an amplitude (perceived volume) drop with higher Mini lter resonance values; a kind 
+of automatic gain compensation (AGC) kicks in (attempting to maintain peace), keeping the overall 
+signal level uniform, as high resonance values could overload the synth, distorting the vibe. 
+TRACK: Filter tracking amount. Applies keyboard CV (control voltage) to the lter. The more 
+tracking used, the brighter the sound will get as you ascend the keyboard. Maximum tracking is 1 
+v/octave. Values around 2:00 to 3:00 keep the bass register groove smooth, yet clarify and 
+brighten more lead/melodic ambitions and #lookatme explorations. 
+SWITCHES 
+EDIT 
+Page 1: [TYPE] - Filter type selection: Oberheim 12 db low pass, Oberheim 12 db band pass, 
+Oberheim db high pass, Oberheim db band reject, Moog 24db minimoog, AUX1, AUX2; [INVT] - 
+Inverting of envelopes 1 and 3. The CS80 lter is always is the AUX2 position, the high pass 
+frequency and resonance are controlled by two of the External Input parameters, [MIX] level for the 
+frequency and [TRG] level for the resonance. 
+EXT (EXTERNAL INPUT) 
+Page 2: External input parameters: [IN] - Input level; [MIX] - Mix level: set balance between internal and external sound 
+sources; [TRG] - Envelope trigger level: set level at which external sound opens up gate; [WIN] - Envelope trigger 
+window: determines high and low level response. You can also control the External Input parameters from the front 
+panel. Press and hold the lter EDIT button, then press the envelope EDIT button; this switches the envelope 3 knobs 
+to the External input parameters. The envelope EDIT button will blink to indicate this function is enabled. Repeat the 
+EDIT button press routine to release the controls back to envelope 3. 
+ 21
+
+
+===== PAGE 22 =====
+FILTER CONTROL (CODE) 
+1 F Table: Sweeps through lter types. 
+2 F Table: Same as above (redundant setting). 
+3 Delay: Envelope 1 Delay, [DLAY1] 
+MODE: Selects the numbered knob assignments: 1, 2, 
+F Tables, 3 Delay, and numbered switch assignments: 
+Freq Down, Env1 Up Invert, Freq Up, Res Up, D Down. 
+FREQ DOWN, Mode 1, left switch: Decreases lter 
+frequency. 
+FREQ UP, Mode 1, right switch: Increases lter 
+frequency. 
+ENV1 UP, Mode 2, left switch: Increases envelope 1 
+amount. 
+RES UP, Mode 2, right switch: Increases lter 
+resonance. 
+INVERT, Mode 3, left switch: Inverts lter envelope. 
+D DOWN, Mode 3, right switch: increases lter (env 1) 
+decay time. 
+ 
+FILTER TYPE NUMBERS FOR THE F TABLES 
+SEM LP = 1 
+SEM BP = 2 
+SEM HP = 3 
+SEM BR= 4 
+MINI = 5 
+AUX 1 = 6 
+AUX 2 = 7 
+SWEEP ORDER FOR UNITS WITH SEM AND MINI 
+1234513524153125 
+ 
+SWEEP ORDER FOR UNITS WITH SEM, MINI AND AUX1 (FILTER SLOT 3) 
+1234564251361425 
+SWEEP ORDER FOR UNITS WITH SEM, MINI, AUX1 AND AUX2 (FILTER SLOT 4) 
+1357462514273617 - The most purposely out of order, in attempt to create the most interesting juxtapositions of 
+ lters and modes normally out of sequence, e.g., Juno/Jupiter (AUX 1 #6 - a typical plug-in slot for that lter) and 
+SEM band reject (Bulit-in lter mode #4). Filter control not possible just Q dial scrolling. 
+ 22
+ The CODES for the lter allow for a speedy, orderly trip 
+through the lter types and modes installed in your CODE, 
+with the exception of fully loaded units, and then a quasi-
+random selection takes control. Both F Tables are identical so 
+you can combine the lter type/mode scanning with MODES 1 
+& 2 FILTER CONTROL switch routings: 1 Freq Down ( lter 
+frequency -), 1 Freq Up ( lter frequency +); 2 Env1 Up 
+(envelope 1 +), 2 Res Up (resonance +). Get fancy 
+
+
+===== PAGE 23 =====
+9f ENVELOPES
+! 
+When you re in the shape I m 
+in, it s telling me something 
+FILTER (ENV) SERMON: The Filter envelope shapes the 
+timbre and overtone content of the audio signal as it 
+ ows from the circuitry of the mixer. This contour 
+generator is used to dynamically move the cuto 
+frequency. It works as such: Each time a key is triggered, 
+an envelope or contour generator attached to the Filter s 
+cuto frequency responds, sending a control signal to 
+the lter; that control signal rises at one rate: attack, falls 
+at a second: decay, levels out to a certain point: sustain
+ a steady control voltage as long as the gate or note is 
+maintained nally falling o and vanishing at a third 
+rate: release, upon cessation of gate, or ngers generally. 
+A - ATTACK x3: Attack time, the rst stage in the 
+envelope in which the initial rise in lter frequency 
+(env1), volume (env2), or as assigned (env3) rises to peak 
+at the adjusted rate. 
+D - DECAY x3: Decay time, second stage in the 
+envelope in which peak levels of lter frequency (env1), 
+volume (env2), or assigned (env3) fall from peak to the 
+sustain level, if there be any. 
+S - SUSTAIN x3: Level to which the lter frequency 
+(env1), volume (env2), or assigned (env3) falls at the end 
+of the decay time, unless sustain level is high enough to 
+override decay settings. 
+R - RELEASE x3: Release time. Release is the fourth and 
+(mostly) nal stage of our envelopes, after the initial rise 
+and fall of the attack and decay times surrender to the 
+sustain level. RELEASE time follows key lift, determining the length of time for the envelope generator's output to go 
+from the SUSTAIN level to zero. 
+ENV 1 Amt: The amount or depth of envelope 1 applied to the lter frequency. The shape of the lter envelope is 
+determined by the contouring A D S R controls. 
+ENV 3 Amt: The amount or depth of envelope 3 (destination 1 only) applied to the selected destination. Destinations 
+two and three are selected via the Q dial. 
+ 23
+
+
+===== PAGE 24 =====
+EDIT 
+Page 1: Envelope 3 destinations and amounts. 
+Page 2: [DKY2] x3 - Envelopes 1, 2 & 3 decay 2 time 
+(from left to right). Decay 2 is an additional stage only 
+active if a value greater than zero is set; it determines 
+the time it takes while holding a note, for the sustain 
+level to reach zero. 
+Page 3: [DYN] x3 - Dynamic sensitivity amounts for 
+envelopes 1,2 & 3 (from left to right). 
+Page 4: [DLAY1] - Delay time to the start of env 1, 
+[DLAY3] - delay time to the start of envelope 3. Envelope 
+3 can modulate up to three di erent destinations. If the 
+same destination is selected in more than one location, 
+the location furthest left will override and determine the 
+ultimate depth. 
+ENVELOPE 3 DESTINATIONS: 
+FRE1 - Osc 1 frequency, FRE2 - Osc 2 frequency, 1&2F - 
+Osc 1&2 frequency 
+LEV1 - Osc 1 level, LEV2 - Osc 2 level 
+PW1 - Osc 1 pulse width, PW2 - Osc 2 pulse width, 1&2P 
+- Osc 1&2 pulse width 
+FILT - Filter frequency 
+RESO - Filter resonance 
+LEVN - Noise level 
+XMOD - Cross-modulation depth 
+EXT - External input mix level 
+LF1R - LFO 1 rate, LF2R - LFO2 rate, LF1D - LFO 1 depth, 
+LF2D - LFO 2 depth, 1&2D - LFO 1&2 depth, 1&2R - LFO 
+ 1&2 
+ 
+ 24
+ Envelope 3 can be used most expressively bring in LFOs, massage 
+oscillator levels, vary pulse widths, a ect xmod amount made all the 
+more interesting by three discrete destination and amounts settings. 
+Remember, envelopes 1, 2 & 3 feature a secondary decay 2 which 
+allow for the normally static, organ-like sustain, to fade to a zero 
+value. So one can setup an organic-feeling, pointy initial decay, using 
+ decay 1 and then not be stuck with that endless, numbing hold 
+value, eternally sustaining no my friends! You can move the sound 
+from that careless cage, & taper it down with a natural 70s fade out.
+
+
+===== PAGE 25 =====
+10 EXTERNAL INPUT REVISIT 
+! 
+Sound Sources of Your Design 
+ 
+External Audio Input [see also FILTERS - EXT p. 21] 
+External sound sources replace the Noise circuit and can be processed through the CODE/Omega8 s lter/ampli er 
+circuits/signal path and modulated by LFOs, envelopes anything normally reserved for the internal oscillators by this 
+auto-triggering circuit. The [IN] - Input level in the FILTER EXT menu (Page 2) sets the incoming audio level; high levels 
+beyond a certain point will overload the lter input and distortion e ects will occur often a good thing. 
+ 
+Continuing on in the same menu: 
+[TRG] - Trigger: Sets envelope trigger level, or the threshold at which the gate of the VCA is opened, or responds; 
+[WIN] - Envelope trigger window: Determines high and low level response ample room for experimentation there. 
+Front panel control of the External Input parameters makes the E.I. experience more engaging and e ective: Press and 
+hold the FILTER EDIT button, then press the ENVELOPES EDIT button; this directs Envelope 3 s normally dedicated 
+knobs to the External Input menu parameters. The ENVELOPES EDIT button will blink, to indicate the switch of 
+functionality is made. Repeat the EDIT button press routine to release the controls back to standard op. of Envelope 3. 
+ 
+NOTE: A MIDI note must be sent/received, sustained or pulsed, to trigger the VCA (open the gate) and process audio. 
+External Audio Input connections are made via the BACK PANEL. 
+ 25
+
+
+===== PAGE 26 =====
+11 FACTORY PATCH BANKS 
+! 
+ROM BANK A
+ 1 REVELATION 1-8 44 STELLAR FARFISA 87 DROP THAT BOMB!
+ 2 WHIRLY BIRD 45 PIGALLE PARTY 88 PROPERTY OF NONE
+ 3 WHIRLY BIRD CP30 46 HUBBLE'S TELE 89 FAILED BARETTA 
+ 4 WHIRLY FIRE BIRD 47 MELLOTRON MSR 08 90 SQUARE DANCER 
+ 5 WHIP IT FADE-IN 48 ANODAZED 91 SQUARE DANCER 2 
+ 6 SINATRALIKEBUZZ 49 ANOFAZED 92 DEPENDABLE WORM 
+ 7 SLINKI'S MOOD 50 HIGH DESERT SAGE 93 DEPENDABLE WORM2
+ 8 ZIMMERMAN'S STAB 51 JEFFREY'S DANCE 94 CATERO'S 101WURM
+ 9 BEETLE BOX 52 PRIMITIV NOTION 95 CATERO'S 102WURM
+ 10 BEETLE BOX MINI 53 BOOM DA BASS 96 CATERO'S 103WURM
+ 11 BEETLE BOX MOVER 54 GMF MESSAGE B 08 97 I WISH PLUCKR 08
+ 12 ROYAL BLOOD LINE 55 I AM SINGING 08 98 VEGAS TOUCH 
+ 13 SWEET MURCHIE 56 BAD BAD THANG 99 SHADE ONTHELIGHT
+ 14 SWEET MURCHIED 57 PROUD TO BE PHAT 100 MOROCCAN DANCE 
+ 15 HIT & RUN '08 58 ISN'T SHE LOVELY 101 MOROCCAN DANCER 
+ 16 USEMODWHEEL&ARPG 59 SUPERSTORM DECAY 102 ONE FIBER DEEP 
+ 17 WHEN THEY DOUBT 60 NEWS 4 CARMEN 103 SLIDE OUT WIDE 
+ 18 IF IT'S STEVIE 61 REPRISAL FRAME 104 UR THA 1 ORGAN 
+ 19 IF IT'S STEVIE 2 62 LATENT ECHO 105 TOM TOM CLUBBER 
+ 20 THEN I WONDER 63 OVERTONED 106 WHO EVER SAID UB
+ 21 SENIL'S SYNTHI 64 THAT'S SWELL GUY 107 DYNAMIC CLUBBER 
+ 22 I AM SINGLE... 65 ROPE TRICK FOR 2 108 EMERSONICKED 
+ 23 DELAYED REALITY 66 HONEY GUIDE 109 EMERSONICKED 2 
+ 24 LEARNING EFFECT 67 SOME RELEASE B 110 EMERSONICKED 3 
+ 25 ODE2DAP5WAHSWEEP 68 IT STILL HERTZ 111 CLASSIC ATC LEAD
+ 26 TOUCH THAA SKY 69 YOU'RE NEVA 2LOW 112 CLASSIC ATC L. 2
+ 27 MY LOVELY HORN 70 VERO MOD 113 MULTITRIGGERD SR
+ 28 MY LOVELY HORN 2 71 CAN'T MAKE UP 114 PLAY1 2ND&2 5THS
+ 29 ETEVIEN 72 CHARACTOR CALL 115 SUNDAYMORNINRIDE
+ 30 CS-80 220 HORNS 73 VENERATIONAL 116 SILENT SCREAM 
+ 31 JP INFORMED 74 THE MOMENT UKNOW 117 ROWTHEMODEMASHOR
+ 32 CHOCHOLATE TOUCH 75 THE MOMENT IKNOW 118 SHE'S AWAKE! 
+ 33 MY LOVELY REED 76 FREEWAVE 119 PURSUING WOLVES 
+ 34 MY LOVELY REEDA 77 BOOGIE BASS 120 GLISSANDOLOO 
+ 35 LOU'S REED 78 BOOGIE BASS 2 121 LOGRIAN'S RUN 
+ 36 FORGOTTEN PAINS 79 MOP IT UP 122 TAQUERI INCIDENT
+ 37 RITUAL MEMORY 80 THAT GIRL THINKS 123 SAMPLING ON HOLD
+ 38 LOCAL STRANGS 81 BAKER BOYS 124 HAZEL'S RING 
+ 39 SWEPTUP 82 ::RAM Utility:: 125 NOMANZ LAHNDE 
+ 40 OBIE STRINGS 83 ::RAM Utility:: 126 OBNOKALED 
+ 41 VILLAGE STRINGS 84 PHAT BLASTA 127 PROPER PURITY 
+ 42 VILLAGE STRINGS2 85 WHY I... 128 VANUJI CHOIR 
+ 43 ORGANY KAOS 86 EYE YA... 
+ 26
+
+===== PAGE 27 =====
+ROM BANK B
+ 1 WELOVEDAU.S.OFA. 44 BELLS 4 PIPER 87 PULSE 28 
+ 2 MARIMBA MYA 45 SEVETA ORGAN FAD 88 CAN'T BREAK UP 
+ 3 SHENEVERANSWERED 46 SEVETA ORGAN FAN 89 CHAMELEON SUB 
+ 4 DOUBLE G B MINOR 47 BEFORE THE NOISE 90 JUSTGOTALKTOGOD 
+ 5 MIDNIGHT MASS 48 BEFORE THE TOYS 91 JUITY JUITY *
+ 6 RADIANT FOCUS 49 RUSTIC PHENOM 92 COTTON CANDY *
+ 7 SEA BUTTERFLYE 50 RUSTIC PHENOMO 93 BEATS 4 ELLIS *
+ 8 CHOCHOLATE GIFT 51 CAMILLE'S ESCAPE 94 BEATS 4 ELLIS 2*
+ 9 CHOCHOLATE GIVER 52 JULY'S DECISION 95 BEATS 4 ELLIS 3*
+ 10 DEPENDABLE SALVI 53 BONSAI DALIA 96 BEATS 4 ELLIS 4*
+ 11 AMERICAN ENGLISH 54 KUBRESORI 97 BEATS 4PHATLIP *
+ 12 PERFECT LOVE 55 KUBRESORI MORI 98 BEATS 4PHATLIP2*
+ 13 TIME WAS WHEN 56 THOUGHTIKNEWHER 99 BEATS 4PHATLIP3*
+ 14 SUPERSTINKIEST 57 ... I DIDN'T 00 ARPEGG & TWEAKME
+ 15 RESOHNETTO 58 SEARINGAWARENESS 101 ARPEGG & FREAKME
+ 16 KROGH'S NEST 59 REFLECTIVE WEBB 102 GLISSANDOMADNESS
+ 17 MINOR 9TH GROOVE 60 DEARLY BELOVED 103 PRETENDR2DACLONE
+ 18 THERIOT CLANS 61 ENDLESS DA DAA'S 104 PRETENDR2DACLON2
+ 19 MUTED RESPONCE 62 BREATH EASY 105 3-10-02 MEASURE 
+ 20 ECHOPLEXIC 63 AFATHER'S PRAYER 106 GAZING ON ZENO 
+ 21 STREET PEEPS 08 64 AFATHER'S1STLOVE 107 THAT 3 AM ZENO 
+ 22 SWEEPSICORD 65 SMOOVLY FEEL U 108 ZENZERZEH ADEPT 
+ 23 ORRERY 4 THEOREM 66 HIS FAVORITE SON 109 ZENZERZEH WOES 
+ 24 ORRERY'S EARL 67 CLIFFS OF FERVOR 110 ZENZERZEH PANS 
+ 25 THANKU4EVRYTHING 68 PITCAIRN FAITH 111 CALL & RESPONCE 
+ 26 CHANGE THE WORLD 69 TIMITI'S CRACK 112 AMERICA AFTER U 
+ 27 SEVEN MYSTERIES 70 CLASSIC P5 SYNC 113 WATCHPULSE 
+ 28 SOFTEST SWEETEST 71 OOH WAH DIZ 114 CONSUMED 
+ 29 ETEVIEN 72 JAMSHIED LANE 115 DISCORDANTE 
+ 30 MERIDIAN KLIMAX 73 SOMETHINGOFHERS 116 MAD CYMBELZ 
+ 31 SYNTHFROMDAVAULT 74 BLATANT ECHO 117 MADCYMBL LULLABY
+ 32 S.F .D.V.B.REJECT 75 BLATANT ECHO UP 118 BIG & PAISTE 
+ 33 S.F .D.V.BANDPASS 76 JUST PLAY IT LOW 119 INFINATOM 
+ 34 S.F .D.V. RAVI 77 WEBOYZ4LIFE Z... 120 ACID STRIP 
+ 35 STELLAPHANE WAIT 78 PROUD TO BE SE1Y 121 TRANCEPORTER 
+ 36 DEDICATED SPOUSE 79 PROUD TO B SE1XY 122 KENYAZ INDICATR*
+ 37 4 NOTE DRAMA 80 SOUL FOOD 123 PUBLIC BROADCAST
+ 38 DREAM FACTOR 81 IT AIN'T U 124 ORGANIK SUGAR 
+ 39 DREAM FACTORY 82 ::RAM Utility:: 125 ALPHASONIX 
+ 40 ICAN'TCRYNOMORE 83 ::RAM Utility:: 126 ELECTRONOIRSWELL
+ 41 WHEN SHE DOES... 84 LEGATOGLIDEMAGIC 127 PHOTON CARLO 
+ 42 SHE DOES! 85 PULSE 26 128 TUNE DON'T ERASE
+ 43 BELLS 4 LUKE 86 PULSE 27 
+ 27
+
+===== PAGE 28 =====
+THERIOT - RAM BANK 1
+1 PULSE AFTER LIFE 44 I1 GLIDE METALIK 87 JUSTOUTSIDEMY ...
+ 2 PULSE AFTER SUB 45 I1 FLYING TIGERS 88 UNCOQUERABLELOVE
+ 3 PASS AFTER LIFE 46 PASS OF STRENGTH 89 RHETT'S OBSESHUN
+ 4 POWELL'S COMPRES 47 CLOCK 'N FLUTE 90 SINCE BIRTH... 
+ 5 DE LEIGH 4 LUCA 48 MOMENT 91 I HAVE PULSED 4U
+ 6 DL4L SUB 49 GRANDFATHER OCT 92 WITHOUT FAIL 
+ 7 DE LEIGH A LEE 50 EMPERORDYNAGLIDE 93 COMFORT IN G 
+ 8 DE LEIGH A LEE 8 51 OMEGA-CYCLE-KICK 94 BANDPASS IT 2 ME
+ 9 DELEIGHXMODEVENT 52 OMEGA-NOTE-KICK 95 LOST INVENTION *
+ 10 ARPEGGI COUNTER 53 OMEGA-NOTE-KICK2 96 PLAY MAJOR THRD
+ 11 ARPEGGI C.XMODY 54 SQUASHA BD 97 GHOST IN THE BOX
+ 12 ARPEGGI C. OCTO 55 SIMPLEFATHAKICK 98 OVERDRIVER UP 
+ 13 SAL W-THE NEENEE 56 KICK INVERT 99 OVERDRIVER DOWN 
+ 14 KEVIN'S MOMENT 57 PIPERATTLER KICK 100 POSITRAK LEAD 
+ 15 DL RISE & FADE 58 KICKA-LUTIONBASS 101 ALL FRED'S FALKE
+ 16 HURRY DOWN HONEY 59 SUBSAW 102 FORMER GLORY 
+ 17 FULLMODWEALJACKT 60 WRIGHT GRIL KICK 103 DELAYAH 
+ 18 MODWHEEL 54 61 KICK THINKS SO 104 CASCADE RITE 
+ 19 BADEM BADEM 62 LIKEITOLDU KICK 105 CASCADE RITE 2 
+ 20 DONNA QUALITY 63 BLESSED RATTLE 106 CASCADE RITE 3 
+ 21 DONNA QUALITY DL 64 KICK FALLS 107 FUNKSTAGGERD 
+ 22 SUMMER DREAMS 65 KICK BASS 108 INFINITE 1 DRONE
+ 23 GAINES ACCENT 66 KICK BASS 2 109 MAHARISHI DRONER
+ 24 SUMMER'S END 67 KICK BASS 3 110 INDUSTRIAL DRONE
+ 25 PEACE BASS 68 KICK BASS GALAXY 111 TEMP JOB DRONE 
+ 26 PEACE BASS OBIE 69 KICK BASS STEREO 112 THERIOT CLANS 
+ 27 VELVET VINTON 70 KBS2; DYNAMI{2+. 113 EURO EDGE BAYZ 
+ 28 SHIELD SCRAPER 71 KICK BASS ST MIN 114 BROMLEY REPORT 
+ 29 SHIELD OF PAPER 72 KICK BASS SS MIN 115 ELECTRICK EDGER 
+ 30 MODWHEEL SHIELD 73 KICK BASS SSDMIN 116 ELECTRICK REVERB
+ 31 4TH FINGER BENT 74 KICK BASS SSDMN6 117 CONGA LINE SQARE
+ 32 4TH FINGER BENT2 75 UKNEWUSHOULD 118 CARLOCITY LOYALS
+ 33 4TH FINGER BENT3 76 LESTER COULD 119 LADIES&GENTLEMEN
+ 34 ROLL CHORD SCENT 77 PASTORIUS PULSE 120 THE VEGAS 
+ 35 JEALOUS TYPE L5 78 STICKY-TACQUI 121 LESLIE'S WEST 
+ 36 JEALOUS TYPE '04 79 SPREADING BUZZ 122 DELAYED B. ING 
+ 37 FAURE INTO LOVE 80 SALVAGEZ RUNTIME 123 KNIFE BLADE KEEF
+ 38 THE DRIVE BACK 81 CHRISTOPH DUAL 124 122 CORNER 
+ 39 PLEASANT PAD 82 ::RAM Utility:: 125 IFITMATTERS2U 
+ 40 PLEASANT PAD 2 83 ::RAM Utility:: 126 TUNNEL TRUTH 
+ 41 PLEASANT PAD 3 84 WHEN CAM SMILES 127 COMA AIR 
+ 42 PLEASANT PAD 4 85 INEFFABLE YOU 128 FUTURE CLOCK SET
+ 43 INSENSITIVE ONE 86 CIAO EMILO, CIAO
+ 28
+
+===== PAGE 29 =====
+CADIX - RAM BANK 2
+ 1 TOUCHED RESPNOSE 44 THE LEADING MAN 87 KD ESTEREOPHONIC
+ 2 FEEL LIKE AFRICA 45 THE LEADING UELO 88 SCOOP KICK 
+ 3 THE WATCHERS BET 46 THE LEGATO GLIDR 89 SCOOP KICK SARIO
+ 4 BACK AWAY SLOWLY 47 WAH TOM CLUBBER 90 DIVIN' DIRTY 
+ 5 HOME 4 CHRISTMAS 48 CATERO'S XXX WRM 91 SOARINA KICK 
+ 6 CONSTANCE STATE 49 CATERO'S XXX WRM2 92 GREAT SPIRIT KCK
+ 7 MAXIXAM SWELLS 50 R U SCARED SUB 93 SLOW DADD_ KICK 
+ 8 TO A BETTER LIFE 51 R U SCARED RELE 94 LUKEY SUBISH 
+ 9 HOLLYWOOD HIGH 52 PLAY COUSIN BASS 95 OOWEAD KICK 
+ 10 WHAT'S COMIN 2YA 53 BAIXO LONGO 96 OOWEAD KICK D LY
+ 11 WHEN U STILL... 54 SINGOLA SPIGOLA 97 PROPAGANDA KICK 
+ 12 LOVE HER... 55 SPECIOUS FORCES 98 DEVORE CHILL KCK
+ 13 AND IT'S TO LATE 56 PASTORIUS C0D3 99 TROMMEL & ZEILE 
+ 14 SEQUENCIA RAINS 57 SLIDE-OUT B'LEAD 100 DRUM 'N LINEMAN 
+ 15 PAZ FRAGIL 58 SLIDE-ON B'LEAD 101 DRUM 'N LINE HP 
+ 16 LESLIE'S WEST 07 59 SLIDE-IN 8 102 DRUM 'N LINE IV 
+ 17 CYBERNIA BANK 60 WHATUKNOWBOUTDIS 103 DRUM 'N LINE GX 
+ 18 SOFT STIKA JAB 61 STEALTH GREASE 104 DRUM 'N LINE ORO
+ 19 2BCARLO'S FRIEND 62 TUBAHCHELLO 105 CYBER GONG SHOW 
+ 20 NEGATIVE RESKURV 63 PULSE SYMPHO 1 106 UTILICUS PERCATF
+ 21 FATHA BEAM 64 PULSE SYMPHO 2 107 UTILICA PERCATIF
+ 22 AFATHER'SMODWEAL 65 PULSE SYMPHO 3 108 PANKI MOD SNARE 
+ 23 SMALLVILLE 66 PULSE SYMPHO 4 109 OOWEAD SNARE FUN
+ 24 STARBRIGHT 007 67 SCROGGINS' PULSE 110 OMINOUS INTENT 
+ 25 "AHH FRANCE" 68 LATE RISER 111 SAMPLE & HIGH 
+ 26 WHIRLI LEERITI 69 NEUBLE INSPIRED 112 PURPLE DAZE 
+ 27 WHIRLI LEERI 70 TRACK WILL FOLOW 113 MOTOCICLETA MOD 
+ 28 WHIRLI LEERI VIB 71 MELLOW SUBMARINE 114 STEVE AUSTIN'D 
+ 29 WHIRLUSTER 72 DREADAY BASS 115 PARTY FLAVORS 
+ 30 KING LEERI 73 BARMENDERBRASSY 116 GHOST TOWN WINE 
+ 31 LE SHOW BLUES 74 JUMPWHEEL BASS 117 I'M SPARTICUS! 
+ 32 NOT FORGOTTEN 75 HARD CASE BASS 118 JAWA RADAR FARE 
+ 33 JEFF BARR LIVES 76 HARD CASE BASS 2 119 SPACE FLOYD 
+ 34 SAFRONZ HORN 77 FOUNKI DELAYER 120 TERMINATOR BYE 
+ 35 STICKY-STEVIEKEY 78 FD 2 121 4TH FINGA FINALE
+ 36 KRAFTY CLONE 79 I'LL EXPLAIN LTR 122 UNAMERICANCHOPPA
+ 37 PLICK-PLOCK 80 DYAMIK STONAN 123 SPADA ESIGENTE 
+ 38 CLICK-CLOCK CAM 81 WITHIN WITHOUT 124 LOST CHILD MOM 
+ 39 VIRGIN SPRING 82 ::RAM Utility:: 125 WHEAT AND TARES 
+ 40 CLEAN BLOOD DRTY 83 ::RAM Utility:: 126 FUTURE CRUNK RAY
+ 41 CLEANERBLOODIRTY 84 PRELUDE TO #85 127 RASTLOSE NOVA 
+ 42 CATCH 'N FLOAT 85 PLAY G, Z! KICK 128 I KNOW 4 BRISTLE
+ 43 FELICETTA'S CRY 86 KICK SPECTROS 
+ 29
+
+===== PAGE 30 =====
+MULTI BANK
+ 1 WE REMEMBR FRANK 44 NAJIMA'S EMBRACE 87 SORRY SHUGA 
+ 2 LEARNED BEHAVIOR 45 O SACRUM - 88 IN D.C. 2 LONG 
+ 3 GET ETEVIAN 46 COVIVIUM 89 143 SPACE 
+ 4 FOREIGN BRIBE 47 SHE'S COUNTING 90 SLIDE OUT WIDEST
+ 5 WHEN SHE DOSEN'T 48 REMINDED OF 1 91 CLASSIC ATC ST.U
+ 6 BEETLE ME BOX 49 SUIT FOR CHAOS 92 MAJOR CATERO 
+ 7 SLINKI'S 4 PLAY 50 COGENT RANCOR 93 ELLIS COTTON *
+ 8 FOREVER CHOKLIT 51 ET IN SANTEFE... 94 ELLIS COTTON E.*
+ 9 ORKESTRANO 52 BREATHE MARCO 95 ELLIS BEAT BASS*
+ 10 ORKESTRANO CS-80 53 LUCKY YOU 96 UP 3OCT ARPEGI *
+ 11 LUKE'S GOSPEL 54 FAVORITE MURCHIE 97 IMPERIAL RELIC 
+ 12 SEARING COMBO 55 FAVORITE MURISE 98 PUSH THE FX 
+ 13 DIFRENTLYORGANED 56 MORE B4 99 REMEMBERED LOSS 
+ 14 A STEVIE MOMENT 57 109 BPM DELAY 100 SPECTRAL KNELL 
+ 15 A STEVIE MOMENTO 58 109 BPM DISTURB 101 MULTI1-7BASS PAD
+ 16 GX1 TRIBUTE 59 PEOPLE WHO FLY 102 1-1-6BASSLEADPAD
+ 17 4 NOTE DRAMA LYR 60 PEOPLE WHO DON'T 103 1-2-5BASSLEADPAD
+ 18 4 NOTE MASS 61 ROPETRICKREPRISE 104 1-2P5BASSLEADPAD
+ 19 RAVI'S SEA 62 SHADRA CIRCA '73 105 2-2-4BASSLEADPAD
+ 20 RAVI RECONSIDERD 63 STANKEOPHONIK'02 106 2-3-3BASSLEADPAD
+ 21 DUELING MASTERS 64 READY 4 PFUNKIN 107 4-4PAD MEETS PAD
+ 22 JAMSHIED PRAYER 65 IT'S ALLPRETEND? 108 8 MONO JOINTZ 
+ 23 JAMSHIEDZ POWER 66 GNAW THE BONE 109 USER (PREPARED) 
+ 24 FAZED & CONFUSED 67 SUPERNUMBER X6 110 USER (1-7 SPLIT)
+ 25 AMAZED &CONFUSED 68 IMMORTAL 78 111 USER (4+4 LAYER)
+ 26 PREY'D &CONFUSED 69 IT NEVAH HERTZ 112 USER(8MONOMULTI)
+ 27 MUTED Z 70 BOOM THE THANG 113 USER (PREPARED) 
+ 28 MUTED Z2 71 SPEAKER HUGGER 114 USER (1-7 SPLIT)
+ 29 WHITEROCKCHORUS 72 SWEET RELEASE 115 USER (4+4 LAYER)
+ 30 LANDSBERG SKOOL 73 TAKI VERO 116 USER(8MONOMULTI)
+ 31 NORMAN'S LESSON 74 CARMENBOOMANG 117 USER (PREPARED) 
+ 32 F MAJOR PLEASE 75 SAME 818 118 USER (1-7 SPLIT)
+ 33 NO SUCH LIMIT 76 GAVE ME 2 TIMES 119 USER (4+4 LAYER)
+ 34 CARLO'S WISH 77 PAVED THE WAY 4U 120 USER(8MONOMULTI)
+ 35 WISH GRANTED 78 PULSTINO KNIGHT 121 USER (PREPARED) 
+ 36 HOPE TO THE END 79 PULSESAL 122 USER (1-7 SPLIT)
+ 37 STILL CRYING... 80 FEEL HER PULSE 123 USER (4+4 LAYER)
+ 38 CATERO $$ 81 SQUARE ONE 124 USER(8MONOMULTI)
+ 39 ANASAZI INN 82 ::RAM Utility:: 125 USER (PREPARED) 
+ 40 PHENOMIC LOCK 83 ::RAM Utility:: 126 USER (1-7 SPLIT)
+ 41 JOYFUL RECKONING 84 LONE GASTRONOME 127 USER (4+4 LAYER)
+ 42 LIVONIA ECHO 85 KENYAZ' CASE 128 USER(8MONOMULTI)
+ 43 MIDNITE PRAYER * 86 PATIENCE LOCK 
+ 30
+
+===== PAGE 31 =====
+12 BACK PANEL 
+! 
+Power (& AUDIO/MIDI) to the Panels 
+AC INPUT: Plug in female end of supplied IEC cable to unit and male end of cable to power socket. The CODE/Omega8 s auto-
+switching regulated supply will operate properly on either 115 volt or 230 volt AC line voltage. 
+MASTER OUTPUTS 
+RIGHT: Right stereo output. Connect a 1/4 to 1/4 audio cable to this jack and then to the line input of a mixer, audio 
+interface, keyboard ampli er, etc. 
+MONO: Mono output 
+LEFT: Left stereo output 
+MIDI 
+IN: Receives MIDI Notes, MIDI Volume, Velocity, Pitch Bend, Aftertouch, Mod Wheel and Sustain Pedal, Glide on/o , 
+Glide 
+OUT: Sends standard MIDI messages and System Exclusive data to external MIDI hardware 
+THRU: Forwards the signal arriving at the MIDI IN jack to additional MIDI equipment 
+INDIVIDUAL STEREO VOICE OUTPUTS 
+1-8 Tip, Ring, Sleeve connections 
+EXTERNAL INPUTS 
+1-8 Mono connections processes External Audio information. MIDI notes must be sent to the CODE/Omega 
+to open/trigger gate/VCA. Experiment with long values and rhythmic pulses for maximum e ect. 
+ 31
+
+
+===== PAGE 32 =====
+13 GLOSSARY OF ABBREVIATIONS 
+! 
+ CON: Controller 
+CV: Control Voltage 
+DYN: Dynamics 
+ENV: Envelope 
+EXT: External 
+IN: Input 
+KEY: Keyboard 
+LFO: Low Frequency Oscillator 
+LP: Low Pass 
+MOD: Modulation 
+OSC: Oscillator 
+OUT: Output 
+P . BEND: Pitch Bend 
+REL: Release 
+SYNC: Synchronisation 
+VCA: Voltage Controlled Ampli er 
+VCF: Voltage Controlled Filter 
+VCO: Voltage Controlled Oscillator 
+ 
+ 32
+
+
+===== PAGE 33 =====
+14 MIDI DOCUMENTATION / ASSIGNMENTS 
+! 
+MIDI Implementation Chart
+ 0=Yes 
+ X-No 
+Feature Function TransmittedRecognizedRemarks
+Basic Channel Default 
+Changed
+x 
+x
+1-16 
+1-16
+Memorized
+Note Numbers 
+: True Voice
+x 
+x
+o 
+0 -127
+Velocity Note On 
+Note Off
+x 
+x
+o 
+o
+Envelopes 1-3
+Aftertouch Key 
+Channel
+x 
+x
+x 
+o
+No defaults. 
+Assigned per patch.
+Pitch Bend x o
+Knobs o o
+Switches o o
+Control Change 
+(Reserved)
+1 
+5 
+7 
+64 
+65
+X 
+X 
+X 
+X 
+X
+o 
+o 
+o 
+o 
+o
+Modulation Wheel 
+Portamento Time 
+Channel Volume 
+Sustain Pedal 
+Portamento On/Off
+See p. 38 for full list.
+System Real Time
+: Clock 
+: Start 
+: Continue 
+: Stop
+X 
+X 
+X 
+X
+o 
+x 
+x 
+x
+LFO MIDI Sync 
+ 33
+
+===== PAGE 34 =====
+STUDIO ELECTRONICS OMEGA 8 DEDICATED 
+MIDI CONTROLLER NUMBERS
+# PARAMETER SENT RECEIVED
+54 OSC1 FREQ Y Y
+55 OSC1 TRI WAVE ON/OFF Y Y
+56 OSC1 SAW WAVE ON/OFF Y Y
+57 OSC1 PULSE WAVE ON/OFF Y Y
+58 OSC1 SUB OSC ON/OFF Y Y
+59 OSC1 PULSE WIDTH Y Y
+60 OSC2 FREQ Y Y
+61 OSC2 TRI WAVE ON/OFF Y Y
+62 OSC2 SAW WAVE ON/OFF Y Y
+63 OSC2 PULSE WAVE ON/OFF Y Y
+70 OSC2 PULSE WIDTH ON/OFF Y Y
+71 LFO1 RATE Y Y
+72 LFO1 DEPTH Y Y
+73 LFO2 RATE Y Y
+74 LFO2 DEPTH Y Y
+84 OSC1 MIX Y Y
+85 OSC2 MIX Y Y
+86 NOISE MIX Y Y
+87 XMOD MIX Y Y
+88 VCF FREQ Y Y
+89 VCF RESONANCE Y Y
+90 VCF KEYBOARD TRACK Y Y
+98 EXTERNAL IN MIX N Y
+99 EXTERNAL TRIG LEVEL N Y
+102 ENV1 AMOUNT Y Y
+103 ENV1 ATTACK Y Y
+104 ENV1 DECAY Y Y
+105 ENV1 SUSTAIN LEVEL Y Y
+106 ENV1 RELEASE Y Y
+107 ENV2 ATTACK Y Y
+108 ENV2 DECAY Y Y
+109 ENV2 SUSTAIN LEVEL Y Y
+110 ENV2 RELEASE Y Y
+111 ENV3 AMOUNT Y Y
+112 ENV3 ATTACK Y Y
+113 ENV3 DECAY Y Y
+114 ENV3 SUSTAIN LEVEL Y Y
+115 ENV3 RELEASE Y Y
+116 ARPEGIATOR TEMPO Y Y
+117 ARPGIATOR START/STOP Y Y
+118 OSC2 SYNC ON/OFF Y Y
+ 34
+*NOTE: 98 & 99 ARE USED FOR FREQ & RESO OF THE HIPASS SECTION OF THE CS80-TYPE DUAL VCF: THIS REQUIRES A MODIFICATION TO THE VOICE BOARD .
+
+===== PAGE 35 =====
+15 TROUBLESHOOTING 
+! 
+No Sound 
+Check power and audio connections. [see BACK PANEL - AC INPUT p. 31] 
+Check MIDI connections. [see BACK PANEL - MIDI p. 31] Check MIDI channel. [see MILTI/MIDI - UTILITY PAGE 2 p. 16] 
+Turn up Volume. [see MULTI/MIDI - VOLUME p. 14] 
+Turn up OSC/MIX levels. [see OSCILLATORS - OSCILLATOR LEVEL p. 20] 
+ 
+Soft Sound 
+Check all audio connections. [see BACK PANEL - MASTER OUTPUTS p. 31] 
+Turn up Volume. [see MULTI/MIDI - VOLUME p. 14] 
+Turn up OSC/MIX levels. [see OSCILLATORS - OSCILLATOR LEVEL p. 20] 
+ 
+Unwanted Distorted Sound 
+Turn down OSC/MIX levels. [see OSCILLATORS - OSCILLATOR LEVEL p. 20] 
+ 
+Unwanted Noise 
+Turn down Noise Level. [see OSCILLATORS - NOISE p. 20] 
+ 
+Out of Tune 
+Set Master Tune to 440 Hz. [see PROGRAMMER - TUNE p.19] Or one could experiment with 432 Hz, as was done here 
+with our Boomstar SEM: https://tinyurl.com/tha942f 
+ 
+Plain Lost 
+Press EXIT, then rotate Q dial [see PROGRAMMER - EXIT p. 19] 
+ 35
+
+===== PAGE 36 =====
+16 SPECIFICATIONS & ARCHITECTURE 
+! 
+SYNTHESIZER TYPE 
+Stereo Polyphonic Multimbral Rackmount Analog 
+SOUND ENGINE 
+Discrete Analog, combinable Triangle, Sine (CODE), Sawtooth, Variable Pulse Width Waveforms 
+SOUND SOURCES 
+Two voltage controlled discrete analog oscillators; waveforms: sine (OSC 1), triangle, sawtooth and variable width 
+square; simultaneous waveforms output; syncing of Osc 2 to Osc 1 
+Oscillator 1 Subharmonic wave 
+White Noise Generator 
+VOICES 
+4 or 8 
+MULTITIMBRALITY 
+4 voices = 4 part, 8 voices = 8 part; parameters: patch, number of voices, mono or poly: splits, layers, prepared 
+FILTERS 
+Two voltage controlled discrete analog lters: 12 db (classic Oberheim style) hard-wired into voice board; 24db 
+(classic Moog style) in docking slot 1; 2 additional lter docking slots; 2 and 3 can host our classic Roland 303, 
+Arp 2600, and Yamaha CS-80 styled, all hardware lters; 12db lter modes: low pass, bandpass, high pass and 
+band reject. Filters do not operate in series or parallel. Each voice can access all four lters. 
+AMPLIFIER 
+Loudness Contour with a Dynamic Range of 81 dMini FAQ Anticipator 
+Two takes on the USB/Analog Audio Out: 
+Marc St. Regis 
+The SE-02 produces analog and USB audio simultaneously, and as a result, with the Ext Box connected, the SE-02's 
+analog signal, passing through the Ext Box's drive/hi-pass circuits, will continue through to the Ext Box's audio 
+output. To clarify, the 12dB (6dB slope) drive/hi-pass audio path, sourced from the SE-02 and/or the External Input, 
+is analog and passes only to the Ext Box audio output (1/8" and 1/4"). The frequency CV and gate are very high 
+resolution digital controls, and a ect the USB and analog audio. The Ext Box allows very smooth lter frequency 
+manipulation (VCF Cuto ), expanded gate functionality, and external input processing to pass back to USB audio: 
+plenty there for the for USB-only audio enthusiasts to discover, without the bene t of the Drive and Hi Pass lter in 
+the mix, which of course is nevertheless always outputted. 
+Tim Caswell 
+ 36
+
+===== PAGE 37 =====
+The Xbox will a ect the VCF Cuto , the External Input, and the Gate in the USB output. The Hi Pass and Overdrive 
+will not be heard thru the USB connection, only the 1/8 and 1/4" outputs of the EXT Box. 
+B 
+ENVELOPES 
+Three multiple stage envelope generators: attack, decay, sustain and release with inverting and multiple triggering; 
+additional delay, decay 2, and breakpoint parameters for envelopes 1 and 2; assignable 3rd envelope with up to 
+three destinations and depths. Envelope 1 xed to lter frequency. Envelope 2 xed to ampli er level. Envelope 3 
+knobs also can control the external inputs. 
+LFOs 
+Three low frequency oscillators, waveforms: triangle, sawtooth, reverse sawtooth, square, noise, random; three 
+destinations and depths each for LFOs 1&2, with range, delay, key trigger, phase, mode (mono or poly), quantize, 
+midi sync; LFO3 xed to voice panning 
+ 
+MODULATION DESTINATIONS 
+LFOs 1, 2 and envelope 3: VCO 1 and 2 frequency, pulse width, and mix level, VCF frequency and resonance, noise 
+level, Xmod amount, LFOs 1 and 2 rate and depth, VCA level, external mix level 
+GLIDE 
+Linear or exponential, parameters: time, mode (auto, legato, glissando), autoglide interval, dynamics, destination 
+ 
+UNISON MODE 
+One, two, four, six, or eight voices depending on voice con guration. 
+MULTI MODE 
+Prepared: one MIDI channel, up to eight di erent patches (synths); split: set point; layer: 4-4; multi: channelize up to 
+8 patches (synths) 
+ADDITIONAL FEATURES 
+Oscillator 2 audio frequency modulation, destinations: OSC 1 frequency, OSC 1 pulse width, lter frequency; white 
+noise generator; auto triggering external input processor on each voice, parameters: input level, trigger level, mix 
+level, window 
+FILTER CONTROL SECTION FEATURES 
+Sweep through all the lter types in real time 
+Increase or decrease the lter frequency 
+Increase the envelope amount 
+Increase the resonance amount 
+Filter ENV Delay 
+Invert the lter envelope 
+"CUT" Filter Decay 
+Controls CODE synth engine or external input 
+ 
+FILTER TYPE NUMBERS FOR THE F TABLES 
+SEM LP = 1 
+SEM BP = 2 
+SEM HP = 3 
+ 37
+
+===== PAGE 38 =====
+SEM BR= 4 
+MINI = 5 
+AUX 1 = 6 
+AUX 2 = 7 
+FOR UNITS WITH SEM AND MINI 
+1234513524153125 
+ 
+FOR UNITS WITH SEM, MINI AND AUX1 (FILTER SLOT 3) 
+1234564251361425 
+FOR UNITS WITH SEM, MINI, AUX1 AND AUX2 (FILTER SLOT 4) 
+1357462514273617 
+ 
+THE MONO VERSION 
+con gured as a single input mono lterbank 
+ 
+THE 2 VOICE VERSION 
+con gured as a dual input stereo lterbank 
+THE 4 VOICE VERSION 
+con gured as a 4 input or quad lterbank 
+THE 8 VOICE VERSION 
+con gured as an 8 channel lterbank. 
+Each voice card has two empty expansion slots for extra lters: the S.E.M. lter is built in and the Mini lter sits in 
+expansion slot 1; three expansion slots total, as is the case for all Omega Series Synths. 
+OPTIONAL FILTER CARDS ALSO AVAILABLE 
+303 
+2600 
+CS80 
+Juno/Jupiter 
+PATCH BANK 3 
+INCLUDES THERIOT BANK ($79 SOLD SEPARATELY) 
+PATCH BANK 4 
+Includes Cadix bank ($69 sold separately) 
+PATCHES 
+RAM: 128 x2 patch locations in program mode, 128 in multi mode, ROM: 128 x2 patch locations in program mode 
+ADDITIONAL FEATURE FOCUS 
+Oscillator 2 audio frequency modulation, destinations: OSC 1 frequency, OSC 1 pulse width, lter frequency; white 
+noise generator; auto triggering external input processor on each voice, parameters: input level, trigger level, mix 
+level, window 
+ 
+INTERFACE 
+ 38
+
+===== PAGE 39 =====
+32 knobs with relative and jump modes, 1 rotary encoder, 35 tactile switches, 24 LEDs 
+ 
+DISPLAY 
+16 x 2 back lit liquid crystal 
+AUDIO INPUT 
+1/4 Rear Panel TS; Voltage: +10 millivolts (min); +10 volt (max); Nominal Input Impedance: 100K Ohms 
+AUDIO OUTPUT 
+One main stereo and mono output, one stereo 1/4 TRS output connection per voice 
+OVERDRIVE 
+OD (Optional): Eight: One per voice. Distortion amount xed 
+MIDI SPECS 
+In out and thru. Receives program change, bank select, glide on/o , glide time, volume, SYSEX. Controllers: 
+dynamics, modwheel, bender, pressure destination and amount (x2). Controller 1 assignments: dyn, mod, pressure, 
+bend, tracking, continuous cont #2 (x2), controller 1 amount (x2). Controller 2 assignments: same as controller 1 
+(x2), controller 2 amount (x2). Dynamics, tracking, and bender can manipulate positive and negative modulation 
+values. Fixed continuous controller assignments exist for all key functions. 
+MIDI CONTROLLERS 
+Dynamics, modwheel, bender, pressure, tracking, breath controller: LFOs 1, 2 and envelope 3 destinations, including 
+envelopes 1, 2, and 3 attack, decay, sustain, release amounts 
+DIMENSIONS 
+19 (48.26 cm) Wide x 15 (38.1 cm) Deep x 7 (17.78 cm) High - 4 rack spaces 
+WEIGHT 
+20 lbs. / 9.07 kg 
+POWER 
+90 - 250 volts AC auto switching 
+ 39
+
+
+===== PAGE 40 =====
+17 LEGAL 
+! 
+LIABILITY 
+Neither Analogia Inc./Studio Electronics nor anyone else involved in the creation, production, or delivery of this product shall be 
+liable for any direct, indirect, incidental, special, consequential or punitive damages whatsoever arising out of the use of this 
+product, or inability to use this product; including without limitation: damages for loss of business, pro ts, goodwill, business 
+interruption, loss of business information, data or any other pecuniary loss, even if Analogia Inc./Studio Electronics were previously 
+advised of the possibility of such damages. Some states do not allow limitations on the length of an implied warranty, or the 
+exclusion or limitation of incidental or consequential damages, so the above limitation and/or exclusions may not apply to you. 
+FCC 
+DO NOT MODIFY THE UNIT! This product, when installed as indicated in the instructions contained in this manual, 
+meets FCC requirement. Modi cations not expressly approved by Analogia Inc./Studio Electronics may void your authority 
+granted by the FCC, to use this product. 
+IMPORTANT: When connecting this product to accessories and/or another product, use only high quality shielded cables. Follow 
+all installation instructions. Failure to follow instructions could void your FCC authorization to use this product in the USA. 
+NOTE: This product has been tested and found to comply with the requirements listed in FCC Regulations, Part 15 for Class B 
+digital devices. Compliance with these requirements provides a reasonable level of assurance that your use of this product in a 
+residential environment will not result in harmful interference with other electronic devices. This equipment generates/uses radio 
+frequencies, and if not installed and used according to the instructions speci ed in this product s operation manual, may cause 
+interference harmful to the operation of aforementioned other electronic devices. 
+Compliance with FCC regulations does not guarantee that interference will not occur in all installations. If this product is found to be 
+the source of interference (which can be determined by turning the unit OFF and ON ), please try to eliminate the problem by 
+using one of the following measures: 
+ Relocate either this product or the device that is being a ected by the interference. 
+ Utilize power outlets that are on di erent branch (circuit breaker or fuse) circuits or install AC line lter(s). 
+ In the case of radio or TV interferences, relocate/reorient the antenna. If the antenna lead-in is 300 ohm ribbon lead, change the 
+lead-in to coaxial cable. 
+ If these corrective measures do not bring any satis ed results, please consult the local retailer authorized to distribute this type of 
+product. If you cannot locate the appropriate retailer, please contact Analogia inc. These FCC statements apply only to those 
+products distributed in the USA. 
+CANADA 
+NOTICE: This class B digital apparatus meets all the requirements of the Canadian Interference-Causing Equipment Regulation. 
+AVIS: Cet appareil num rique de la classe B respecte toutes les exigences du R glement sur le mat riel brouilleur du Canada. 
+EUROPE 
+NOTICE: This product complies with the requirements for European Directive 89/336/EEC. 
+ 40
+
+===== PAGE 41 =====
+NOTES: 
+ 41
+
+===== PAGE 42 =====
+ 42
+ANALOGIA INC. - Ardent Proprietors of STUDIO ELECTRONICS 
+ 310.640.3546 
+ 
+studioelectronics.com contact@studioelectronics.com facebook.com/StudioElectronics youtube.com/user/
+StudioElectronics soundcloud.com/studio-electronics instagram.com/studioelectronics

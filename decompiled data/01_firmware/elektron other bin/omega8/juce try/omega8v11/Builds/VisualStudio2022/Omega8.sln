@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio Version 17
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Omega8 - VST3", "Omega8_VST3.vcxproj", "{FA2BBE94-5B70-4A42-8703-D1B14E38B9B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7AE9C53A-C491-EF88-5831-8381136C649A} = {7AE9C53A-C491-EF88-5831-8381136C649A}
+		{4A86F8ED-4D6C-51BA-3A98-049FAFF69910} = {4A86F8ED-4D6C-51BA-3A98-049FAFF69910}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Omega8 - Shared Code", "Omega8_SharedCode.vcxproj", "{7AE9C53A-C491-EF88-5831-8381136C649A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Omega8 - VST3 Manifest Helper", "Omega8_VST3ManifestHelper.vcxproj", "{4A86F8ED-4D6C-51BA-3A98-049FAFF69910}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FA2BBE94-5B70-4A42-8703-D1B14E38B9B6}.Debug|x64.ActiveCfg = Debug|x64
+		{FA2BBE94-5B70-4A42-8703-D1B14E38B9B6}.Debug|x64.Build.0 = Debug|x64
+		{FA2BBE94-5B70-4A42-8703-D1B14E38B9B6}.Release|x64.ActiveCfg = Release|x64
+		{FA2BBE94-5B70-4A42-8703-D1B14E38B9B6}.Release|x64.Build.0 = Release|x64
+		{7AE9C53A-C491-EF88-5831-8381136C649A}.Debug|x64.ActiveCfg = Debug|x64
+		{7AE9C53A-C491-EF88-5831-8381136C649A}.Debug|x64.Build.0 = Debug|x64
+		{7AE9C53A-C491-EF88-5831-8381136C649A}.Release|x64.ActiveCfg = Release|x64
+		{7AE9C53A-C491-EF88-5831-8381136C649A}.Release|x64.Build.0 = Release|x64
+		{4A86F8ED-4D6C-51BA-3A98-049FAFF69910}.Debug|x64.ActiveCfg = Debug|x64
+		{4A86F8ED-4D6C-51BA-3A98-049FAFF69910}.Debug|x64.Build.0 = Debug|x64
+		{4A86F8ED-4D6C-51BA-3A98-049FAFF69910}.Release|x64.ActiveCfg = Release|x64
+		{4A86F8ED-4D6C-51BA-3A98-049FAFF69910}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,19 @@
+r9  20260929: AUX1 CARD = OB SVF / OB-X (oberhx) / TB303 (Wurtz); MINI -> ZDF OberhVar; оценка панорамы и фильтров из репо юзера.
+r8  20260929: фильтры сверены с мануалом (SEM/MINI/AUX1/AUX2; 303/2600 = AUX-карты), хитбокс ручек (drag 128px + popup), soft-clip от взрыва резонансных патчей.
+omega8 VST — ревизия r7 (2026-09-29)
+Архив: omega8_vst_r7.tar.gz
+
+История:
+  r1 — первый тар
+  r2 — фикс C1189
+  r3 — фикс 8 ошибок MSVC
+  r4 — нумерация ревизий
+  r5 — ручки/DC/щелчки/NaN/имена
+  r6 — матрица модуляций (extend window), DLY в движке, PAN 1-4
+  r7 — GLOBAL (кнопка как на железе), ЧЁРНАЯ ТЕМА (черный омега8.jpg),
+       LCD PATCH/BLEND как на скринах, сверка dest-списков с мануалом
+       omegaCODE (совпало с декодом CONT_DEST 1в1)
+
+Проверка: findstr /c:"r7-20260929" E:\mm\omega8\Source\PluginProcessor.h
+В логе: "omega8 build rev r7-20260929"
+Распаковка: tar -xzf omega8_vst_r7.tar.gz -C E:\mm
