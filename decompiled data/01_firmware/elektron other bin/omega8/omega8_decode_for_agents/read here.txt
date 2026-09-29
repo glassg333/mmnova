@@ -1,0 +1,15 @@
+Что внутри
+Папка/файл	Содержание
+DECODE_NOTES.md	Сводка всего реверса: формат патча 176B, конвенции байтов с уровнями conf, ловушки (FREQ-32, AGC из мануала, per-voice панорама), открытые вопросы
+PROMPTS.md	8 готовых промптов для продолжения декода: MULTI/Prepared-парсер, полярность GLIDE,
+ байт категорий (MINI/OLP…), CONT1/CONT2 источники (MODW/TRAK), 8-байтный заголовок, VMODE/PRIOR, кодировка имён, продолжение карты
+omega8_map.json	Главная подсказка — карта 139 смещений name/kind/conf/note
+manual/	omegaCODE_clean.txt (OCR-мануал — страницы-доказательства; PDF-ы не тащил, они 45 МБ)
+patches/	Фабричные банки A/B + Multi + имена (512 патчей для статистики)
+firmware/	Дампы ОС Omega/CODE/SE1X
+ui_official/ + ui_decode_screens/	Официальные скриншоты редактора + те, по которым вскрывались LCD/BLEND/банк/контроллеры (black_omega8, bank_mode, cell_*)
+analysis/	Три рабочих скрипта, проверены перед сдачей: bank_loader.py (лоадер 176B — выдал 128 патчей), analyze_patches.py (статистика, поймавшая баг FRE-32), dump_map.py (карта → таблица)
+external_filters/	Что адаптировали в r9: oberhx/OB-Xd, Wurtz TB303, OberhVar + зависимости + скачанные Engine-заголовки OB-Xd
+repo_tree/	Индекс путей репо 
+tree_new2.json
+ (поиск материалов)
