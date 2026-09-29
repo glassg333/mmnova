@@ -1,0 +1,47 @@
+##################################
+# AudioFilterOBXa keywords.txt
+##################################
+
+#######################################
+# Classes (KEYWORD1 = orange in IDE)
+#######################################
+
+AudioFilterOBXa	KEYWORD1
+
+#######################################
+# Methods (KEYWORD2 = brown in IDE)
+#######################################
+
+frequency	KEYWORD2
+resonance	KEYWORD2
+multimode	KEYWORD2
+setTwoPole	KEYWORD2
+getTwoPole	KEYWORD2
+setXpander4Pole	KEYWORD2
+getXpander4Pole	KEYWORD2
+setXpanderMode	KEYWORD2
+getXpanderMode	KEYWORD2
+setBPBlend2Pole	KEYWORD2
+getBPBlend2Pole	KEYWORD2
+setPush2Pole	KEYWORD2
+getPush2Pole	KEYWORD2
+setCutoffModOctaves	KEYWORD2
+getCutoffModOctaves	KEYWORD2
+setResonanceModDepth	KEYWORD2
+getResonanceModDepth	KEYWORD2
+setKeyTrack	KEYWORD2
+getKeyTrack	KEYWORD2
+setEnvModOctaves	KEYWORD2
+getEnvModOctaves	KEYWORD2
+setMidiNote	KEYWORD2
+getMidiNote	KEYWORD2
+setEnvValue	KEYWORD2
+getEnvValue	KEYWORD2
+
+#######################################
+# Constants (LITERAL1 = blue in IDE)
+#######################################
+
+OBXA_BLOCKRATE_MOD	LITERAL1
+OBXA_STATE_GUARD	LITERAL1
+OBXA_HUGE_THRESHOLD	LITERAL1
