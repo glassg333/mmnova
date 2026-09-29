@@ -724,6 +724,41 @@ struct DSPKernel {
             if ((mnem == "jset" || mnem == "jclr") && taken) return branchTarget(tgt);
             return 0xFFFFFFFFu;
         }
+        if (mnem == "bsset" || mnem == "bsclr" || mnem == "bschg") {
+            // Bit test + modify + branch (DSP56300 FM):
+            //   bsset: bit := 1, branch if the bit WAS set
+            //   bsclr: bit := 0, branch if the bit WAS clear
+            //   bschg: bit := ~bit, branch if the bit WAS clear
+            // For A/B destinations bit n (0..23) addresses A1/B1 (acc bits n+24).
+            std::string bt, loc, tgt;
+            if (toks.size() == 1) {
+                size_t c1 = toks[0].find(','), c2 = toks[0].find(',', c1 + 1);
+                bt = toks[0].substr(0, c1);
+                loc = toks[0].substr(c1 + 1, c2 - c1 - 1);
+                tgt = toks[0].substr(c2 + 1);
+            } else { bt = toks[0]; loc = toks[1]; tgt = toks[2]; }
+            int bit = absVal(bt);
+            int bitval;
+            if (loc == "a" || loc == "b") {
+                int64_t acc = getAcc(loc);
+                bitval = int((acc >> (bit + 24)) & 1);
+                int64_t mask = int64_t(1) << (bit + 24);
+                if (mnem == "bsset") acc |= mask;
+                else if (mnem == "bsclr") acc &= ~mask;
+                else acc ^= mask;
+                setReg(loc, acc);
+            } else {
+                uint32_t val = getReg24(loc);
+                bitval = int((val >> bit) & 1);
+                if (mnem == "bsset") val |= (1u << bit);
+                else if (mnem == "bsclr") val &= ~(1u << bit);
+                else val ^= (1u << bit);
+                setReg(loc, val);
+            }
+            bool taken = (mnem == "bsset") ? (bitval == 1) : (bitval == 0);
+            if (taken) return branchTarget(tgt);
+            return 0xFFFFFFFFu;
+        }
         if (mnem == "andi" || mnem == "ori") {
             uint32_t v = uint32_t(absVal(toks[0].substr(0, toks[0].find(','))));
             uint32_t cur = uint32_t(f.c | (f.v << 1) | (f.z << 2) | (f.n << 3));
@@ -735,6 +770,7 @@ struct DSPKernel {
             return 0xFFFFFFFFu;
         }
         if (mnem == "move") { doMoves(toks, 0); return 0xFFFFFFFFu; }
+        if (mnem == "movep") { doMoves(toks, 0); return 0xFFFFFFFFu; }  // I/O port move: same 24-bit data path
         if (mnem == "lua") {
             std::string srcTok, dst;
             size_t c = toks[0].find(',');
