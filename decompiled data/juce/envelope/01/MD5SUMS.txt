@@ -1,0 +1,12 @@
+e7f71e749eaa82c0f07778447134649b  00_README_FIRST_RU.txt
+dbfb828654fd31229b78e4c558471453  docs/ENV123_RAZBOR_RU.md
+19cb03175219cea14f8bc1b1471cfc19  docs/FMDYN_1FEN_1VEN_RU.md
+2711eaa7e296d83027c431fc4e52d295  docs/JUCE_ADAPT_AND_FIX_RU.md
+5107874f801c9ef43475ec6b58648180  docs/TAIL_PORT_RU.md
+c5b8cdc646875cf2dd71bfd36505539a  docs/disasm_ENV3_P04FF-0536.txt
+8feb3ddf3dc879b27aeb9b06a27a53c5  dsp/mnm/MnmTail.hpp
+00277a82b7136c17c1edbfcfce748ae6  juce/LegacyEnvFixer.py
+8ad8ee44f787a64073bebaf7561ef709  juce/MnmEnvLegacyFix.h
+c2f3cee13840473c451c9ea2c066ee02  tools/test_juce_fix_smoke.cpp
+6fb4b7dd155433f5dec4e15565edd191  tools/test_tail.cpp
+1a6fd19b7cee6e0b0db07d789e514a8a  vectors/tail_vectors.txt
