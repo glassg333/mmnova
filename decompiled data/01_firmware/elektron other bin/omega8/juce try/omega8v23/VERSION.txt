@@ -1,0 +1,1 @@
+r18.8 (v25) - 2026-10-01 - xmod center grid, lfo/pan clock syncs, bank 24 presets

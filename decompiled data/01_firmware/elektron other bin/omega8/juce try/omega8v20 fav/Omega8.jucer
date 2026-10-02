@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+<JUCERPROJECT id="Om8Proj" name="Omega8" projectType="audioplug" version="1.0.0" jucerFormatVersion="1" cppLanguageStandard="17" companyName="Glassg" bundleIdentifier="com.glassg.omega8" pluginName="Omega8" pluginDesc="Studio Electronics Omega 8 / Omega CODE emulation with original 176-byte patch support" pluginManufacturer="Glassg" pluginManufacturerCode="GlSs" pluginCode="OmE8" pluginFormats="buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn" pluginVST3Category="Instrument,Synth" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+  <MAINGROUP id="Om8Main" name="Omega8">
+    <GROUP id="g1" name="Source">
+      <FILE id="f1" name="PluginProcessor.cpp" compile="1" resource="0" file="Source/PluginProcessor.cpp" />
+      <FILE id="f2" name="PluginProcessor.h" compile="0" resource="0" file="Source/PluginProcessor.h" />
+      <FILE id="f3" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h" />
+      <FILE id="f4" name="OmegaEngine.h" compile="0" resource="0" file="Source/OmegaEngine.h" />
+      <FILE id="f5" name="OmegaPatch.h" compile="0" resource="0" file="Source/OmegaPatch.h" />
+      <FILE id="f11" name="OmegaBankData.h" compile="0" resource="0" file="Source/OmegaBankData.h" />
+    </GROUP>
+    <GROUP id="g2" name="banks">
+      <FILE id="f6" name="Omega8FactoryA-CS.syx" compile="0" resource="0" file="banks/Omega8FactoryA-CS.syx" />
+      <FILE id="f7" name="Omega8FactoryA-OBMoog.syx" compile="0" resource="0" file="banks/Omega8FactoryA-OBMoog.syx" />
+      <FILE id="f8" name="Omega8FactoryB-CS.syx" compile="0" resource="0" file="banks/Omega8FactoryB-CS.syx" />
+      <FILE id="f9" name="Omega8FactoryB-OBMoog.syx" compile="0" resource="0" file="banks/Omega8FactoryB-OBMoog.syx" />
+      <FILE id="f10" name="Omega8FactoryMulti.syx" compile="0" resource="0" file="banks/Omega8FactoryMulti.syx" />
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Omega8" optimisation="1" winArchitecture="x64" extraCompilerFlags="/utf-8" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Omega8" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" extraCompilerFlags="/utf-8" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+        <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+      </MODULEPATHS>
+    </VS2022>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Omega8" optimisation="1" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Omega8" optimisation="3" linkTimeOptimisation="0" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Omega8" optimisation="1" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Omega8" optimisation="3" linkTimeOptimisation="0" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_plugin_client" />
+        <MODULEPATH id="juce_audio_processors" />
+        <MODULEPATH id="juce_audio_utils" />
+        <MODULEPATH id="juce_audio_formats" />
+        <MODULEPATH id="juce_audio_devices" />
+        <MODULEPATH id="juce_audio_basics" />
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+  </MODULES>
+  <JUCEOPTIONS JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0" JUCE_VST3_CAN_REPLACE_VST2="0" />
+</JUCERPROJECT>
