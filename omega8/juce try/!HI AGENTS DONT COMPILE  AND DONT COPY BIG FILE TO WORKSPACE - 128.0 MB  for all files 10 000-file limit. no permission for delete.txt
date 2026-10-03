@@ -1,0 +1,45 @@
+# ИНСТРУКЦИЯ АГЕНТУ (читать ПЕРВЫМ ДЕЛОМ в каждой новой сессии)
+
+Проект: Monomachine-Nova (JUCE-плагин), workspace /home/user.
+Полная хроника и все решения: **/home/user/conversation_archive.md** (обновлять после каждого раунда!).
+Текущая работа: FX-слоты 1.8.4 (дизайн: /home/user/batches/rake_184_design.md).
+
+## ЖЕЛЕЗНЫЕ ПРАВИЛА WORKSPACE (нарушение = потеря снапшота!)
+1. ЛИМИТ СНАПШОТА: **128 MB / 10 000 файлов** на /home/user. Сейчас ~24M/460 — держать так.
+2. **JUCE НИКОГДА не копировать в workspace.** /tmp зачищается средой (даже посреди хода!) —
+   поэтому JUCE 8.0.4 СКАЧИВАЕТСЯ АВТОМАТИЧЕСКИ (см. ниже). За 1.6 c, не лениться, не изобретать.
+3. Артефакты сборки НЕ хранить: **в конце КАЖДОГО хода**:
+   `rm -rf /home/user/batches/hdtest/obj /home/user/batches/hdtest/{bench,hdtest,pphash,gmon.out}`
+   (obj ~18M + бинари ~20M за один билд).
+4. Большие файлы в mmnova не копировать (см. файл-предупреждение юзера в репо).
+
+## АВТО-СКАЧИВАНИЕ JUCE + ШИМ (уже встроено, просто использовать)
+**Единственный источник**: `/home/user/batches/setup_juce.sh` — идемпотентный:
+- если /tmp/JUCE/modules нет — качает JUCE 8.0.4 (github juce-framework, juce-8.0.4-linux.zip)
+  и распаковывает в /tmp/JUCE;
+- восстанавливает шим /tmp/hdtest/shim/{JuceHeader.h,JucePluginDefines.h}
+  (шим ОБЯЗАТЕЛЕН: проектный JuceHeader.h тянет juce_audio_processors_headless, которого
+  нет в zip 8.0.4; копии шима живут в batches/hdtest/shim/).
+
+ЭТО УЖЕ ВЫЗЫВАЕТСЯ внутри build_bench.sh первой строкой. Вручную:
+`bash /home/user/batches/setup_juce.sh`
+
+## СБОРКА (всё проверено 2026-09-25 с чистого /tmp)
+- Стенды: `bash /home/user/batches/hdtest/build_bench.sh <дерево> [bench|asan]`
+  (дерево = .../Monomachine_Nova_Synth или _FX). bench ~3 мин чистый, asan ~46 c после чистки /tmp.
+  RAM 1984MB swap 0: перед ASAN чистить /tmp; -g только точечно, потом -g0.
+- pphash (бит-эталон плагина): пересобрать obj/b_PP.o и obj/b_pphash.o, слинковать pphash
+  (рецепт линка = бенч с b_pphash.o вместо b_main.o; см. архив), прогнать:
+  **БАЗЛАЙН: PPHASH ec101520ac42bb83** (детерминирован). ЛЮБОЕ изменение плагина обязано
+  держать этот хеш, пока фича не должна менять звук (пустые FX-слоты).
+- Хорус-стенд: `g++ -O2 -std=c++17 -DNDEBUG -I Source/dsp main_chorus.cpp ChorusCore.cpp ChorusNative.cpp`
+  → BIT-EXACT PASS + silence PASS обязаны.
+- После смены PluginProcessor.h ИЛИ dsp-хедеров: rm obj/* ЦЕЛИКОМ.
+- Пайпы едят статусы (grep -c 0 → exit 1). Проверки не писать через |.
+
+## РЕЦЕПТ НОВОЙ СЕССИИ (с вайпом)
+1. Прочитать conversation_archive.md + этот файл + rake_184_design.md.
+2. mmnova уже в workspace (/home/user/mmnova) — не клонировать заново.
+3. Тары: /home/user/Monomachine-Nova-1.8.3.tar (1.8.3c), 1.7.11.tar.
+4. Сборка: см. выше (setup_juce.sh сам всё скачает).
+5. В конце хода: обновить архив + вычистить артефакты (п.3).
