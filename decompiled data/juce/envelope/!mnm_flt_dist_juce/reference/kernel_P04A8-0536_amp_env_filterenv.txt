@@ -1,0 +1,122 @@
+# Выписка из dsp1_kernel_P0000-0B4D.txt (OS 1.32B, DSP1), P:$04A8-$0537
+# Источник: репозиторий mmnova (decompiled data/04_listings/dispatch)
+
+0004A8: move y:>$124,a           ; 5EF000 000124
+0004AA: tst a                    ; 200003
+0004AB: bne func_0004f5          ; 05248A
+0004AC: move x:(r6+$0),a         ; 02069E
+0004AD: move y:(r6+$21),b        ; 0286FF
+0004AE: tst b #$0,x0             ; 24000B
+0004AF: tfr b,a ifne             ; 202201
+0004B0: move x0,y:(r6+$21)       ; 0286E4
+0004B1: move a,x:(r6+$0)         ; 02068E
+0004B2: cmp #<$1,a               ; 014185
+0004B3: bne func_0004c7          ; 052414
+0004B4: move y:(r6+$18),a        ; 0266BE
+0004B5: asr #$10,a,a             ; 0C1C20
+0004B6: move #>$141800,r4        ; 64F400 141800
+0004B8: move a,n4                ; 21DC00
+0004B9: move y:>$4ff,a           ; 5EF000 0004FF
+0004BB: move y:(r4+n4),y0        ; 4EEC00
+0004BC: add y0,a                 ; 200050
+0004BD: bes func_0004c1          ; 05D404
+0004BE: move a,y:>$4ff           ; 5E7000 0004FF
+0004C0: bra func_0004f5          ; 050C55
+0004C1: move a,y:>$4ff           ; 5E7000 0004FF
+0004C3: move #>$4,x0             ; 44F400 000004
+0004C5: move x0,x:(r6+$0)        ; 020684
+0004C6: bra func_0004f5          ; 050C4F
+0004C7: cmp #<$4,a               ; 014485
+0004C8: bne func_0004dc          ; 052414
+0004C9: move y:(r6+$1a),y0       ; 026EB6
+0004CA: mpy y0,y0,b #>$141880,r4 ; 64F498 141880
+0004CC: move y:(r6+$19),a        ; 0266FE
+0004CD: asr #$10,a,a             ; 0C1C20
+0004CE: move a,n4                ; 21DC00
+0004CF: move y:>$4ff,x1          ; 4DF000 0004FF
+0004D1: move y:(r4+n4),y0        ; 4EEC00
+0004D2: mpy -x1,y0,a             ; 2000E4
+0004D3: cmp b,a                  ; 200005
+0004D4: ble func_0004d8          ; 05F404
+0004D5: move a,y:>$4ff           ; 5E7000 0004FF
+0004D7: bra func_0004f5          ; 050C1E
+0004D8: move #>$5,x0             ; 44F400 000005
+0004DA: move x0,x:(r6+$0)        ; 020684
+0004DB: bra func_0004f5          ; 050C1A
+0004DC: cmp #<$5,a               ; 014585
+0004DD: bne func_0004e3          ; 052406
+0004DE: move y:(r6+$1a),x0       ; 026EB4
+0004DF: mpy x0,x0,a              ; 200080
+0004E0: move a,y:>$4ff           ; 5E7000 0004FF
+0004E2: bra func_0004f5          ; 050C13
+0004E3: cmp #<$2,a               ; 014285
+0004E4: bne func_0004f1          ; 05240D
+0004E5: move y:(r6+$1b),a        ; 026EFE
+0004E6: asr #$10,a,a             ; 0C1C20
+0004E7: move #>$141880,r4        ; 64F400 141880
+0004E9: move a,n4                ; 21DC00
+0004EA: move y:>$4ff,x1          ; 4DF000 0004FF
+0004EC: move y:(r4+n4),y0        ; 4EEC00
+0004ED: mpy -x1,y0,a             ; 2000E4
+0004EE: move a,y:>$4ff           ; 5E7000 0004FF
+0004F0: jmp func_0004f5          ; 0C04F5
+0004F1: move #>$7fffff,x0        ; 44F400 7FFFFF
+0004F3: move x0,y:>$4ff          ; 4C7000 0004FF
+0004F5: move #$dc,n6             ; 3EDC00
+0004F6: move r5,x:>$ff           ; 657000 0000FF
+0004F8: move #$97,r2             ; 329700
+0004F9: move #$d7,r3             ; 33D700
+0004FA: do #<$11,>$4fe           ; 061180 0004FD
+0004FC: move a,x:(r2)+ y:(r7)+,a ; FA7A00
+0004FD: move b,x:(r3)+ y:(r7)+,b ; FF7B00
+0004FE: lua (r6)+n6,r7           ; 044E17
+0004FF: move y:(r6+$20),a        ; 0286BE
+000500: cmp #<$1,a               ; 014185
+000501: bne func_000506          ; 052405
+000502: move #$0,x0              ; 240000
+000503: move x0,y:(r7-$1)        ; 03FFE4
+000504: move x0,y:(r6+$20)       ; 0286A4
+000505: move x0,x:(r7-$1)        ; 03FFC4
+000506: move y:(r7-$1),a         ; 03FFFE
+000507: tst a                    ; 200003
+000508: bne func_000517          ; 05240F
+000509: move y:(r6+$c),a         ; 0236BE
+00050A: asr #$10,a,a             ; 0C1C20
+00050B: move x:(r7-$1),b         ; 03FFDF
+00050C: move a,r4                ; 21D400
+00050D: move y:(r4+$141800),y0   ; 0B74C6 141800
+00050F: add y0,b                 ; 200058
+000510: bec func_000515          ; 055405
+000511: move #>$1,x0             ; 44F400 000001
+000513: move x0,y:(r7-$1)        ; 03FFE4
+000514: move x0,x:(r7-$2)        ; 03FF84
+000515: move b,x:(r7-$1)         ; 03FFCF
+000516: bra func_000537          ; 050C41
+000517: cmp #<$1,a               ; 014185
+000518: bne func_00052b          ; 052413
+000519: clr a                    ; 200013
+00051A: move y:(r6+$23),y0       ; 028EF6
+00051B: move a,x0                ; 21C400
+00051C: mpy y0,x0,b              ; 2000D8
+00051D: move x:(r7-$2),a         ; 03FF9E
+00051E: move b,x1                ; 21E500
+00051F: mpyi #>$791fd0,x1,b      ; 0141E8 791FD0
+000521: asl b                    ; 20003A
+000522: add #<$1,a               ; 014180
+000523: cmp b,a                  ; 200005
+000524: blt func_000529          ; 059405
+000525: move #>$2,x0             ; 44F400 000002
+000527: move x0,y:(r7-$1)        ; 03FFE4
+000528: bra func_00052b          ; 050C03
+000529: move a,x:(r7-$2)         ; 03FF8E
+00052A: bra func_000537          ; 050C0D
+00052B: move y:(r6+$d),a         ; 0236FE
+00052C: add #>$7fff,a            ; 0140C0 007FFF
+00052E: asr #$10,a,a             ; 0C1C20
+00052F: rnd a                    ; 200011
+000530: move a,r4                ; 21D400
+000531: move x:(r7-$1),b         ; 03FFDF
+000532: move y:(r4+$141a00),y0   ; 0B74C6 141A00
+000534: sub y0,b                 ; 20005C
+000535: clr b ifmi               ; 202B1B
+000536: move b,x:(r7-$1)         ; 03FFCF
