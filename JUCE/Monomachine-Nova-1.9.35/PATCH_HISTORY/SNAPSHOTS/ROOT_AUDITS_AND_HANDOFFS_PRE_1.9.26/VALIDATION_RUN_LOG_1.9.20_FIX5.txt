@@ -1,0 +1,102 @@
+Журнал проверки Monomachine Nova 1.9.20
+Дата: 29.09.2026
+
+Эта запись относится к повторному прогону ПОСЛЕ сверки маршрутизации с
+Package-8 `MnmVoiceFrame` из указанного upstream-пути.
+
+ПРОВЕРКА UPSTREAM-ОРАКУЛА МАРШРУТИЗАЦИИ
+Источник:
+https://github.com/glassg333/mmnova/tree/main/decompiled%20data/juce/fm/%21fm%20fix%20patch/5%20fix%20pitch%2Benv%20fm%20full
+
+Команды в checkout upstream:
+  g++ -O2 -std=c++17 -I dsp/mnm test_voice_frame.cpp -o test_voice_frame
+  ./test_voice_frame vectors/voice_frame_vectors.txt
+
+Результат:
+  checks=392824 mismatches=0 sets_with_mism=0
+  [100% VOICE-FRAME BIT-EXACT]
+
+Подтверждено: P:$0A22/$0AB7 читают самостоятельные stage-2 слова
+Y:$414..$417, а не P1 FILT ENV Y:$40C/$40D. Полный разбор находится в
+ROUTING_AUDIT_PACKAGE8_2026-09-29.md.
+
+ПРОВЕРЕНЫ ОБА ПРОДУКТА
+- Monomachine_Nova_Synth
+- Monomachine_Nova_FX
+
+СТАТИЧЕСКАЯ ПРОВЕРКА
+Команда: python3 verify_dsp_mode_patch.py
+Результат в обоих продуктах: FM_FIX5_STATIC_VERIFY PASS
+
+В частности проверяются:
+- сохранённые FM+ fingerprints, стабильные ID/schema и отдельный OLD FIX;
+- изоляция TRY4 и Fix-5;
+- DSND как Q23 host-side mono-send;
+- отсутствие ложного P1 FILT ATK/DEC -> stage-2 bank/depth alias;
+- отделение native stage-2 `$414..$417` от P1 filter-env `$40C..$411`.
+
+АВТОНОМНЫЕ C++17-ТЕСТЫ
+Флаги: g++ -std=c++17 -O2 -Wall -Wextra -Werror -I Source
+
+В обоих продуктах повторно скомпилированы и выполнены:
+- FmExperimentsTests
+- FmFixModeTests
+- FmNewModeTests
+- ModeRollbackTests
+- Fix5PluginLevelTests (fixture fix5_plugin_level_vectors.txt)
+- DelayFeedbackDspTests
+- MnmCoreTests
+- FilterRouteTests
+- TrackFilterRouteIntegrationTests
+- MnmRealFilterTests
+- FilterExtrasDspTests
+- Import2FiltersTests
+- HybridDspTests
+- ModEnvMatrixTests
+- DistVariantTests
+- TrackDistVariantIntegrationTests
+
+Ключевые результаты:
+- Package-5 TRY4: STAT/PAR/DYN, stereo/release/FM-AMP page-map и изоляция — PASS.
+- DSND: Q23-моно-посыл; LFO меняет только уровень посыла; P1 FILT ENV не
+  глушит и не переставляет delay-возврат — PASS.
+- Fix-5: 9556 проверок, 0 несовпадений — PASS.
+- Маршруты и импортированные фильтры — PASS.
+
+СИНТАКСИЧЕСКИЙ АУДИТ
+С помощью g++ -std=c++17 -fsyntax-only и внешнего JUCE 8.0.12 успешно
+разобраны в обоих продуктах Source/NovaDSP.h, Source/PluginProcessor.cpp и
+Source/PluginEditor.cpp.
+
+ODR-РЕМОНТ TRY4 / VST3 LINK
+Из Windows-лога внешней сборки установлен прежний блокер в обоих продуктах:
+`LNK2005` для `try4voicefm::MnmPanTables::{s_sin,s_cos,s_built}` между
+`PluginProcessor.obj` и `PluginEditor.obj`, затем `LNK1169`; полученный VST3
+bundle не содержит корректный binary.
+
+В обоих `Source/dsp/fm_try4_voice/Try4VoiceAmpEnv.hpp` три storage definitions
+переведены в C++17 `inline`. Это только ODR/linkage repair: DSP tables и законы
+не менялись. Новый verifier требует все три `inline` definitions.
+
+Отдельный portable two-TU regression после ремонта:
+  g++ -std=c++17 -O2 -Wall -Wextra -Werror -I Source a.cpp b.cpp
+где обе TU включают TRY4 header и обращаются к `sinTable()`/`cosTable()`.
+Результат: PASS для Monomachine_Nova_Synth и Monomachine_Nova_FX.
+Также после ремонта заново прошли все 16 автономных строгих C++17-тестов
+каждого продукта; `Fix5PluginLevelTests` был запущен с поставленным immutable
+fixture `tests/fixtures/fix5_plugin_level_vectors.txt`.
+
+Windows VST3 rebuild после ремонта остаётся обязательной внешней проверкой;
+сообщение wrapper-а об успехе нельзя считать pass при LNK error/0 B bundle.
+
+МАНИФЕСТЫ
+Оба SOURCE_BUILD.json обновлены и проверены: 222/222 SHA-256 в каждом
+продукте совпадают. Верхний PACKAGE_MANIFEST_SHA256.txt также пересобран и
+проверен после ODR repair.
+
+НЕ ВЫПОЛНЕНО В ЭТОЙ СРЕДЕ
+- CMake/CTest (команда cmake отсутствует);
+- Windows Projucer/VS2022/VST3 build;
+- DAW, automation и прослушивание.
+
+Обязательные внешние проверки описаны в PATCH_HISTORY/FIXES_APPLIED_1.9.21.md#validation-1-9-20-fix5-md.

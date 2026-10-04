@@ -1,0 +1,47 @@
+Monomachine Nova 1.9.21 — проверка source-only коррекции
+Дата: 30.09.2026
+
+Статус
+======
+Этот лог относится к действующей коррекции исходников. Он не заменяет
+VALIDATION_RUN_LOG_1.9.21_TRACK_DELAY_HOTFIX.txt: тот файл сохранён как история
+отозванной route-гипотезы.
+
+Проверено
+=========
+
+1. Static verifier
+   python3 verify_dsp_mode_patch.py
+   Synth: FM_FIX5_STATIC_VERIFY PASS
+   FX:    FM_FIX5_STATIC_VERIFY PASS
+
+   Проверка включает factory DSND=64, исходный P2 CHORUS/MIX=127, отсутствие
+   trackDelayDefaultRouteV1 migration, отсутствие выдуманной DSND L/R/ping-pong
+   семантики, сортировку меню фильтров, envelope tab handoff/selected-state,
+   keytrack/P2-bypass guard и сохранённые FM/Fix-5 границы.
+
+2. Узкий C++17 syntax-check с JUCE 8.0.12
+   g++ -std=c++17 -fsyntax-only
+   - Synth: Source/PluginEditor.cpp — PASS
+   - Synth: Source/PluginProcessor.cpp — PASS
+   - FX:    Source/PluginEditor.cpp — PASS
+   - FX:    Source/PluginProcessor.cpp — PASS
+
+   Были только уже существующие предупреждения JUCE 8 о deprecated
+   конструкторе juce::Font; ошибок компиляции нет.
+
+3. Узкие автономные DSP-тесты из Synth-ветки
+   - MnmRealFilterTests — «ВСЕ ТЕСТЫ РЕАЛЬНОГО ФИЛЬТРА ПРОЙДЕНЫ»;
+   - FilterExtrasDspTests — PASS.
+
+   Проверяемые core-файлы зеркально совпадают между Synth и FX:
+   NovaData.h, PluginProcessor.cpp, track_pages.hpp, PluginEditor.cpp,
+   NovaDSP.h, MnmRealFilter.hpp, monomachine_filter.hpp и verifier.
+
+Не выполнялось
+=============
+
+Не выполнялись audio render, полная CMake/CTest/VST3-сборка, создание VST3 и
+DAW-прослушивание. В частности, этот лог не заявляет найденный или исправленный
+left/ping-pong delay-route: такой перенос сознательно не сделан без полного
+upstream code/vector доказательства.

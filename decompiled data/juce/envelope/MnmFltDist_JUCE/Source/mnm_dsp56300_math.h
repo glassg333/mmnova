@@ -121,6 +121,20 @@ static inline uint64_t div24(uint64_t dhi_dlo, int32_t divisor) noexcept
     return D;
 }
 
+// DSP56300 Data Limit Checking (FM §5.4.1.2) — перенос A/B в x0/x1/y0/y1
+// или ПАМЯТЬ насыщает слово, если 56-бит аккумулятор вне 24-битного домена
+// (макс. в домене $7FFFFF.FFFFFF, мин. −$800000.000000). Явные части
+// (a0/a1/a2) лимитер обходят. На реальном железе включён всегда.
+// Верифицировано на эмуляторе ядра: eps-путь кольца P:$0591 (move b,x0)
+// насыщается до $7FFFFF при больших WDTH (диагностика 2026-10-04,
+// sweep_ring_grid: Y05=7FFFFF, Y04≈−1.0 — 15 точек сетки).
+static inline uint32_t limit24(int64_t v) noexcept
+{
+    if (v >  0x007FFFFFFFFFFFll) return 0x7FFFFFu;
+    if (v < -(int64_t)0x00800000000000ll) return 0x800000u;
+    return (uint32_t)accB1(v);
+}
+
 // Q1.23 слово -> float (точное)
 static inline float q23ToF(uint32_t w) noexcept
 {

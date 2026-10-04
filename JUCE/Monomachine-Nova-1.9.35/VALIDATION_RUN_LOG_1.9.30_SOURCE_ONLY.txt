@@ -1,0 +1,58 @@
+Monomachine Nova 1.9.30 — проверка source-only, DFB runtime recalibration
+Дата: 01.10.2026.
+
+## История текущей ревизии
+
+- Пользовательское runtime-сравнение сняло ранний DFB capture/HOLD law: он
+  ломал базовую реакцию feedback на коротких/длинных временах. Полный снятый
+  README/source-map/correction/validation сохранён без сокращения в
+  `PATCH_HISTORY/SNAPSHOTS/DFB_CAPTURE_HOLD_WITHDRAWN_1.9.30/`.
+- Первый old-base промежуточный вариант `63..64=unity`, `65=65/63` также
+  **снят после следующего пользовательского сравнения**: `65` слишком резко
+  заводился, а граница original была сдвинута на один raw step.
+- Текущая калибровка не добавляет compressor. `FB CLIP` теперь объединяет
+  level-dependent soft feedback governor и final write guard; он factory-default
+  ON и остаётся доступной видимой галочкой вместе с обоими DSND FB INVERT.
+
+## Текущий source contract
+
+- Default `DFB DYNAMICS=ON`: `1..62` — статичный `raw/63`; `63=62/63`;
+  `64=1.0`; `65=64/63`; `66..127` поднимаются по `RISE` к ceiling `1.0625`; `0` —
+  единственный smooth `ZERO TAIL` release без clear. `64` не захватывает
+  прежнее горячее значение.
+- При `FB CLIP=ON` feedback-loop level наблюдается после всех OLD/MNM/NEW
+  cores. Малые повторы растут естественно; возле `0.85` internal plateau
+  over-unity coefficient плавно возвращается к unity. Raw `73` не трактуется
+  как HOLD. OFF отключает governor и final write guard для явного A/B.
+- `DYNAMICS=OFF` сохраняет прямой legacy A/B путь `raw/63`.
+- Schema 39 добавляет persistent RMB `DFB / TUNE`: `LOW DIV`, `SOFT RAW/FB`,
+  `UNITY RAW`, `HOT RAW/FB`, `CEILING`, `PLATEAU`, `ATTACK`, `RELEASE` и два
+  live graph. Их defaults в точности остаются этой текущей кривой; P1/P2
+  хранятся отдельно. Старые state получают только absent defaults, saved tuning
+  не перезаписывается. DSP нормализует порядок raw anchors и finite bounds.
+- Factory defaults RMB DFB: `DYNAMICS=ВКЛ`, `DSND + FB INVERT=ВКЛ`,
+  `DSND - FB INVERT=ВЫКЛ`, `RETURN COMP=ВЫКЛ`, `FB CLIP=ВКЛ`. В panel все
+  пять чекбоксов имеют видимый квадрат и текстовый state `ВКЛ/ВЫКЛ`.
+- В DTIM/BPM mini-panel free-time slider `МАКС. @127` и его readout скрыты,
+  пока BPM checkbox включён; `REPITCH`/`SMOOTH` сдвигаются вверх.
+- `FxSlotEngine` остаётся `DFB_ROUTE_UNRESOLVED`: custom FX-slot DFB route не
+  додуман и не заявлен подтверждённым.
+
+## Выполненная статическая проверка
+
+- `python3 FM_MODE_CLEANUP_STATIC_CHECK.py`: запускается только как source-only
+  audit. Он проверяет DFB law, factory defaults чекбоксов, schema-39 TUNE
+  migration, оба live graph, Synth/FX mirrors, source manifests и согласованные
+  `1.9.30` CMake/.jucer/JUCE BUILD markers.
+- Final `python3 FM_MODE_CLEANUP_STATIC_CHECK.py`: **OK** после schema-39
+  Synth/FX mirror и детерминированного пересоздания обоих `SOURCE_BUILD.json`.
+  Аудит подтвердил TUNE parameter/migration/live-graph wiring, default curve,
+  byte-identical Source/tests и существующие boundaries.
+- Чистый `Monomachine-Nova-1.9.30-source-2026-10-01.tar.gz` пересобран и
+  source-only archive audit сверил 459 записей `PACKAGE_MANIFEST_SHA256.txt`
+  и сам manifest внутри архива. Build/render при этом не запускались.
+
+Не выполнялось:
+- полная Projucer/Visual Studio сборка;
+- CTest, плагинные или executable DSP tests;
+- VST3/DAW проверка или render.

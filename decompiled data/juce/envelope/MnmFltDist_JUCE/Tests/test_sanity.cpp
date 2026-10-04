@@ -45,18 +45,24 @@ static void testTables()
 
 static void testDiv24()
 {
-    std::printf("— div24 (репликация op_Div эталона dsp56300):\n");
-    // Структурная репликация op_Div (dsp_ops_alu.inl). Начальное состояние
-    // acc (A2/C) — OPEN до прогона на эмуляторе; проверяем детерминированность
-    // и ограниченность следствий (кольцо, см. testRing).
+    std::printf("— div24 (24-шаговое DIV DSP56300, делимое 1<<24 — доказано эмулятором):\n");
+    // Трасса diag_ring_0592.py 2026-10-04: move #$1,a даёт A = 1<<24
+    // (левое выравнивание imm8), после 24 div A = 00005E9C000075 →
+    // q0 = 0x75 = 2^24/143188 (avg kDiv1[0]+kDiv2[0]). Бит-в-бит с ядром.
+    {
+        const int32_t avg0 = (sext24(kDiv1[0]) + sext24(kDiv2[0])) >> 1;
+        const uint64_t D = div24(1ull << 24, avg0);
+        char buf[64]; std::snprintf(buf, 64, "(avg=%d q0=%06X)", avg0, (unsigned)(D & 0xFFFFFF));
+        check(avg0 == 143188 && (D & 0xFFFFFF) == 0x75,
+              "div24(1<<24, 143188) == 0x75 — пин ядра (трасса $0588/$0589)", buf);
+    }
     bool deterministic = true;
     for (int t = 0; t < 32; ++t)
     {
         const int idx = (t * 97) % 1201, widx = (t * 31) % 128;
-        const int32_t sumw = (int32_t)kDiv1[idx] + (int32_t)kDiv2[widx];
-        const int32_t avgw = sumw >> 1;
-        const uint64_t D1 = div24((uint64_t)(uint32_t)avgw << 24, sumw);
-        const uint64_t D2 = div24((uint64_t)(uint32_t)avgw << 24, sumw);
+        const int32_t avgS = (sext24(kDiv1[idx]) + sext24(kDiv2[widx])) >> 1;
+        const uint64_t D1 = div24(1ull << 24, avgS);
+        const uint64_t D2 = div24(1ull << 24, avgS);
         if (D1 != D2) deterministic = false;
     }
     check(deterministic, "div24 детерминирован");
@@ -133,44 +139,70 @@ static void testEnv2()
 
 static void testRing()
 {
-    std::printf("— кольцо коэффициентов (P:$0576-$059A):\n");
+    std::printf("— кольцо коэффициентов (P:$0576-$059A, пины эмулятора):\n");
     {
         const int i0 = (int)((0ull * 0x4AF) >> 23);
         const int iMax = (int)(((uint64_t)0x7FFFFF * 0x4AF) >> 23);
         char buf[64]; std::snprintf(buf, 64, "(0..%d из 1201)", iMax);
         check(i0 == 0 && iMax >= 1190 && iMax <= 1200, "индекс kDiv1 покрывает таблицу", buf);
     }
+    // Пины: снимены с эмулятора ядра (sweep_ring_grid.py, 30/30 бит-в-бит).
+    // Формула: epsW = limit24((q0·dif·2)<<6) [P:$0591, ЛИМИТЕР FM §5.4.1.2];
+    //          Y04 = limit24((−c2·eps·2 − c2·2^24) >> 1) [P:$0592-0594, asr a!]
+    struct Pin { unsigned bk, wk, y04, y05; };
+    const Pin pins[] = {
+        {  0,   0, 0xBFFFB3, 0x0000EE },
+        {  0,  64, 0x800055, 0x7FFFFF },   // зона лимитера eps
+        {  0, 127, 0x800055, 0x7FFFFF },
+        {  64,  64, 0x80D9E7, 0x7FFFFF },
+        { 115,  66, 0xFB8401, 0x7FFFFF },
+        { 127,   0, 0x3CA5E1, 0xFFFF28 },
+        { 127, 127, 0x71E202, 0x705922 },
+    };
+    bool pinsOK = true;
+    for (const Pin& p : pins)
+    {
+        const FilterRing r = computeRing(p.bk << 16, p.wk << 16);
+        if (fToQ23(r.c[0]) != p.y04 || fToQ23(r.c[1]) != p.y05)
+            pinsOK = false;
+    }
+    check(pinsOK, "7 пинов эмулятора Y04/Y05 бит-в-бит (вкл. зону лимитера)");
     {
         const FilterRing r = computeRing(0x400000u, 0x400000u);
         check(std::isfinite(r.c[0]) && std::isfinite(r.c[1]) &&
               std::isfinite(r.c[2]) && std::isfinite(r.c[3]), "коэффициенты конечны");
-        check(r.c[1] >= -1.0f && r.c[1] < 1.0f, "eps в модуле 2^24: eps ∈ [−1,1)");
-        // формула выхода P:$0592: c[0] = −kCoeff2[idx]·(0.5+eps);
-        // при несвязанных BASE×WDTH знак c[0] НЕ инвариант ядра
-        // (eps<−0.5 даёт c[0]>0 — см. probe_eps, ядро это выдаёт)
-        const int idx64 = (int)(((uint64_t)0x400000u * 0x4AFull) >> 23);
-        const float c2 = q23ToF(kCoeff2[(size_t)idx64]);
-        const float expect = -c2 * (0.5f + r.c[1]);
-        check(std::abs(r.c[0] - expect) < 1e-6f,
-              "c[0] = −c2·(0.5+eps) точно (P:$0592)");
+        check(r.c[1] >= -1.0f && r.c[1] <= 1.0f, "eps в домене лимитера: eps ∈ [−1, +1]");
         const FilterRing r2 = computeRing(0x7FFFFFu, 0x400000u);
         check(r.c[0] != r2.c[0], "кольцо зависит от BASE");
     }
     {
-        bool bounded = true;
-        for (int k = 0; k < 128 && bounded; k += 7)
-            for (int w = 0; w < 128 && bounded; w += 11)
+        // полная сетка 128×128: словная формула с asr (P:$0594) и лимитером
+        bool exact = true;
+        for (int k = 0; k < 128 && exact; ++k)
+            for (int w = 0; w < 128 && exact; ++w)
             {
-                const FilterRing r = computeRing((uint32_t)k << 16, (uint32_t)w << 16);
-                const int idx = (int)(((uint64_t)(uint32_t)(k << 16) * 0x4AFull) >> 23);
-                const float c2 = q23ToF(kCoeff2[(size_t)std::clamp(idx, 0, 1200)]);
-                const float expect = -c2 * (0.5f + r.c[1]);
-                if (!(r.c[1] >= -1.0f && r.c[1] < 1.0f &&
-                      std::abs(r.c[0] - expect) <= 1e-6f * std::max(1.0f, std::abs(expect)) &&
-                      std::isfinite(r.c[2]) && std::isfinite(r.c[3])))
-                    bounded = false;
+                const uint32_t bw = (uint32_t)k << 16, ww = (uint32_t)w << 16;
+                const FilterRing r = computeRing(bw, ww);
+                const int idx = std::clamp((int)(((uint64_t)bw * 0x4AFull) >> 23), 0, 1200);
+                const int widx = std::clamp((int)(((uint64_t)ww * 128ull) >> 23), 0, 127);
+                const int32_t avgS = (sext24(kDiv1[(size_t)idx]) + sext24(kDiv2[(size_t)widx])) >> 1;
+                const uint64_t D = div24(1ull << 24, avgS);
+                const int32_t q0 = (int32_t)(D & 0xFFFFFFu);
+                const int32_t difW = sext24((uint32_t)(kDiv2[(size_t)widx] - kDiv1[(size_t)idx]));
+                int64_t b = (int64_t)sext24((uint32_t)q0) * (int64_t)difW * 2;
+                b <<= 6;
+                const uint32_t epsW = limit24(b);
+                const int32_t c2s = sext24(kCoeff2[(size_t)idx]);
+                int64_t A = (int64_t)-c2s * (int64_t)sext24(epsW) * 2;
+                A -= (int64_t)c2s << 24;
+                A >>= 1;
+                const uint32_t y04 = limit24(A);
+                if (fToQ23(r.c[0]) != y04 || fToQ23(r.c[1]) != epsW ||
+                    fToQ23(r.c[2]) != kWidth1[(size_t)widx] ||
+                    fToQ23(r.c[3]) != kWidth2[(size_t)widx])
+                    exact = false;
             }
-        check(bounded, "полная сетка BASE×WDTH: формула P:$0592, eps ∈ [−1,1), конечность");
+        check(exact, "сетка 128×128: словная формула P:$0581-059A бит-в-бит (asr + лимитер)");
     }
 }
 

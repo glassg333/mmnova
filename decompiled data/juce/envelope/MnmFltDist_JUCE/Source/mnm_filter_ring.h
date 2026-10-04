@@ -14,13 +14,29 @@
 // [A] КОЛЬЦО (P:$0573-$059A, ступень целиком до $05A2) — питает каскад 1 (func_000340):
 //       r0 = (baseWord·$4AF·2)>>24   [P:$0576 mpyi #>$4af]  0..1199
 //       r2 = (widthWord·$80·2)>>24   [P:$057A mpyi #>$80]   0..127
-//       avg  = (kDiv1[r0] + kDiv2[r2]) >> 1                     [P:$0581-0582]
+//       avg  = (s24(kDiv1[r0]) + s24(kDiv2[r2])) >> 1           [P:$0581-0585]
 //       div24: q0 = 1.0 / avg (24 шага)                         [P:$0583-0588]
-//       eps  = q0·(kDiv2[r2]−kDiv1[r0])·2^6                     [P:$0589-0591]
-//       Y:$04 = −kCoeff2[r0]·(0.5+eps)                          [P:$0592-0593]
-//       Y:$05 = eps, Y:$06 = kWidth1[r2], Y:$07 = kWidth2[r2]   [P:$0595/0597/059A]
-//     Репликация div-пути верифицирована 9/9 конфигураций бит-в-бит
-//     (pack probe_eps.py); каскад func_000340 — бит-в-бит (svf_fit340.py).
+//       eps56 = (q0·dif·2) << 6,  dif = слово (kDiv2−kDiv1)     [P:$0589-058F]
+//       Y:$05 = limit24(eps56)  — ЛИМИТЕР FM §5.4.1.2!          [P:$0591]
+//       Y:$04 = limit24( (−c2·Y05·2 − c2·2^24) >> 1 )           [P:$0592-0594/0599]
+//             = −c2·(0.5 + Y05/2)  — asr a (P:$0594) = защитное деление
+//       Y:$06 = kWidth1[r2], Y:$07 = kWidth2[r2]                [P:$0595/0597]
+//     P:$0594 (asr a #$93,r1) — арифметический сдвиг аккумулятора вправо
+//     на 1 ПЕРЕД store; без него Y04 ровно ×2 (поймано трассировкой
+//     diag_ring_0592.py 2026-10-04: A=-800098FF61F4 → asr → -40004C7FB0FA
+//     → a1 = BFFFB3).
+//     ЛИМИТЕР (FM §5.4.1.2): перенос аккумулятора в x0/память насыщает
+//     слово при выходе 56-бит значения за 24-битный домен. В кольце он
+//     срабатывает ДВАЖДЫ: (1) eps-слово P:$0591 — при больших WDTH разница
+//     div2−div1 ≈ 8·10^6 и eps56 ≈ 5·10^8 ≫ 2^24 → Y05 зажимается в
+//     $7FFFFF, Y04 ≈ −1.0 (зона максимального расхождения пары SVF);
+//     (2) store Y04 P:$0599 — страховка на границе домена.
+//     Без лимитера сетка BASE×WDTH расходилась с ядром в 15/30 точках
+//     (sweep_ring_grid.py), с ним — бит-в-бит.
+//     Репликация верифицирована: probe_eps.py 9/9 (WDTH=0, малые eps) +
+//     sweep_ring_grid.py 30/30 точек эмулятора на сетке BASE×WDTH.
+//     Попутно ядро публикует q0/eps в X:$93/$94/$96/$97 (скретч r1/r0,
+//     P:$059C-05A0) — вне потока данных порта, не моделируется.
 //
 // [B] TONE-ПУТЬ (P:$0537-$0572 + P:$05FF-$0649 + P:$07D2-$07DB) — индекс среза:
 //       idx = (BASEword·$800·2>>24) − $80                       [P:$0538-053A]
@@ -72,25 +88,31 @@ inline FilterRing computeRing(uint32_t baseWord, uint32_t wdthWord) noexcept
     int widx = (int)(((uint64_t)wdthWord * 128ull) >> 23);            // P:$057A
     widx = widx > 127 ? 127 : (widx < 0 ? 0 : widx);
 
-    // avg = (div1+div2)>>1 — СЫРЫЕ СЛОВА [P:$0581-0582: add y1,b / asr b]
-    const int32_t avgWord =
-        ((int32_t)(kDiv1[(size_t)idx] & 0xFFFFFFu) + (int32_t)(kDiv2[(size_t)widx] & 0xFFFFFFu)) >> 1;
+    // avg = (div1+div2)>>1 — ЗНАКОВАЯ сумма, арифметический сдвиг
+    // [P:$0581-0585: 56-бит add/asr, слово в x1]
+    const int32_t avgS = (sext24(kDiv1[(size_t)idx] & 0xFFFFFFu)
+                        + sext24(kDiv2[(size_t)widx] & 0xFFFFFFu)) >> 1;
 
     // 24-шаговое DIV: 1.0 / avg  [P:$0583 move #>1,a … P:$0588 div x1,a]
-    const uint64_t D = div24(1ull << 24, sext24((uint32_t)avgWord));
+    const uint64_t D = div24(1ull << 24, avgS);
     const int32_t q0 = (int32_t)(D & 0xFFFFFFu);                      // a0 = частное
 
-    // eps = q0·(div2−div1)·2^6  [P:$0589-0591: sub x0,b; mpy x1,x0; asl #$6]
-    const int32_t dDif = (int32_t)(kDiv2[(size_t)widx] & 0xFFFFFFu)
-                       - (int32_t)(kDiv1[(size_t)idx] & 0xFFFFFFu);
-    int64_t b = (int64_t)sext24((uint32_t)q0) * (int64_t)dDif * 2;    // mpy <<1
-    b = (int64_t)(((uint64_t)(b << 6)) & ACC56_MASK);                 // asl #$6
-    const float eps = q23ToF((uint32_t)accB1(b));
+    // eps: 56-бит (q0·dif·2)<<6; слово — ЧЕРЕЗ ЛИМИТЕР [P:$0591 move b,x0]
+    // разница — как ЗНАКОВОЕ 24-битное слово (56-бит sub, слово в x0, $058D)
+    const int32_t difW = sext24((uint32_t)((kDiv2[(size_t)widx] - kDiv1[(size_t)idx]) & 0xFFFFFFu));
+    int64_t b = (int64_t)sext24((uint32_t)q0) * (int64_t)difW * 2;    // mpy <<1
+    b <<= 6;                                                          // asl #$6 (|b| < 2^54, без заворота 56 бит)
+    const uint32_t epsW = limit24(b);
+    const float eps = q23ToF(epsW);
 
     FilterRing r;
-    const float c2 = q23ToF(kCoeff2[(size_t)idx]);
-    // Y:$04 = −coeff2·(0.5+eps)  [P:$058D add x1 (=0.5+eps); P:$0592 mpy -y0,x0 → минус]
-    r.c[0] = -c2 * (0.5f + eps);
+    // Y:$04 [P:$0592-0594/0599]: A = (−c2)·Y05·2 (mpy -y0,x0,a) − c2·2^24
+    // (sub y0,a), затем ASR A >> 1 (P:$0594!) — store ЧЕРЕЗ ЛИМИТЕР ($0599).
+    const int32_t c2s = sext24(kCoeff2[(size_t)idx] & 0xFFFFFFu);
+    int64_t A = (int64_t)-c2s * (int64_t)sext24(epsW) * 2;            // mpy -y0,x0,a
+    A -= (int64_t)c2s << 24;                                          // sub y0,a
+    A >>= 1;                                                          // P:$0594 asr a
+    r.c[0] = q23ToF(limit24(A));                                      // 0599 move a,y:(r4)+ — лимитер
     r.c[1] = eps;                                     // Y:$05 [P:$059A move x0,y:(r4)+]
     r.c[2] = q23ToF(kWidth1[(size_t)widx]);           // Y:$06 [P:$0595 x:(r2+$1444c6)]
     r.c[3] = q23ToF(kWidth2[(size_t)widx]);           // Y:$07 [P:$0597 x:(r2+$144546)]

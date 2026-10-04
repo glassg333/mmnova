@@ -1,0 +1,35 @@
+Monomachine Nova 1.9.30 — проверка source-only
+Дата: 01.10.2026.
+
+Выполнено:
+- `python3 FM_MODE_CLEANUP_STATIC_CHECK.py`: OK.
+- Статически подтверждён stateful DFB contract в обоих зеркальных targets:
+  после `prepare/reset` active feedback начинается с `1.0`; `65..127`
+  заряжает один bounded state, `0..63` разряжает этот же state, `64`
+  bit-identical удерживает захваченное значение, `0` выполняет smooth
+  `ZERO TAIL` release без clear. `DYNAMICS=OFF` остаётся legacy `raw/63` A/B.
+- Static checker подтверждает default-ON RMB parameter family, audio-rate
+  вызов controller в TrackDelay OLD/MNM/NEW и byte-identical mirrors
+  Synth/FX, включая обновлённый source-regression файл. Executable regression
+  не запускался.
+- `FxSlotEngine` статически помечен `DFB_ROUTE_UNRESOLVED`: custom FX-slot
+  DFB route не реализован и не заявлен подтверждённым.
+- Обе `SOURCE_BUILD.json` пересозданы детерминированно: по 167 tracked files;
+  hashes совпали с содержимым targets.
+- CMake, `.jucer`, JUCE generated metadata, видимый BUILD marker и source
+  metadata согласованы с версией `1.9.30`.
+- Удалены две byte-identical, не referenced проектом generic копии
+  `JuceLibraryCode/ReadMe.txt`; Projucer при необходимости генерирует такие
+  служебные notice-файлы заново.
+- Полные README и validation log 1.9.27 сохранены без сокращения в
+  `PATCH_HISTORY/SNAPSHOTS/RELEASE_1.9.27_SOURCE_ONLY/`.
+
+Не выполнялось:
+- полная Projucer/Visual Studio сборка;
+- CTest, плагинные или executable DSP tests;
+- VST3/DAW проверка или render.
+
+Ограничение маршрута:
+- DFB capture/HOLD controller подтверждён только в существующем TrackChain
+  delay пути. Для custom `FxSlotEngine` не добавлялся guessed setter, snapshot
+  map или DSP routing; этот вопрос остаётся отдельным будущим решением.

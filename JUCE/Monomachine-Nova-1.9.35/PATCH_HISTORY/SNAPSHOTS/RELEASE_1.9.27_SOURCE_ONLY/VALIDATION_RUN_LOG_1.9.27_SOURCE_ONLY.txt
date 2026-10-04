@@ -1,0 +1,95 @@
+Monomachine Nova 1.9.27 — проверка source-only
+Дата: 30.09.2026.
+
+Выполнено:
+- FM_MODE_CLEANUP_STATIC_CHECK.py: OK после снятия retired FM candidates.
+- Для FM+ STAT/PAR/DYN подтверждены шесть labels/IDs 0..5; raw IDs 6..8
+  нормализуются в MNM FRQ.
+- Проверено отсутствие retired imports, processor/editor hooks, AMP bypass,
+  candidate-only CMake targets/tests/fixture в shipping Source обеих целей.
+- Exact source/tests/fixture кандидатов и пустой FM STAT tombstone сохранены в
+  PATCH_HISTORY/RETIRED_FM_CANDIDATES_1.9.26; SHA256SUMS archive проверен.
+- SOURCE_BUILD.json Synth/FX пересозданы и сверены по SHA-256 с перечисленными
+  файлами; текущий состав каждой цели — 167 tracked files.
+- PACKAGE_MANIFEST_SHA256.txt пересоздан и локально проверен: 452 файла без
+  ошибок SHA-256.
+- Phaser ID 18 проверен статически: phase-difference replacement присутствует,
+  а прежняя mixer formula сохранена закомментированной рядом.
+- Chorus runtime clarification и INP knee проверены статически: active path
+  остаётся AudioAdapter → NativeChorusCore; только raw INP 1..3 (UI −63..−61)
+  получили quadratic host fade, с сохранением raw 0, raw 4 и всех higher values.
+- Для SONG part page в NovaData.h сохранён static_cast<float>(part+1),
+  устраняющий сообщённую MSVC C2397 narrowing int -> float.
+- На момент начального audit CMake/.jucer/generated JUCE metadata/visible build
+  marker были на 1.9.26; отдельная package revision 1.9.27 зафиксирована ниже.
+
+Не выполнялось:
+- полная Projucer/Visual Studio сборка;
+- CTest/плагинные или executable tests;
+- VST3/DAW/render проверка.
+
+Внешняя Windows-сборка пользователя остаётся следующим gate.
+
+Дополнение — реальный CHOR Native/Core A/B selector (30.09.2026):
+- `FM_MODE_CLEANUP_STATIC_CHECK.py`: OK после добавления `mode_cho=native|core`.
+- `mode_cho=0` оставлен Native default; `mode_cho=1` вызывает `ChorusCore`
+  через тот же `AudioAdapter` в P1, P2 и пользовательских FX slots.
+- Для state со schema `<37` `mode_cho` принудительно нормализуется в Native,
+  поэтому старый numeric OLD не переосмысляется как новый Core A/B выбор.
+- При смене ядер очищается adapter/tail state; перенос X/Y/delay-memory между
+  разными реализациями намеренно не выдуман. INP knee, gain, MIX и routing не
+  менялись.
+- SOURCE_BUILD.json Synth/FX пересозданы: по 167 tracked files.
+
+По-прежнему не выполнялись:
+- полная Projucer/Visual Studio сборка;
+- CTest/плагинные или executable tests;
+- VST3/DAW/render проверка.
+
+Дополнение — Track Delay DFB dynamics / schema 38 (30.09.2026):
+- `FM_MODE_CLEANUP_STATIC_CHECK.py`: OK после добавления общего controller
+  `dsp/DelayFeedbackDynamics.hpp` и проверки Synth/FX mirror.
+- Статически подтверждён runtime path P1/P2: snapshot → `TrackChain` →
+  audio-rate `delayFeedbackDynamics.process()` → OLD/MNM/NEW recurrence.
+- Контракт default ON зафиксирован в source и static audit: `DFB=64` — unity
+  hold, `63` — release, удерживаемый `>64` — smooth rise, `0` — controller-only
+  tail release без очистки delay buffer. `DYNAMICS=OFF` оставляет raw/63 A/B.
+- В RMB DFB panel находятся DYNAMICS, RISE, ZERO TAIL, сохранённые RETURN COMP
+  и FB CLIP, а также два experimental default-OFF DSND feedback-invert switch;
+  они не меняют positive-mono / negative-split send route.
+- DBAS/DWID и их текущие каскадные 12 dB edge stages не менялись; 12/24
+  selector не добавлялся. CHORUS files/audio law также не менялись.
+- `DelayFeedbackDspTests.cpp` дополнен будущими source regression assertions,
+  `FmFixModeTests.cpp` ожидает schema 38; эти executable tests **не запускались**.
+- Выполнены только text/parity/delimiter audits и static checker; SOURCE_BUILD
+  manifests содержат по 168 tracked files. PACKAGE manifest пересоздан отдельно
+  после этого дополнения.
+
+По-прежнему не выполнялись:
+- полная Projucer/Visual Studio сборка;
+- CTest/плагинные или executable tests;
+- VST3/DAW/render проверка.
+
+Дополнение — уточнение DFB observation и поле ARP SONG (30.09.2026):
+- Убрано ошибочное утверждение, что быстрый жест `0→127→0` является отдельной
+  функцией контроллера. Наблюдаемая примерно секундная задержка громкости не
+  выдана за доказанный law send/feedback/return: принудительный сброс
+  over-unity state по такому жесту снят, новый недоказанный DSP-маршрут не добавлен.
+- `FM_MODE_CLEANUP_STATIC_CHECK.py`: OK. Он отдельно подтверждает отсутствие
+  недоказанного pulse/reset law в DFB source и синхронизацию Synth/FX.
+- поле ARP SONG теперь отображает лишь `S START..S END`; скрытые позиции
+  остаются сериализованными, но не рисуются и не переписываются.
+- ЛКМ-drag по `S-PART`/`REPEAT` рисует значение через все активные позиции,
+  пересечённые курсором, включая интервал между mouse events; жесты открыты
+  и закрыты для каждого затронутого параметра хоста. ПКМ сохраняет сброс одной
+  позиции к её default.
+- Выполнены text/parity/delimiter audits и static checker. Никаких build,
+  CTest, executable DSP-test, VST3/DAW или render не выполнялось.
+
+Package revision — 1.9.27 (01.10.2026):
+- Версия сознательно повышена в CMake/.jucer/JUCE generated metadata,
+  ARA document IDs, source build markers, source manifests и root package
+  manifest; активные README/validation filenames также переведены на 1.9.27.
+- Исторические `PATCH_HISTORY/*1.9.26*` и прежние source archives сохранены
+  как история и не переименовывались.
+- Эта revision не запускает build, CTest, executable DSP tests, VST3/DAW или render.

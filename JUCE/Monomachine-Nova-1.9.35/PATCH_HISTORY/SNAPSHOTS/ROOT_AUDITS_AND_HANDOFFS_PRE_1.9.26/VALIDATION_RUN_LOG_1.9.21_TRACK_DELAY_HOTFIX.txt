@@ -1,0 +1,65 @@
+Monomachine Nova 1.9.21 — Track Delay hotfix
+Дата: 30.09.2026
+База миграции: поставка 1.9.20 Fix-5.
+
+Цель
+====
+Исправить regression в Synth и FX: при всех DLY modes пользователь слышал
+постоянный return, а P1 DSND и P1 DTIM не давали ожидаемой слышимой реакции.
+
+Диагноз
+=======
+TrackDelay.inl и DelayCore сами читают DSND/DTIM и в изоляции реагируют.
+Источник симптома был выше по маршруту: у свежего состояния одновременно были
+открыты P1 DSND=64 и полный P2 (FX-CHORUS / P2 MIX=127 / P2 DSND=64).
+Поэтому P2 delay-return оставался под P1 и маскировал изменения P1.
+
+Внесённое исправление
+=====================
+- P1 DSND default: 64 -> 0.
+- P2 EFFX DSND default: 64 -> 0.
+- Новый P2: FX-THRU вместо FX-CHORUS; P2 MIX: 127 -> 0.
+- Отдельный state marker trackDelayDefaultRouteV1: старое состояние
+  переводится только когда его P2 совпадает со всем старым factory-набором.
+  P1 и custom P2 parameters не переписываются.
+- Добавлены guards в P2RoutingTests и RollbackStateTests.
+
+Выполненная валидация
+=====================
+1. Static verifier
+   python3 verify_dsp_mode_patch.py
+   Synth: PASS
+   FX:    PASS
+
+2. C++17 syntax-check с JUCE 8.0.12
+   g++ -std=c++17 -fsyntax-only:
+   - Source/PluginProcessor.cpp
+   - tests/P2RoutingTests.cpp
+   - tests/RollbackStateTests.cpp
+   Synth: PASS
+   FX:    PASS
+
+3. Portable C++17 DSP suite
+   17/17 PASS в каждой ветке:
+   MnmCoreTests, DelayFeedbackDspTests, DistVariantTests,
+   TrackDistVariantIntegrationTests, MnmRealFilterTests, HybridDspTests,
+   FilterRouteTests, TrackFilterRouteIntegrationTests, Import2FiltersTests,
+   FilterExtrasDspTests, ModEnvMatrixTests, ArpWindowTests, FmNewModeTests,
+   FmFixModeTests, FmExperimentsTests, Fix5PluginLevelTests,
+   ModeRollbackTests.
+
+4. Direct DelayCore probe, 44.1 kHz, feedback=0, send=1
+   DSND=0: wet tap отсутствует в пределах 50 000 samples.
+   DTIM=0:   первый tap 689 samples.
+   DTIM=64:  первый tap 1378 samples.
+   DTIM=112: первый tap 5512 samples.
+   DTIM=127: первый tap 44101 samples.
+   Итог: core реагирует и на DSND, и на DTIM; route hotfix устраняет
+   внешний masking P2.
+
+Ограничение среды
+================
+Полная Windows VST3-сборка и прослушивание DAW не выполнялись в этой Linux
+среде. Для выпуска VST3 обязательны чистая VS2022/Projucer Windows-сборка без
+LNK2005/LNK1169, ненулевой VST3 binary и DAW-проверка Synth/FX на 44.1/48/96
+кГц во всех DLY modes.

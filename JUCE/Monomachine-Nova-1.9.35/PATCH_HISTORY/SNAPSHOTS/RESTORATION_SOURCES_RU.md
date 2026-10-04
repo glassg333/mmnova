@@ -1,0 +1,298 @@
+# Источники восстановленных legacy patch/readme/log документов
+
+Эта таблица дополняет `RESTORATION_MANIFEST_SHA256.txt`: первый файл
+остаётся стандартным SHA-256 списком, а здесь сохранены provenance и
+причина добавления. Все пути — внутри доступных старых source trees.
+
+- `FM_ORACLE_FIRST_CLEAN_ROOM_PLAN_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17-work/FM_ORACLE_FIRST_CLEAN_ROOM_PLAN_2026-09-28.md`
+  - назначение: восстановлен по исходному пути из 1.9.17-work
+  - SHA-256: `154476909abf0643e85113a5585be10fe7bce17d2a61caed810731e578a2372d`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m10_DYN/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m10_DYN/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m10_DYN/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m10_DYN/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `c0e6d22e52c473cf93b41e296e4f26bd43c8bf9795b6ffe01a6d7d5664b596a5`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m8_STAT/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m8_STAT/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m8_STAT/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m8_STAT/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `5e9d6404577d003e5327195261b33f48cdf73c0080767feb2bd2e2165978bb29`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m9_PAR/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m9_PAR/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m9_PAR/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/FX/FM/m9_PAR/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `ca81f1eef4b0037aa06e9dcbaeb1ad1e25897a38bb61c3ace334b03bcbdc154f`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/README_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/README_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `a8069446708cab7febe34d2cba0579020b888fda016bfdd140f450055f135254`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/ROUTE_MAP_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/ROUTE_MAP_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `8db1291833bfe3874c647daeb8188c7da8bd9832bd802104d494049a60b9edda`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m10_DYN/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m10_DYN/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m10_DYN/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m10_DYN/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `c0e6d22e52c473cf93b41e296e4f26bd43c8bf9795b6ffe01a6d7d5664b596a5`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m8_STAT/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m8_STAT/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m8_STAT/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m8_STAT/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `5e9d6404577d003e5327195261b33f48cdf73c0080767feb2bd2e2165978bb29`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m9_PAR/NEW/README.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m9_PAR/NEW/README.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `27b593af8ff28514f86024e0d8ac7623cd492842fbec8126e92565806ea52ed6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m9_PAR/ROUTE_NOTE_RU.md`
+  - источник: `Monomachine-Nova-1.9.17-AGENT-HANDOFF-PRE-FIX-ROUTES-2026-09-28/Synth/FM/m9_PAR/ROUTE_NOTE_RU.md`
+  - назначение: сохранённый снимок документации до исправления маршрутов
+  - SHA-256: `ca81f1eef4b0037aa06e9dcbaeb1ad1e25897a38bb61c3ace334b03bcbdc154f`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/CURRENT_MODE_L_MODE_H_1.9.17.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/CURRENT_MODE_L_MODE_H_1.9.17.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `2fa1236b926917303946326b59707d253b876f9b777e9b23c09a9334cc135bee`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/FILTER_SOURCE_EVIDENCE_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/FILTER_SOURCE_EVIDENCE_2026-09-28.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `884dd7f764d1409a7275959e701bdbfe61af5c613458446d3c05d873995af4d6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/FM_FIX_UI_VALUE_MAP_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/FM_FIX_UI_VALUE_MAP_2026-09-28.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `b28a0f7182536d48659bb0dc84d8b55e613d245dee694c0464e53b85359a0e3e`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/FM_NEW_AUDIT_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/FM_NEW_AUDIT_2026-09-28.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `6ba105d772d39976d5495492ea73b3d7dc2fe347a04a24cfecedf1a14ae45be0`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/FM_RETAINED_READOUT_ROUTES_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/FM_RETAINED_READOUT_ROUTES_2026-09-28.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `9744bc36b9e35095aaece8b198c2c99b5dc4af0403604866d1f3d284bb78e869`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/PROVENANCE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/PROVENANCE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `362d949388efb849cbebc893273838f0128bad3ab63060c1de6eaaca5cdffcc1`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.0.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.0.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `fe0f928532a42c23ac58977ce61d5a89092b7710fad661e455a502986db1249b`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.1.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.1.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `397fe5874a9af15ee01a48332b79263a8880040e60aebf2d4347937946e8059f`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.10.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.10.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `37ace6ae51285e58826ee15c780be27d10ab727d31dd14261d9e31f162f5d6c4`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.11.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.11.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `dcf3c619af2646961fca227ff34f4efcc54d318aa715904fabfc41208276f8d8`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.12.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.12.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `40f8aaec80c4b107982ef999d2ea30700c4855c9a656276343b0079607c9ad28`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.13.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.13.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `644fe31a207900fdcc2f5a7681f3003fce3d0d980e95875d5fb19d134ada56b4`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.14.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.14.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `96ef58a2f707c63ed28d65291d2a35ae4494caa56859497cdea3235ed7b642ed`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.15.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.15.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `3f45dbf283d19a742008ed5438afc3b7e1cb6dd92c9e650aa2462506411f97f2`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.16.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.16.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `245d6c204ad633e9bcfc4d9590d94dea2a35f753aa0cbbf713e69682cf655f56`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.17.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.17.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `aaae1e02fddfd1e9ff7bb080cc1dda92bd477da9fcd3e91fcd1385aa01aab6fc`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.2.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.2.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `5370b437cf09ae8c4625f529837a205eb35cbda2cc35364ac7f5d95265d2884b`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.3.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.3.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `60ac0e7f9b80bdedb57d7bcc9dfb888cb5238bf6c54e8b7dd00d7fd6e6c56b2f`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.4.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.4.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `63d252027fe8aa6fc3a3d971a8c74ec4e972f19c8dc6c91c63f1146f22e0967a`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.8.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.8.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `0dcd82fbc41bdd81c834ccfa92deb26320f84f196ba875f70f302a325f6353f9`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.9.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_1.9.9.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `fef9cc9c2842c3a687557c0fbb407d159462c579918f3ee40efd84ac71018019`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_RU.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/README_RU.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `6ff507c5b38b25916325ba5e1c17c573d9180a7d114847889b0b3b8431aa56b6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/Source/dsp/fm_new/README.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/Source/dsp/fm_new/README.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `fe8c14488f00893742da8e600e9cad90738bb24bdd78e81d74bbe6163b6d5d5a`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/Source/dsp/hybrid_private/README_HYBRID_TEST.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_FX/Source/dsp/hybrid_private/README_HYBRID_TEST.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `e6de41933e771bccaf031c656c595d6b682fec4f08a301b45b04d8bc67d1f231`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/PROVENANCE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/PROVENANCE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `362d949388efb849cbebc893273838f0128bad3ab63060c1de6eaaca5cdffcc1`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.0.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.0.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `f6ac6dfa5c86875c1b9d1713d2198da26193193bded43bbfbc8c4aeda2073296`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.1.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.1.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `c4fbd625a04e357525eb85d46256d3ab1ff2bde4203db0ed165b7c4d6520a694`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.10.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.10.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `dca97a0813df30eb65a914d212685753b0268b622c3688e352b70847c48065f8`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.11.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.11.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `a4199316f1cc043d1305c67194e48463f079668f6b402d8188ca28121ed7994f`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.12.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.12.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `fa529a372951d4d3232787ab2eaa5691ed2abec15c92bf470eee694d2ddafc76`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.13.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.13.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `db2041d68d8153d10db0ac2ff52a25840dfcb21f5cab2b80b2a096c3607007a6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.14.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.14.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `888bc249c44a77799ad89575dc0ed68dd74824d09818fc929bc9117bbe98bf94`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.15.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.15.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `6d550354772279b550ae049e9ab4e64dd398417d34049f3442a836c399df326e`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.16.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.16.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `245d6c204ad633e9bcfc4d9590d94dea2a35f753aa0cbbf713e69682cf655f56`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.17.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.17.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `82020bacb92c7ee10007379b7d0fc848e3cf091ca679b883fe8649d0b155287c`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.2.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.2.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `45d31fb3c27caff789df4b4942c0b8ca73d888ed2b78f0fc820753029cff9016`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.3.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.3.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `04ca58d7439a0588355a492c78f9f86d910e6aeb2d050cbd3a131d7d87594582`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.4.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.4.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `63d252027fe8aa6fc3a3d971a8c74ec4e972f19c8dc6c91c63f1146f22e0967a`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.8.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.8.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `44f2e8f934a1dc827d87ffb390d9fde79a50583ba3ba24fbaff6d7534b0587e7`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.9.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_1.9.9.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `b5623291f98b50579ba2edaa5cec78a61a46a808fded0de83d3a82ed0dd6e8ec`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_RU.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/README_RU.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `6ff507c5b38b25916325ba5e1c17c573d9180a7d114847889b0b3b8431aa56b6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/Source/dsp/fm_new/README.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/Source/dsp/fm_new/README.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `fe8c14488f00893742da8e600e9cad90738bb24bdd78e81d74bbe6163b6d5d5a`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/Source/dsp/hybrid_private/README_HYBRID_TEST.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/Monomachine_Nova_Synth/Source/dsp/hybrid_private/README_HYBRID_TEST.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `e6de41933e771bccaf031c656c595d6b682fec4f08a301b45b04d8bc67d1f231`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/README_1.9.14_SOURCE_PACKAGE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/README_1.9.14_SOURCE_PACKAGE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `a5dc6df2b9424f5396a125ffbf3278cad8e043add47d1a60e5456f5fd968716b`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/README_1.9.15_SOURCE_PACKAGE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/README_1.9.15_SOURCE_PACKAGE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `052bb7e649ccdc8a4a119477bc39ade802d5a61d9af7a4c4cd25da6339d6e3cc`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/README_1.9.16_SOURCE_PACKAGE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/README_1.9.16_SOURCE_PACKAGE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `9355895c3881d6bd5c5b20404cff404c713b207bf6b1d9b48ac8eb1a54b768a6`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/README_1.9.17_SOURCE_PACKAGE.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/README_1.9.17_SOURCE_PACKAGE.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `2dd95eae0effc462b28ac7f218f76ccb6f3f81296b429ece9298964c447c2102`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/RELEASE_1.9.14_KEYTRACKING_ENVELOPES.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/RELEASE_1.9.14_KEYTRACKING_ENVELOPES.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `33775740f8162f128f91ab46b8657fdfcdf3a8c3f20c060a157f91f67b83353b`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/RELEASE_1.9.15_FILTER_CPU_DIST.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/RELEASE_1.9.15_FILTER_CPU_DIST.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `95a92d4247b982361c99abc9fd96eda69d4e020ddea1bf8af9abab81e5c5b01a`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.14_KEYTRACKING_ENVELOPES.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.14_KEYTRACKING_ENVELOPES.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `5a133a6546317546e45e26fd7b9a6ff44ac1e5cf845eabdf9bc7890eafce8435`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.15_FILTER_CPU_DIST.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.15_FILTER_CPU_DIST.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `9054ad8d38f5fb5b231f910673ae4a7f7666d960c14682eac85a3772d1580597`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.16_HP_COMPLEMENTS.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.16_HP_COMPLEMENTS.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `a87d62b45015fbd3c6df1f7e19b03fab87cf67b8ad9d7ff87e56ba3cddfb9478`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.17_FM_LEGACY_ISOLATION.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.17_FM_LEGACY_ISOLATION.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `c40cc91a305f30ae0bca9eb61005377a2b572766234e59bd9fa5e1ea9bdaf104`
+- `LEGACY_PATCH_READMES/from-Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.17_MODE_MENU_DRY.md`
+  - источник: `Monomachine-Nova-1.9.17stable-user-base/VALIDATION_1.9.17_MODE_MENU_DRY.md`
+  - назначение: сохранённый снимок документации доступной стабильной safe-линейки
+  - SHA-256: `1cdc419c319c9558229d5a2d22ceaff7b0384508b376b1857b25e2a563ba89ad`
+- `ORACLE_MODE_IMPLEMENTATION_STATUS_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17-work/ORACLE_MODE_IMPLEMENTATION_STATUS_2026-09-28.md`
+  - назначение: восстановлен по исходному пути из 1.9.17-work
+  - SHA-256: `7816c50f9a4b2ab3cdcd630cb7dafba31b04df97421e9c1d1aa9fe15fb42a3e1`
+- `README_1.9.20_RUNTIME_INTEGRATED_SOURCE_PACKAGE.md`
+  - источник: `Monomachine-Nova-1.9.20-runtime-integrated-work/README_1.9.20_RUNTIME_INTEGRATED_SOURCE_PACKAGE.md`
+  - назначение: восстановлен по исходному пути из 1.9.20-runtime-integrated-work
+  - SHA-256: `34e6394f2928bd2e35e2ab50215cc2175b8959fd27b6886292aedf6c40992025`
+- `SYNTH_FX_SIDE_BY_SIDE_FM_OLD_TOPOLOGY_HANDOFF_2026-09-28.md`
+  - источник: `Monomachine-Nova-1.9.17-work/SYNTH_FX_SIDE_BY_SIDE_FM_OLD_TOPOLOGY_HANDOFF_2026-09-28.md`
+  - назначение: восстановлен по исходному пути из 1.9.17-work
+  - SHA-256: `0a04fa6b11bdbbf72f04af12738215882a201f0665f207768e40d1024e8eab97`
+- `oracle/fmplus/README.md`
+  - источник: `Monomachine-Nova-1.9.17-work/oracle/fmplus/README.md`
+  - назначение: восстановлен по исходному пути из 1.9.17-work
+  - SHA-256: `38e058c4127e2f219a370a860d543495fbfbc78bd1228fb43208f13332312303`
