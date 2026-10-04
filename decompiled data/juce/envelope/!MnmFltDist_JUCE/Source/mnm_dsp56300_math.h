@@ -41,18 +41,25 @@ static inline int32_t accB1(int64_t acc) noexcept
 }
 
 // дробное произведение как его кладёт MPY в 56-бит аккумулятор:
-//   acc = sext24(x) * sext24(y) << 1, заворот по модулю 2^56
+//   acc = sext24(x) * sext24(y) << 1, заворот по модулю 2^56.
+// mnm_18: ре-расширение знака из бита 55 после маски — произведение
+// 24×24<<1 не превышает 2^48, маска не режет значащие биты, но без
+// ре-расширения отрицательные произведения читались как положительные
+// (проявилось на ступени DIST: K1 = limit24(y1·kDrive) при y1 = $FFFFFF).
 static inline int64_t mpy56(int32_t x, int32_t y) noexcept
 {
     int64_t p = int64_t(x) * int64_t(y);
     uint64_t r = (uint64_t(p << 1)) & ACC56_MASK;
+    if (r & (1ull << 55)) r |= 0xFF00000000000000ull;   // sext56
     return (int64_t)r;
 }
 
-// MAC: acc = acc + x*y<<1 (56-бит заворот)
+// MAC: acc = acc + x*y<<1 (56-бит заворот, с ре-расширением знака — mnm_18)
 static inline int64_t mac56(int64_t acc, int32_t x, int32_t y) noexcept
 {
-    return (int64_t)(((uint64_t)acc + (uint64_t)mpy56(x, y)) & ACC56_MASK);
+    uint64_t r = ((uint64_t)acc + (uint64_t)mpy56(x, y)) & ACC56_MASK;
+    if (r & (1ull << 55)) r |= 0xFF00000000000000ull;   // sext56
+    return (int64_t)r;
 }
 
 // MACR: как mac56, но с округлением (+2^23 к A0) — используется в

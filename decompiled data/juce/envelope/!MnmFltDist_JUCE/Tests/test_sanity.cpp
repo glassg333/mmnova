@@ -16,6 +16,8 @@
 #include "mnm_firmware_tables.h"
 #include "mnm_filter_ring.h"
 #include "mnm_cascade340.h"
+#include "mnm_dist_stage.h"       // ступень DIST $079F-$07D1 (mnm_18)
+#include "mnm_tone_index.h"       // индекс тона $0537-$056C (mnm_18)
 #include "MnmDistDrive.hpp"        // панч DIST (пак 13)
 #include "MnmAmpEnv.hpp"           // AHDR (пак 7)
 #include "MnmEnv2.hpp"             // env2-гейт (пак 14)
@@ -283,6 +285,140 @@ static void testVoice()
     check(tail < 0.05f, "note-off → гейты закрывают тракт", buf2);
 }
 
+// ---------------------------------------------------------------------------
+// mnm_18: пины ступени DIST $079F–$07D1 и тона-индекса $0537–$056C
+// (оракул: эмулятор dsp_emu.py, work/exp72d_pins.json + work/exp72e_tone.json)
+// ---------------------------------------------------------------------------
+static void testDistStage()
+{
+    std::printf("— ступень DIST $079F–$07D1 (пины оракула exp72d, D = X:$40B = 8):\n");
+    MnmDistStage st;
+    MnmDistStage::In par;
+    par.divWord = 8;                       // D = 8 → y1 = frac(8/8) = $FFFFFF
+    par.wofsWord = 0;
+
+    struct Case { int v; uint32_t x0, r2, kDrive, curveW, K1; };
+    // D = 8 → y1 = frac(8/8) = $FFFFFF (знаково −1) → K1 = limit24(−2·kDrive)
+    // = $FFFFFF (|−2·kDrive| < 2^24 → B1 = $FFFFFF) — пины банков exp72d
+    // (p1[0] = $FFFFFF при любом v). curve[0] = $7FFFFF (v ≤ 63 → x0 = 0).
+    const Case cases[] = {
+        { -64, 0x000000u, 0x000000u, 0x021333u, 0x7FFFFFu, 0xFFFFFFu },
+        {   0, 0x000000u, 0x000000u, 0x021333u, 0x7FFFFFu, 0xFFFFFFu },
+        {  32, 0x000000u, 0x000000u, 0x021333u, 0x7FFFFFu, 0xFFFFFFu },
+        { 127, 0x7E0000u, 0x0000FCu, 0x7C1878u, 0x2D413Du, 0xFFFFFFu },
+    };
+    for (const Case& c : cases)
+    {
+        MnmDistStage::Out o;
+        par.distWord = (uint32_t)(c.v << 16) & 0xFFFFFFu;
+        st.frame({}, {}, par, o);
+        char buf[96];
+        std::snprintf(buf, 96, "v=%d x0=%06X r2=%04X kD=%06X cur=%06X K1=%06X",
+                      c.v, o.x0, o.r2, o.kDrive, o.curveW, o.K1);
+        const bool ok = o.x0 == c.x0 && o.r2 == c.r2 && o.kDrive == c.kDrive &&
+                        o.curveW == c.curveW && o.K1 == c.K1 && o.y1 == 0xFFFFFFu;
+        check(ok, "пины закона диста (x0 = max(0,2w−1), пила, kDrive, K1)", buf);
+    }
+    // K2 = limit24(curve·D): v=127, curve = $2D413D, D = 8
+    {
+        MnmDistStage::Out o;
+        par.distWord = (127u << 16) & 0xFFFFFFu;
+        st.frame({}, {}, par, o);
+        char buf[48];
+        std::snprintf(buf, 48, "K2=%06X (curve·8, пин оракула)", o.K2);
+        check(o.K2 == 0x000002u, "K2 = limit24(curve·D) — пин exp72d", buf);
+    }
+    // Конвейер банков: синтетическая рампа (оракул exp72d bank_pins, v=32)
+    {
+        std::array<uint32_t, MnmDistStage::kBank> inA{}, inB{};
+        for (int i = 0; i < MnmDistStage::kBank; ++i)
+        {
+            const int32_t w = (int32_t)(0.9 * (1.0 - 2.0 * i / 33.0) * 8388608.0);
+            inA[(size_t)i] = (uint32_t)w & 0xFFFFFFu;
+            inB[(size_t)i] = inA[(size_t)i];
+        }
+        MnmDistStage::Out o;
+        par.distWord = (32u << 16) & 0xFFFFFFu;
+        par.divWord = 8;
+        st.frame(inA, inB, par, o);
+        // оракул exp72d (v=32, K1 = $FFFFFF): после pass2 шапки банков =
+        // limit24(хвост pass1) = $0000E6 в ОБОИХ банках (acc-переток);
+        // (окно p2_X72 в exp72d-капчере смещено на 2 — банк B пишется
+        //  с X:$70, капчер читал с X:$72; выверено по указателям r0/r1)
+        const bool okHead = o.bankA[0] == 0x0000E6u && o.bankB[0] == 0x0000E6u;
+        char buf[64];
+        std::snprintf(buf, 64, "p2[0]=%06X p2b[0]=%06X", o.bankA[0], o.bankB[0]);
+        check(okHead, "конвейер банков pass1→pass2 (acc-переток) — пин exp72d", buf);
+    }
+    // Стоковая дыра: divWord = 0 → y1 = $FFFFFF, K1-acc = −2·kDrive → K1 = $FFFFFF
+    {
+        MnmDistStage::Out o;
+        par.distWord = (127u << 16) & 0xFFFFFFu;
+        par.divWord = 0;
+        st.frame({}, {}, par, o);
+        check(o.y1 == 0xFFFFFFu && o.K1 == 0xFFFFFFu,
+              "дыра X:$40B: 8/0 → y1=$FFFFFF (знак. −1) → K1 = $FFFFFF (−ε)");
+    }
+    // Фактор среза $07D2–$07DB: clamp(Y:$4DA, $6A3) → kCutoff
+    {
+        MnmDistStage::Out o;
+        par.distWord = (127u << 16) & 0xFFFFFFu;
+        par.divWord = 8;
+        st.frame({}, {}, par, o);
+        // Y:$4DA = 0 → c = 0 → kCut = limit24(K2·kCutoff[0])
+        const uint32_t kCut0 = MnmDistStage::cutoffFactor(o, 0);
+        const int64_t expect = mpy56(sext24(o.K2), sext24(kCutoff[0]));
+        check(kCut0 == limit24(expect), "фактор среза $07DB = limit24(K2·kCutoff[c])");
+    }
+}
+
+static void testToneIndex()
+{
+    std::printf("— индекс тона $0537–$056C (пины оракула exp72e):\n");
+    MnmToneIndex::In tin;
+    tin.param4 = 0; tin.w40E = 0; tin.w40F = 0;
+    tin.hpqWord = 0; tin.x401 = 0; tin.bits425 = 0;
+
+    // level 0.5 (панч кадр 1) → X:$4D9 = FFFC00 (−1024), Y:$4DA = 0 — пин пака 12
+    {
+        tin.levelWord = 0x400000u;
+        const auto o = MnmToneIndex::compute(tin);
+        check(o.toneIdx == 0xFFFC00u && o.wofsWord == 0x000000u,
+              "level=0.5: idx = FFFC00 (−1024, замер пака 12), Y:$4DA = 0");
+    }
+    // level слово $800000 (−1.0 — знаковое!) → idx = $00067F, Y:$4DA = $000D7F
+    {
+        tin.levelWord = 0x800000u;
+        const auto o = MnmToneIndex::compute(tin);
+        check(o.toneIdx == 0x00067Fu && o.wofsWord == 0x000D7Fu,
+              "level=$800000 (знак. −1): idx = 00067F, Y:$4DA = 000D7F (WOFS-ветка)");
+    }
+    // param4 = 0.25 → idx = FFFE00 (−512) — пин exp72e
+    {
+        tin.levelWord = 0x400000u;
+        tin.param4 = 0x200000u;
+        const auto o = MnmToneIndex::compute(tin);
+        check(o.toneIdx == 0xFFFE00u, "param4=0.25: idx = FFFE00 (−512)");
+    }
+    // Гейн EQ $0857: clamp(idx, 0, $63F), g = $7FFFFF − kCutoff[128+idx]
+    {
+        const uint32_t g0 = MnmToneIndex::eqGain(0xFFFC00u);  // −1024 → clamp 0
+        check(g0 == 0x7FFFFFu - kCutoff[128], "eqGain(idx<0) = 1 − tbl[0]");
+        const uint32_t gM = MnmToneIndex::eqGain(0x700000u);  // > $63F → clamp
+        check(gM == 0x7FFFFFu - kCutoff[128 + 0x63F], "eqGain(idx>$63F) = 1 − tbl[$63F]");
+    }
+    // Биты $425: bit11 → X:$4D9 = B1(A + 2048·X:$401·2) — при X:$401 = 3
+    // добавка (+48) сидит в A0 (дробь acc), B1 НЕ меняется — пин оракула
+    // (exp72-прогон 2026-10-04: X4D9 = FFFC00, Y4DA = 000000)
+    {
+        tin.param4 = 0; tin.levelWord = 0x400000u;
+        tin.x401 = 3; tin.bits425 = 0x800u;   // bit11
+        const auto o = MnmToneIndex::compute(tin);
+        check(o.toneIdx == 0xFFFC00u && o.wofsWord == 0x000000u,
+              "bit11($425)+X:$401=3: добавка в A0, B1 = FFFC00 (пин оракула)");
+    }
+}
+
 int main()
 {
     std::printf("=== MnmFltDist: самопроверка (карта паков 12-14) ===\n");
@@ -294,6 +430,8 @@ int main()
     testEnv2();
     testRing();
     testCascade();
+    testDistStage();
+    testToneIndex();
     testVoice();
     std::printf("=== %s (%d провалов) ===\n", gFail ? "ПРОВАЛ" : "ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ", gFail);
     return gFail ? 1 : 0;
