@@ -4,6 +4,18 @@
 //                     CONTROL_MODS_MAP_RU §3, GITHUB_SYNC_VERDICT §4)
 //                     mnm_18: стадия 2 врезана, ступень DIST бит-точная,
 //                     тон-индекс проведён (закрытие §7, worklog Task 6).
+//                     mnm_19: ПОДКРИТИКА ИМПОРТА (разбор Nova, 2026-10-04) —
+//                     (1) pushStereo(): счётчик кадра ОДИН на пару L/R
+//                     (было: processL/processR двигали cnt_ дважды —
+//                     стереокадр забивался дырами); mono-API оставлен
+//                     только для моно-шин; (2) слово ручки DIST Y:$404
+//                     подаётся хостом setDistWord() (дефолт 0 = дыра
+//                     стока; закон ступени — mnm_dist_stage.h, x0>0
+//                     только при v ≥ 64); (3) X:$40B — setDistDivWord()
+//                     (сток: 0, банки немы — exp72c); (4) distOutRaw() —
+//                     доступ к банкам диста БЕЗ суммирования в микс:
+//                     суммирование вниз по тракту НЕ доказано прошивкой
+//                     (потребитель банков X:$B2–$D3 не трассирован),
 // ----------------------------------------------------------------------------
 // КАРТА ЯЧЕЕК (доказано паками 12–14; страницы ColdFire):
 //   FLT  CC72–79 → $410–$417: BASE, WDTH, HPQ, LPQ, ATK, DEC, BOFS, WOFS
@@ -20,6 +32,7 @@
 //     ($414–$417; бит-в-бит пак 5: 37536/0); выход L2 Y:$20–$3F → микс T6
 //   → ступень DIST (P:$079F–$07D1, бит-в-бит mnm_18: банки 34 слова,
 //     K1 = frac(8/D)·kDrive, пила $1447C6, x0 = max(0, 2·DIST−1))
+//     [выход ступени — distOutRaw(); НЕ суммируется в микс — см. выше]
 //   → AHDR (P:$088E–$08D7, ячейки $400–$403, триггер $428 — пак 7)
 //   → env2-гейт конца цепи (P:$04A8–$04F5, EFFX $418–$41B — пак 14)
 //   → out
@@ -124,7 +137,31 @@ public:
         prevL_.fill(0.f);  prevR_.fill(0.f);
     }
 
+    // ---------- слово ручки DIST (Y:$404) и делитель (X:$40B) ----------------
+    // Сток: $404 пишет только ручка DIST (хост), $40B — дыра (0).
+    // Хост кладёт слово линейно v<<16 (v биполярно −64..+127); folding
+    // ступени активен только на верхней половине (v ≥ 64, mnm_dist_stage.h).
+    void setDistWord(uint32_t w) noexcept    { distWord_ = w & 0xFFFFFFu; }   // Y:$404
+    void setDistDivWord(uint32_t w) noexcept { distDivWord_ = w & 0xFFFFFFu; } // X:$40B
+
     // ---------- потоковый ввод (латентность 1 кадр = 16 сэмплов) -------------
+    // СТЕРЕО: ровно один вызов pushStereo на сэмпл-ПАРУ (общий счётчик кадра,
+    // оба буфера заполняются на одном индексе — фикс mnm_19).
+    inline void pushStereo(float inL, float inR, float* outL, float* outR) noexcept
+    {
+        *outL = prevL_[(size_t)cnt_];
+        *outR = prevR_[(size_t)cnt_];
+        inBufL_[(size_t)cnt_] = inL;
+        inBufR_[(size_t)cnt_] = inR;
+        if (++cnt_ < kFrame) return;
+
+        cnt_ = 0;
+        runFrame();
+        prevL_.swap(outL_);
+        prevR_.swap(outR_);
+    }
+    // МОНО: только для моно-шин (заполняется один буфер). НЕ чередовать
+    // processL/processR на стереопаре — счётчик общий, кадр поедет вразнос.
     inline float processL(float inL) noexcept { return push(0, inL); }
     inline float processR(float inR) noexcept { return push(1, inR); }
 
@@ -206,15 +243,17 @@ private:
         distInB_[32] = distInA_[32];
         distInB_[33] = distInA_[33];
         MnmDistStage::In din;
-        din.distWord = 0;                                 // Y:$404 — ручка DIST (хост)
-        din.divWord = 0;                                  // X:$40B — дыра
+        din.distWord = distWord_;                         // Y:$404 — слово ручки DIST (хост; сток: ручка, дефолт 0)
+        din.divWord = distDivWord_;                       // X:$40B — дыра стока = 0 (setDistDivWord для эксперимента)
         din.wofsWord = tidx.wofsWord;                     // Y:$4DA
         dist_.frame(distInA_, distInB_, din, distOut_);
 
         // 8) микс кадра: каскад → гейн EQ ($0857) → гейт (AHDR·env2);
         //    стадия-2 L2 (Y:$20–$3F) суммируется в микс (T6, пак 14).
-        //    Банки диста на стоковой OS немы (K1 = $FFFFFF ≈ 0 — divWord = 0,
-        //    измерено exp72c); при nonzero-делителе порт экспонирует их.
+        //    Банки диста (distOut_) в микс НЕ суммируются: потребитель
+        //    банков X:$B2–$D3 вниз по тракту НЕ трассирован — суммирование
+        //    с весами было бы додумкой; на стоке банки немы (K1 = $FFFFFF
+        //    ≈ −ε при divWord = 0 — измерено exp72c). Доступ — distOutRaw().
         const float ahdrLvl = q23ToF((uint32_t)ahdr_.level);
         const float env2Lvl = q23ToF(env2_.level);
         const float gate = ahdrLvl * env2Lvl;
@@ -245,6 +284,7 @@ private:
     MnmDistDrive  punch_;                         // панч DIST (пак 13)
     int32_t       punchLevel_ = 0;
     uint32_t      toneIdx_ = 0, wofsWord_ = 0;
+    uint32_t      distWord_ = 0;                  // Y:$404 (хост; дефолт 0)
     uint32_t      distDivWord_ = 0;               // X:$40B (0 на стоке)
     // --- кадровые буферы ------------------------------------------------------
     std::array<float, kFrame> inBufL_{}, inBufR_{};
@@ -259,6 +299,12 @@ public:
     uint32_t env2LevelRaw() const noexcept { return env2_.level; }
     uint32_t toneIdxRaw()   const noexcept { return toneIdx_; }
     uint32_t wofsWordRaw()  const noexcept { return wofsWord_; }
+    uint32_t distWordRaw()  const noexcept { return distWord_; }
+    // Банки/пины ступени DIST ($079F–$07D1): bankA = X:$B0–$D3 после pass2,
+    // bankB = X:$72–$93, скалярные пины y1/x0/r2/kDrive/curveW/K1/K2.
+    // Суммирование в аудио-микс — на совести хоста (вниз по тракту
+    // потребитель банков не трассирован; сток — немы, exp72c).
+    const MnmDistStage::Out& distOutRaw() const noexcept { return distOut_; }
 };
 
 } // namespace mnm

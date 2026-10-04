@@ -419,9 +419,100 @@ static void testToneIndex()
     }
 }
 
+// ---------------------------------------------------------------------------
+// mnm_19: стерео-кадр (pushStereo, один счётчик на пару L/R) + проведение
+// слова DIST Y:$404 в ступень $079F–$07D1 (критика импорта Nova, 2026-10-04)
+// ---------------------------------------------------------------------------
+static void testStereoAndDistWord()
+{
+    std::printf("— стерео-кадр pushStereo и слово DIST (фиксы mnm_19):\n");
+
+    // 1) pushStereo: кадр без дыр — при DC-входе выход в установившемся
+    //    режиме ПОСТОЯНЕН от кадра к кадру (дыры в буфере дали бы пилообразную
+    //    рябь). Стадия 2 асимметрична по дизайну прошивки (банки a/b с
+    //    раздельным стейтом) — outL == outR НЕ ожидается.
+    {
+        MnmFltDistVoice v;
+        v.reset();
+        v.setFiltWords(0u, 127u << 16, 0u, 0u, 8u << 16, 40u << 16,
+                       64u << 16, 64u << 16);
+        v.trigger();
+        // прогрев 100 кадров DC
+        for (int i = 0; i < 100 * 16; ++i)
+        {
+            float ol, or_;
+            v.pushStereo(0.25f, 0.25f, &ol, &or_);
+        }
+        bool steady = true, finite = true;
+        float pl = 0.f, pr = 0.f;
+        for (int i = 0; i < 100 * 16; ++i)
+        {
+            float ol, or_;
+            v.pushStereo(0.25f, 0.25f, &ol, &or_);
+            if (i > 0 && (ol != pl || or_ != pr)) steady = false;
+            pl = ol; pr = or_;
+            if (!std::isfinite(ol) || !std::isfinite(or_)) finite = false;
+        }
+        check(steady, "pushStereo DC → установившийся режим покадрово постоянен (кадр без дыр)");
+        check(finite, "pushStereo — без NaN");
+    }
+
+    // 2) канал-в-канал: стерео-L должен совпасть с моно-трактом на том же
+    //    сигнале (заполнение L-буфера кадра не сбивается R-вызовами)
+    {
+        MnmFltDistVoice vs, vm;
+        vs.reset(); vm.reset();
+        const uint32_t flt[8] = { 24u << 16, 20u << 16, 0u, 0u,
+                                  8u << 16, 40u << 16, 64u << 16, 64u << 16 };
+        vs.setFiltWords(flt[0], flt[1], flt[2], flt[3], flt[4], flt[5], flt[6], flt[7]);
+        vm.setFiltWords(flt[0], flt[1], flt[2], flt[3], flt[4], flt[5], flt[6], flt[7]);
+        vs.trigger(); vm.trigger();
+        bool match = true;
+        for (int i = 0; i < 22050; ++i)
+        {
+            const float s = 0.5f * (float)std::sin(2.0 * 3.14159265358979 * 197.0 * i / 44100.0);
+            float ol = 0.f, or_ = 0.f;
+            vs.pushStereo(s, -s, &ol, &or_);
+            if (ol != vm.processL(s)) match = false;
+        }
+        check(match, "pushStereo(L) == processL(L) канал-в-канал (та же прошивка кадра)");
+    }
+
+    // 3) слово ручки DIST Y:$404 доходит до ступени: v = 127 → x0 = $7E0000
+    //    (пин оракула exp72d); делитель X:$40B (частное DIV — формат A0,
+    //    в знаковом mpy читается как signed Q23 — квирк железа):
+    //    D = 32 → y1 = $400000 (0.5) → K1 = kDrive/2;
+    //    D = 16 → y1 = $800000 = −1.0 знаковое → K1 = −kDrive
+    //    (закон реплики div24+mpy56, см. шапку mnm_dist_stage.h, mnm_19)
+    {
+        MnmFltDistVoice v;
+        v.reset();
+        v.setFiltWords(0u, 127u << 16, 0u, 0u, 0u, 64u << 16, 64u << 16, 64u << 16);
+        v.setDistWord(127u << 16);                       // Y:$404 = $7F0000
+        for (int i = 0; i < 3 * 16; ++i) v.processL(0.0f);
+        check(v.distOutRaw().x0 == 0x7E0000u,
+              "setDistWord(127<<16) → x0 = 7E0000 (пин exp72d, слово проведено)");
+        check(v.distWordRaw() == 0x7F0000u, "distWordRaw() == $7F0000");
+
+        v.setDistDivWord(32u);                           // X:$40B = 32 (сток: 0/дыра)
+        for (int i = 0; i < 16; ++i) v.processL(0.0f);
+        check(v.distOutRaw().y1 == 0x400000u, "divWord=32 → y1 = $400000 (частное DIV, формат A0)");
+        check(v.distOutRaw().K1 == (v.distOutRaw().kDrive >> 1),
+              "divWord=32 → K1 = kDrive/2 (знаковый mpy Q23·Q23)");
+
+        v.setDistDivWord(16u);
+        for (int i = 0; i < 16; ++i) v.processL(0.0f);
+        check(v.distOutRaw().y1 == 0x800000u,
+              "divWord=16 → y1 = $800000 (−1.0 знаковое — квирк формата A0)");
+        check(v.distOutRaw().K1 == (uint32_t)((-v.distOutRaw().kDrive) & 0xFFFFFFu),
+              "divWord=16 → K1 = −kDrive (инверсный гейн)");
+    }
+}
+
+
 int main()
 {
-    std::printf("=== MnmFltDist: самопроверка (карта паков 12-14) ===\n");
+    std::printf("=== MnmFltDist: самопроверка (карта паков 12-14, mnm_19) ===\n");
     testTables();
     testDiv24();
     testEnvTerm();
@@ -433,6 +524,7 @@ int main()
     testDistStage();
     testToneIndex();
     testVoice();
+    testStereoAndDistWord();
     std::printf("=== %s (%d провалов) ===\n", gFail ? "ПРОВАЛ" : "ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ", gFail);
     return gFail ? 1 : 0;
 }
