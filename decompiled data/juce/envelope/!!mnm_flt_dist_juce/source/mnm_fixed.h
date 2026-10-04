@@ -55,8 +55,9 @@ static inline int64_t mac56(int64_t acc, int32_t x, int32_t y) noexcept
     return (int64_t)(((uint64_t)acc + (uint64_t)mpy56(x, y)) & ACC56_MASK);
 }
 
-// MACR: как mac56, но с округлением (+2^23 к A0) — используется в
-// func_000397 ($039B macr) для интерполяции дробных тапов
+// MACR: как mac56, но с округлением (+2^23 к A0) — инструкция macr ядра
+// (встречается в тап-сканере func_000397 — код ДЕЛЕЯ, в FLT/DIST не входит;
+// в модуле сейчас не используется, оставлена для полноты семантики DSP56300)
 static inline int64_t macr56(int64_t acc, int32_t x, int32_t y) noexcept
 {
     int64_t a = mac56(acc, x, y);

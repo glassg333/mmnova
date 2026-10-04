@@ -7,8 +7,8 @@
 //
 //   in ──► аттенюация DIST (knob<0 ослабляет вход) ──►
 //   [ФИЛЬТР: кольцо коэффициентов (BASE/WDTH + env BOFS/WOFS + трекинг)
-//            → каскад func_000340 (гибрид FIR+SVF, halfband 2×)
-//            → резонанс func_000397 (гребёнка тапов, HPQ/LPQ)] ──►
+//            → каскад func_000340 (гибрид FIR+SVF, halfband 2×;
+//            Q — через интерполятор тон-пути $0629, включение OPEN п.6 NOTES)] ──►
 //   [DIST: ступень k = 0.98379·x0²+0.01621, усиление 4k, жёсткий клип ±1.0;
 //          кривая привода c затемняет срез следующего кадра] ──►
 //   [AMP env AHDR: гейт громкости выходящего звука] ──► out
@@ -42,7 +42,6 @@
 #include "mnm_filter_env.h"
 #include "mnm_filter_coeff.h"
 #include "mnm_cascade340.h"
-#include "mnm_resonator397.h"
 #include "mnm_dist.h"
 #include "mnm_amp_env.h"
 
@@ -101,7 +100,7 @@ public:
 
     void reset() noexcept
     {
-        casc_[0].reset(); casc_[1].reset(); res_.reset();
+        casc_[0].reset(); casc_[1].reset();
         fenv_.reset(); aenv_.reset(); dist_.reset();
         tone_ = TonePathState{};
         cnt_ = 0;
@@ -156,7 +155,9 @@ private:
         //    к выходному коэффициенту f кольца (нейтрально 1.0 при DIST≤0).
         ring.c[0] *= dist_.c();
         lastCutoffCoef_ = cutoffCoefficient(toneIdx, dist_.c()); // диагностика
-        res_.setQWords(hpqW_, lpqW_);
+        // Q (HPQ/LPQ): интерполятор $0629–$0649 → фидбек каскада — OPEN (п.6 NOTES);
+        // слова hpqW_/lpqW_ хранятся, в тракт пока не входят (тап-сканер 000397 —
+        // код ДЕЛЕЯ, ступень удалена; см. DECOMPILATION_NOTES §5/§6).
 
         // 5) аттенюация входа (DIST<0): ослабляется вход тракта ДО фильтра —
         //    фиксированная точка каскада меньше упирается в потолок
@@ -172,14 +173,12 @@ private:
         casc_[0].processFrame(inBufL_.data(), frameL_.data(), ring.c);
         casc_[1].processFrame(inBufR_.data(), frameR_.data(), ring.c);
 
-        // 7) резонанс func_000397 + DIST-ступень + AMP-гейт, по сэмплам
+        // 7) DIST-ступень + AMP-гейт, по сэмплам
         const float gate = aenv_.level();
         for (int i = 0; i < kFrame; ++i)
         {
             float l = frameL_[(size_t)i];
             float r = frameR_[(size_t)i];
-            l = res_.process(0, l);                    // резонанс (HPQ/LPQ)
-            r = res_.process(1, r);
             l = dist_.process(l);                      // ступень 4k + клип ±1.0
             r = dist_.process(r);
             outL_[(size_t)i] = l * gate;               // AMP-гейт всего выходящего
@@ -210,7 +209,6 @@ private:
     MnmFilterEnv  fenv_;
     MnmAmpEnv     aenv_;
     Cascade340    casc_[2];
-    Resonator397  res_;
     MnmDist       dist_;
     TonePathState tone_;
     TrackingFlags tf_ {};
