@@ -44,6 +44,12 @@
 #include "mnm_cascade340.h"
 #include "mnm_dist.h"
 #include "mnm_amp_env.h"
+// ИЗОЛИРОВАННЫЙ модуль Q (namespace mnmq): q-интерполятор + глай-тройки.
+// Включение РАСЧЁТА — макросом MNM_ENABLE_EXACT_Q (по умолчанию ВЫКЛЮЧЕН,
+// поведение тракта не меняется). Включение В ЗВУК — после порта движков
+// func_000350/func_000365 (ступени A/B каскада) и регрессии на векторах
+// reference/svf_trace_results.json (E1/E3/E4).
+#include "mnm_filter_q.h"
 
 namespace mnm {
 
@@ -155,9 +161,12 @@ private:
         //    к выходному коэффициенту f кольца (нейтрально 1.0 при DIST≤0).
         ring.c[0] *= dist_.c();
         lastCutoffCoef_ = cutoffCoefficient(toneIdx, dist_.c()); // диагностика
-        // Q (HPQ/LPQ): интерполятор $0629–$0649 → фидбек каскада — OPEN (п.6 NOTES);
-        // слова hpqW_/lpqW_ хранятся, в тракт пока не входят (тап-сканер 000397 —
-        // код ДЕЛЕЯ, ступень удалена; см. DECOMPILATION_NOTES §5/§6).
+        // Q (HPQ/LPQ): ОТКРЫТЫЙ П.6 NOTES ЗАКРЫТ — цепь верифицирована прогоном
+        // (svf_trace.py E1/E3/E4, 2026-10-05): Q-слова — КРОСС: ячейка $40B (LPQ)
+        // кормит интерполятор фильтра A, $40A (HPQ) — фильтра B; q-слова и
+        // глай-тройки считает изолированный mnmq::QInterpolator (mnm_filter_q.h).
+        // Расчёт включается флагом MNM_ENABLE_EXACT_Q; подача троек в движки
+        // ступеней A/B — после их порта (func_000350/000365, NOTES §9).
 
         // 5) аттенюация входа (DIST<0): ослабляется вход тракта ДО фильтра —
         //    фиксированная точка каскада меньше упирается в потолок
@@ -212,6 +221,14 @@ private:
     MnmDist       dist_;
     TonePathState tone_;
     TrackingFlags tf_ {};
+#ifdef MNM_ENABLE_EXACT_Q
+    // изолированная Q-цепь (НЕ входит в тракт до порта ступеней A/B):
+    // фильтр A ← ячейка $40B (LPQ), фильтр B ← ячейка $40A (HPQ) — кросс (E1)
+    mnmq::QInterpolator qIntA_{false};
+    mnmq::QInterpolator qIntB_{true};
+    mnmq::QFrameResult  qLastA_{}, qLastB_{};
+    bool qInit_ = false;
+#endif
     // --- кадровые буферы ------------------------------------------------------
     std::array<float, kFrame> inBufL_{}, inBufR_{};
     std::array<float, kFrame> frameL_{}, frameR_{};
@@ -223,6 +240,26 @@ private:
     float lastCutoffCoef_ = 0.f;   // диагностика: kCutoff[idx]·c последнего кадра
 public:
     float lastCutoffCoefficient() const noexcept { return lastCutoffCoef_; }
+
+    // --- изолированный расчёт Q (флаг MNM_ENABLE_EXACT_Q) -------------------
+    // Один вызов на кадр ПОСЛЕ computeRing (индексы/слова уже посчитаны).
+    // idxA = тон-индекс фильтра A (y:(r6+$DA)-домен), idxB — кейтрек-копия
+    // фильтра B (x:(r6+$D9)); qWordA = ячейка $40B (LPQ), qWordB = $40A (HPQ).
+#ifdef MNM_ENABLE_EXACT_Q
+    void computeQFrame(uint32_t idxA, uint32_t idxB,
+                       uint32_t qWordA, uint32_t qWordB,
+                       uint32_t param4Word) noexcept
+    {
+        mnmq::QFrameInputs ia{ idxA, qWordA, param4Word };
+        mnmq::QFrameInputs ib{ idxB, qWordB, param4Word };
+        qLastA_ = qIntA_.processFrame(ia);
+        qLastB_ = qIntB_.processFrame(ib);
+        qInit_ = true;
+    }
+    const mnmq::QFrameResult& lastQFrameA() const noexcept { return qLastA_; }
+    const mnmq::QFrameResult& lastQFrameB() const noexcept { return qLastB_; }
+    bool qFrameValid() const noexcept { return qInit_; }
+#endif
 };
 
 } // namespace mnm
