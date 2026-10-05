@@ -1,0 +1,1 @@
+ basically manual key tracking. Note 60 is middle C, and so when the tracking is at 100% strength it spans the entire NOTE range (0 - 127) in full semitone intervals. 50% tracking moves them by half semitone
