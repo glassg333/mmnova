@@ -1,6 +1,6 @@
 # ИНСТРУКЦИЯ АГЕНТУ (читать ПЕРВЫМ ДЕЛОМ в каждой новой сессии)
 
-Проект: Monomachine-Nova (JUCE-плагин), workspace /home/user.
+Проект: (JUCE-плагин), workspace /home/user.
 Полная хроника и все решения: **/home/user/conversation_archive.md** (обновлять после каждого раунда!).
 Текущая работа: FX-слоты 1.8.4 (дизайн: /home/user/batches/rake_184_design.md).
 
@@ -43,3 +43,4 @@
 3. Тары: /home/user/Monomachine-Nova-1.8.3.tar (1.8.3c), 1.7.11.tar.
 4. Сборка: см. выше (setup_juce.sh сам всё скачает).
 5. В конце хода: обновить архив + вычистить артефакты (п.3).
+!hi if u make omega8 use only THIS FOLDER AND ALL FOLDERS HERE - DONT TOUCH ELEKTRON MONO
