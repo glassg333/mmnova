@@ -67,6 +67,9 @@ joelanders/mc68k-md-mm	ColdFire/68k emulator fork used by Gearmulator MD/MM
 mischa85/elektron-firmware-tool	Elektron firmware container tools used by octemu and related work
 QEMU	CPU emulation base for octemu's patched build
 
+
+https://github.com/repeat98/modwerk
+
 octatrack for firmware
 https://gitlab.com/ot-tools/ot-tools/-/releases/0.11.3
 
