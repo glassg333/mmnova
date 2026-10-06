@@ -1,0 +1,86 @@
+{
+  "status": "instruction translation; C++ not compiled or hardware/null tested",
+  "regions": [
+    {
+      "function": "filterEnvelope",
+      "start": "0x4ff",
+      "end_exclusive": "0x56d"
+    },
+    {
+      "function": "filterAudio",
+      "start": "0x5bf",
+      "end_exclusive": "0x88e"
+    },
+    {
+      "function": "f350",
+      "start": "0x350",
+      "end_exclusive": "0x365"
+    },
+    {
+      "function": "f365",
+      "start": "0x365",
+      "end_exclusive": "0x37c"
+    },
+    {
+      "function": "f37c",
+      "start": "0x37c",
+      "end_exclusive": "0x38a"
+    },
+    {
+      "function": "f38a",
+      "start": "0x38a",
+      "end_exclusive": "0x397"
+    }
+  ],
+  "instruction_count": 786,
+  "machine_words_verified": 900,
+  "table_start": "0x141800",
+  "table_end_exclusive": "0x1448c6",
+  "table_words": 12486,
+  "table_sha256_be24": "0da9c97299f07bee5022cb3ddd39e92c468a40aed7062fd43d60f47e9e5c2650",
+  "extraction": {
+    "bin_sha256": "369849175602e20a9dd2b6e0ad8ac404b76f82718b14afbf1cbc01b7acabec7e",
+    "syx_sha256": "fe13c09f661cdba5fe57813240fa1574de1ee0a3ddd7047fc39d0318cba1a710",
+    "container_bin_offset": 16384,
+    "container_syx_address": 16384,
+    "container_bytes": 516024,
+    "sections": [
+      {
+        "index": 0,
+        "offset": 16384,
+        "compressed": 165604,
+        "expanded": 425858,
+        "sha256": "34aa611265241d0f3dd6ffc5eb8faba083829e310586853a70f27a7ff6a1a676"
+      },
+      {
+        "index": 1,
+        "offset": 181996,
+        "compressed": 7870,
+        "expanded": 11226,
+        "sha256": "2bb21926ef5ae090e8912c2e50bd955e480a20f84c5cbc570c0acc3ef857db9b"
+      },
+      {
+        "index": 2,
+        "offset": 189874,
+        "compressed": 7783,
+        "expanded": 11022,
+        "sha256": "190df676ee838667c95a07af49dffcf594f6000514f7874e7c0db48fbe5f3733"
+      },
+      {
+        "index": 3,
+        "offset": 197665,
+        "compressed": 300921,
+        "expanded": 336945,
+        "sha256": "97fa879968a31ce1f0c782094f233e2a7c0e624bd650d3dbe2294ef5e615ddd6"
+      },
+      {
+        "index": 4,
+        "offset": 498602,
+        "compressed": 33796,
+        "expanded": 1048448,
+        "sha256": "acd97619787921912e1363198b0c1fcfb382ddc0a88dbbeb19e99162a582ef27"
+      }
+    ],
+    "verified_kernel_words": 2894
+  }
+}

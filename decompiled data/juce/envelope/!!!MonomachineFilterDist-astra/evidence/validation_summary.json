@@ -1,0 +1,25 @@
+{
+  "artifact": "Monomachine OS 1.32B FILT + DIST native instruction translation",
+  "source_only": true,
+  "cpp_compiled": false,
+  "cpp_executed": false,
+  "independent_emulator_or_hardware_comparison": false,
+  "firmware_verification": "Passed: original supplied BIN/SYX SHA256, equal decoded container, every packaged instruction/table word",
+  "source_verification": "Passed: reproducible generated C++, labels, register names, local includes; not a C++ syntax/type check",
+  "model_verification": "Passed: tools/model_check.py; see model_checks.json; not an independent oracle",
+  "native_rate_hz": 44100,
+  "dsp_block_samples": 16,
+  "adapter_latency_samples": 16,
+  "instruction_count": 786,
+  "verified_instruction_words": 900,
+  "table_words": 12486,
+  "excluded_audio_regions": [
+    "EQ",
+    "AMP",
+    "SRR",
+    "delay",
+    "FM machine envelopes"
+  ],
+  "input_boundary": "post-EQ, Y:$94..$A3 and Y:$D4..$E3, Q1.23",
+  "output_boundary": "pre-AMP P:$088E, raw L:$6D..$7C and L:$AD..$BC"
+}
