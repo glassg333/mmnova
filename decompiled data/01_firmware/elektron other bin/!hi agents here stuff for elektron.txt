@@ -64,3 +64,11 @@ QEMU	CPU emulation base for octemu's patched build
 
 octatrack for firmware
 https://gitlab.com/ot-tools/ot-tools/-/releases/0.11.3
+
+emulator digitone digitakt
+https://github.com/irpina/digiemu
+
+digi mod
+https://github.com/soejrd/digisophie
+
+https://elektronmods.com/thread-27-elektron-firmware-download-list?pid=66 firmware list
