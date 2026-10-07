@@ -1,0 +1,31 @@
+# CMake / IDE
+build/
+cmake-build-*/
+CMakeUserPresets.json
+.vs/
+.vscode/
+.idea/
+
+# JUCE-generated artifacts
+JuceLibraryCode/
+*.sln
+*.suo
+*.vcxproj*
+*.vcxproj.user
+*.VC.db
+*.VC.VC.opendb
+*.vst3
+*.component
+*.app/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.obj
+*.lib
+*.exp
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
