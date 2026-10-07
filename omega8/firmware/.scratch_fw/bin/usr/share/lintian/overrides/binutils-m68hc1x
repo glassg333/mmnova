@@ -1,0 +1,30 @@
+# Default location for a cross compiler.
+non-standard-dir-in-usr [usr/m68hc11/]
+file-in-unusual-dir [usr/m68hc11/bin/ar]
+file-in-unusual-dir [usr/m68hc11/bin/as]
+file-in-unusual-dir [usr/m68hc11/bin/ld]
+file-in-unusual-dir [usr/m68hc11/bin/ld.bfd]
+file-in-unusual-dir [usr/m68hc11/bin/nm]
+file-in-unusual-dir [usr/m68hc11/bin/objcopy]
+file-in-unusual-dir [usr/m68hc11/bin/objdump]
+file-in-unusual-dir [usr/m68hc11/bin/ranlib]
+file-in-unusual-dir [usr/m68hc11/bin/readelf]
+file-in-unusual-dir [usr/m68hc11/bin/strip]
+
+# Assembly instructions are no spelling errors.
+spelling-error-in-binary addd add [usr/bin/m68hc11-*]
+spelling-error-in-binary wTH with [usr/bin/m68hc11-*]
+
+# Long option description.
+groff-message *[usr/share/man/man1/m68hc11-objdump.1.gz*]
+groff-message *[usr/share/man/man1/m68hc11-readelf.1.gz*]
+
+# Known spelling errors from upstream.
+hardening-no-fortify-functions [usr/lib/m68hc11/bfd-plugins/libdep.so]
+spare-manual-page [usr/share/man/man1/m68hc11-dlltool.1.gz]
+spare-manual-page [usr/share/man/man1/m68hc11-windmc.1.gz]
+spare-manual-page [usr/share/man/man1/m68hc11-windres.1.gz]
+spelling-error-in-binary extracing extracting [usr/bin/m68hc11-readelf]
+spelling-error-in-binary microprocesspr microprocessor [usr/bin/m68hc11-readelf]
+spelling-error-in-binary overriden overridden [usr/bin/m68hc11-ld]
+typo-in-manual-page * [usr/share/man/man1/m68hc11-*]
