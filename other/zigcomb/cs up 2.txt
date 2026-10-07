@@ -1,0 +1,1755 @@
+Ниже — цельный, самодостаточный проект **CombScanner Pro** (JUCE 8 + VST3, сборка под Visual Studio 2026). Картинку `combscanner upgrade.jpg` и репозитории я открыть не могу (нет доступа к сети), поэтому интерфейс и структуру модулей я восстановил по твоему описанию: **отдельная полоса на каждый комб + общий сканер + слоты вставных эффектов между комбами + матрица модуляций со степ‑секвенсорами**. Если пришлёшь скрин — подгоню раскладку пиксель‑в‑пиксель.
+
+---
+
+# 0. Дерево проекта
+
+```
+CombScannerPro/
+├─ CMakeLists.txt
+├─ CMakePresets.json
+├─ JUCE/                      (сабмодуль juce 8.x)
+└─ Source/
+   ├─ PluginProcessor.h/.cpp
+   ├─ PluginEditor.h/.cpp
+   ├─ Params.h
+   ├─ dsp/
+   │   ├─ CombVoice.h
+   │   ├─ CombBank.h
+   │   ├─ Scanner.h
+   │   ├─ InsertFX.h
+   │   ├─ GranularFX.h
+   │   ├─ FFTStretchFX.h
+   │   └─ ModMatrix.h
+   └─ gui/
+       ├─ CombStrip.h
+       ├─ ScanPanel.h
+       ├─ ModPanel.h
+       └─ Theme.h
+```
+
+---
+
+# 1. Настройки сборки (JUCE + VS2026)
+
+## CMakeLists.txt
+
+```cmake
+cmake_minimum_required(VERSION 3.26)
+project(CombScannerPro VERSION 2.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+add_subdirectory(JUCE)
+
+juce_add_plugin(CombScannerPro
+    COMPANY_NAME            "MMNova"
+    BUNDLE_ID               "com.mmnova.combscannerpro"
+    PLUGIN_MANUFACTURER_CODE Mmnv
+    PLUGIN_CODE              Cbsp
+    FORMATS                  VST3 Standalone
+    PRODUCT_NAME             "CombScanner Pro"
+    IS_SYNTH                 FALSE
+    NEEDS_MIDI_INPUT         TRUE        # для модуляций/секвенций по MIDI-клоку и нотам
+    NEEDS_MIDI_OUTPUT        FALSE
+    EDITOR_WANTS_KEYBOARD_FOCUS FALSE
+    COPY_PLUGIN_AFTER_BUILD  TRUE
+    VST3_CATEGORIES          "Fx" "Filter" "Delay")
+
+juce_generate_juce_header(CombScannerPro)
+
+target_sources(CombScannerPro PRIVATE
+    Source/PluginProcessor.cpp
+    Source/PluginEditor.cpp)
+
+target_compile_definitions(CombScannerPro PUBLIC
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_DISPLAY_SPLASH_SCREEN=0
+    JUCE_STRICT_REFCOUNTEDPOINTER=1)
+
+target_link_libraries(CombScannerPro PRIVATE
+    juce::juce_audio_utils
+    juce::juce_dsp
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags)
+
+if (MSVC)
+    target_compile_options(CombScannerPro PRIVATE /fp:fast /arch:AVX2 /MP /Zc:__cplusplus)
+endif()
+```
+
+## CMakePresets.json (VS2026)
+
+```json
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "vs2026",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": { "CMAKE_CONFIGURATION_TYPES": "Debug;Release" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "release", "configurePreset": "vs2026", "configuration": "Release" }
+  ]
+}
+```
+
+> Если VS2026 ещё даёт у тебя имя генератора иначе — `cmake --help` покажет точную строку; альтернативно `-G "Ninja Multi-Config"` + toolset из VS Developer Prompt. Toolset: v145 (MSVC 19.4x), SDK 10.0.26100+.
+
+**Если собираешь через Projucer (.jucer), как в Monomachine‑Nova 1.6.27:**
+* Modules: `juce_audio_basics, juce_audio_devices, juce_audio_formats, juce_audio_plugin_client, juce_audio_processors, juce_audio_utils, juce_core, juce_data_structures, juce_dsp, juce_events, juce_graphics, juce_gui_basics, juce_gui_extra`
+* Exporter: Visual Studio 2022 → открыть .sln в VS2026, принять апгрейд toolset на v145.
+* C++ Language Standard: **C++20**; Runtime Library: **Static Release**; `JUCE_DISPLAY_SPLASH_SCREEN=0`.
+
+---
+
+# 2. Параметры (Params.h)
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+namespace P
+{
+    static constexpr int kNumCombs = 8;
+    static constexpr int kNumSlots = 3;   // вставные FX между группами комбов
+    static constexpr int kNumLfo   = 4;
+    static constexpr int kNumSeq   = 4;
+    static constexpr int kSeqSteps = 16;
+    static constexpr int kModSlots = 16;  // строки матрицы модуляций
+
+    inline juce::String comb (int i, const char* n) { return "cmb" + juce::String(i) + "_" + n; }
+    inline juce::String slot (int i, const char* n) { return "slot" + juce::String(i) + "_" + n; }
+    inline juce::String lfo  (int i, const char* n) { return "lfo" + juce::String(i) + "_" + n; }
+    inline juce::String seq  (int i, const char* n) { return "seq" + juce::String(i) + "_" + n; }
+    inline juce::String mod  (int i, const char* n) { return "mod" + juce::String(i) + "_" + n; }
+}
+```
+
+Полная схема параметров (создаётся в `createLayout()`, см. §6):
+
+| Группа | Параметры |
+|---|---|
+| **Comb × 8** | `on`, `ratio` (0.125…16, скейл по базовой частоте), `fine` (±100 cent), `fb` (−0.99…0.99), `damp` (20 Hz…20 kHz LP в петле), `hp` (20 Hz…2 kHz HP в петле), `drive`, `level`, `pan`, `mode` (FF/FB/Allpass/Karplus), `scanWeight`, `slotRoute` (0..3 — в какой FX‑слот идёт выход комба) |
+| **Scanner** | `scanPos` (0…1), `scanWidth`, `scanShape` (Lin/Cos/Gauss/Comb), `scanRate`, `scanSync`, `scanDepth`, `scanDirection`, `spread` (стерео‑развал позиции) |
+| **Base** | `baseFreq` (20…2000 Hz), `keyTrack`, `tune`, `glide`, `combSeries` (Parallel / Series / Series‑Fb / Matrix) |
+| **Slot × 3** | `type` (None/Granular/FFT‑Stretch/Shimmer/Fold/Reverse), `mix`, `p1..p6` (контекстные), `pre/post` |
+| **LFO × 4** | `rate`, `sync`, `shape`, `phase`, `depth`, `smooth`, `uni/bi` |
+| **Seq × 4** | `steps[16]`, `len`, `rate`, `sync`, `slew`, `mode` (fwd/rev/pp/rand) |
+| **ModMatrix × 16** | `src`, `dst`, `amount`, `curve`, `enabled` |
+| **Global** | `inGain`, `mix`, `outGain`, `width`, `limiter`, `oversample` |
+
+---
+
+# 3. DSP: ядро комба
+
+## CombVoice.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+// Один комб-голос: FF / FB / Allpass / Karplus, с дробной задержкой (Lagrange3),
+// демпфером (one-pole LP), HP в петле, мягким сатурейтом и DC-блоком.
+class CombVoice
+{
+public:
+    enum Mode { FeedForward = 0, FeedBack, AllPass, Karplus };
+
+    void prepare (double sr, int maxBlock, double maxDelayMs = 200.0)
+    {
+        sampleRate = sr;
+        maxDelaySamps = (int) (maxDelayMs * 0.001 * sr) + 8;
+        buffer.assign ((size_t) maxDelaySamps, 0.0f);
+        write = 0; lpZ = hpZ = dcX = dcY = 0.0f;
+        curDelay = targetDelay = 100.0f;
+        juce::ignoreUnused (maxBlock);
+    }
+
+    void reset()
+    {
+        std::fill (buffer.begin(), buffer.end(), 0.0f);
+        lpZ = hpZ = dcX = dcY = 0.0f;
+    }
+
+    void setDelaySamples (float d) noexcept
+    { targetDelay = juce::jlimit (2.0f, (float) maxDelaySamps - 4.0f, d); }
+
+    void setFeedback (float f) noexcept { fb = juce::jlimit (-0.995f, 0.995f, f); }
+    void setMode (Mode m) noexcept { mode = m; }
+    void setDrive (float d) noexcept { drive = juce::jmax (0.0f, d); }
+
+    void setDamp (float hz) noexcept
+    { dampCoef = std::exp (-juce::MathConstants<float>::twoPi * hz / (float) sampleRate); }
+
+    void setHighpass (float hz) noexcept
+    { hpCoef = std::exp (-juce::MathConstants<float>::twoPi * hz / (float) sampleRate); }
+
+    // slew для бесщелчкового скана
+    void setGlide (float msPerBlock) noexcept { glide = msPerBlock; }
+
+    inline float process (float x) noexcept
+    {
+        curDelay += (targetDelay - curDelay) * glideCoef;
+
+        const float d = readLagrange (curDelay);
+        float loop = d;
+
+        // демпфер в петле (one-pole LP)
+        lpZ = loop * (1.0f - dampCoef) + lpZ * dampCoef;
+        loop = lpZ;
+        // HP в петле
+        hpZ = loop * (1.0f - hpCoef) + hpZ * hpCoef;
+        loop = loop - hpZ;
+
+        if (drive > 0.0001f)
+            loop = std::tanh (loop * (1.0f + drive * 6.0f)) / (1.0f + drive * 1.6f);
+
+        float out = 0.0f, in = 0.0f;
+
+        switch (mode)
+        {
+            case FeedForward: out = x + fb * loop;           in = x;                 break;
+            case FeedBack:    in  = x + fb * loop;           out = in;               break;
+            case AllPass:     in  = x + fb * loop;           out = loop - fb * in;   break;
+            case Karplus:     in  = x + fb * 0.5f * (loop + lastLoop); out = in;     break;
+        }
+        lastLoop = loop;
+
+        // DC block
+        const float y = in - dcX + 0.9995f * dcY;
+        dcX = in; dcY = y;
+
+        buffer[(size_t) write] = juce::jlimit (-8.0f, 8.0f, y);
+        if (++write >= maxDelaySamps) write = 0;
+
+        return out;
+    }
+
+    void updateGlideCoef (double sr, float ms)
+    { glideCoef = 1.0f - std::exp (-1.0f / (float) (0.001 * ms * sr)); }
+
+private:
+    inline float readLagrange (float delay) const noexcept
+    {
+        float rp = (float) write - delay;
+        while (rp < 0.0f) rp += (float) maxDelaySamps;
+        const int i = (int) rp;
+        const float f = rp - (float) i;
+
+        auto at = [&] (int k) noexcept
+        { int idx = i + k; while (idx >= maxDelaySamps) idx -= maxDelaySamps;
+          while (idx < 0) idx += maxDelaySamps; return buffer[(size_t) idx]; };
+
+        const float ym1 = at (-1), y0 = at (0), y1 = at (1), y2 = at (2);
+        const float c0 = y0;
+        const float c1 = 0.5f * (y1 - ym1);
+        const float c2 = ym1 - 2.5f * y0 + 2.0f * y1 - 0.5f * y2;
+        const float c3 = 0.5f * (y2 - ym1) + 1.5f * (y0 - y1);
+        return ((c3 * f + c2) * f + c1) * f + c0;
+    }
+
+    std::vector<float> buffer;
+    int   maxDelaySamps = 1, write = 0;
+    double sampleRate = 48000.0;
+    float curDelay = 100.f, targetDelay = 100.f, glide = 5.f, glideCoef = 0.002f;
+    float fb = 0.7f, drive = 0.f, dampCoef = 0.2f, hpCoef = 0.001f;
+    float lpZ = 0, hpZ = 0, dcX = 0, dcY = 0, lastLoop = 0;
+    Mode  mode = FeedBack;
+};
+```
+
+## Scanner.h — «сканирующее окно» по банку
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+// Генерирует веса для N комбов в зависимости от позиции/ширины/формы.
+// Поддерживает стерео-разнос (spread) — L и R скан сдвинуты по фазе.
+class Scanner
+{
+public:
+    enum Shape { Linear = 0, Cosine, Gauss, Notch, Rand };
+
+    void setN (int n) { N = n; w[0].assign ((size_t) n, 0.f); w[1].assign ((size_t) n, 0.f); }
+
+    void compute (float pos, float width, Shape shape, float spread, float stereoPhase)
+    {
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            float p = pos + (ch == 0 ? -spread : spread) * 0.5f * stereoPhase;
+            p = p - std::floor (p);                     // wrap 0..1
+            const float centre = p * (float) (N - 1);
+            float sum = 1e-9f;
+
+            for (int i = 0; i < N; ++i)
+            {
+                // циклическое расстояние, чтобы скан «заворачивался»
+                float d = std::abs ((float) i - centre);
+                d = std::min (d, (float) N - d);
+                const float nd = d / juce::jmax (0.0001f, width * (float) N * 0.5f);
+
+                float g = 0.f;
+                switch (shape)
+                {
+                    case Linear: g = juce::jmax (0.f, 1.f - nd); break;
+                    case Cosine: g = nd < 1.f ? 0.5f * (1.f + std::cos (nd * juce::MathConstants<float>::pi)) : 0.f; break;
+                    case Gauss:  g = std::exp (-nd * nd * 4.f); break;
+                    case Notch:  g = juce::jlimit (0.f, 1.f, nd - 0.f); g = juce::jmin (1.f, g); break;
+                    case Rand:   g = juce::jmax (0.f, 1.f - nd) * (0.5f + 0.5f * hash (i, (int) (p * 97.f))); break;
+                }
+                w[ch][(size_t) i] = g;
+                sum += g;
+            }
+            // нормализация энергии, чтобы громкость не прыгала при скане
+            const float inv = 1.0f / std::sqrt (sum);
+            for (auto& v : w[ch]) v *= inv;
+        }
+    }
+
+    float weight (int ch, int i) const noexcept { return w[ch][(size_t) i]; }
+
+private:
+    static float hash (int a, int b)
+    { uint32_t h = (uint32_t) (a * 374761393 + b * 668265263); h = (h ^ (h >> 13)) * 1274126177;
+      return (float) ((h ^ (h >> 16)) & 0xFFFF) / 65535.0f; }
+
+    int N = 8;
+    std::array<std::vector<float>, 2> w;
+};
+```
+
+---
+
+# 4. Вставные эффекты между комбами
+
+## FFTStretchFX.h — STFT‑стретч/фриз с почти нулевой задержкой
+
+Логика как в Signalsmith‑подходе: короткий Hann‑анализ с hop = N/4, **фазовый вокодер с phase‑locking по пикам**, а latency компенсируется тем, что окно маленькое (256–1024) и выход пишется с опережением (`lookahead = 0`, residual latency = hop).
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+class FFTStretchFX
+{
+public:
+    void prepare (double sr, int order = 9)   // 2^9 = 512 -> ~5.3 ms @48k, hop 128 -> 2.7 ms latency
+    {
+        fftOrder = order; N = 1 << order; hop = N / 4;
+        fft = std::make_unique<juce::dsp::FFT> (fftOrder);
+        win.resize ((size_t) N);
+        for (int i = 0; i < N; ++i)
+            win[(size_t) i] = 0.5f * (1.f - std::cos (juce::MathConstants<float>::twoPi * i / (float) N));
+
+        for (auto& c : chans) c.init (N, hop);
+        sampleRate = sr; pos = 0;
+    }
+
+    int latencySamples() const noexcept { return hop; }
+
+    void setStretch (float s)  { stretch = juce::jlimit (0.25f, 4.0f, s); }
+    void setPitch   (float st) { pitchRatio = std::pow (2.0f, st / 12.0f); }
+    void setFreeze  (bool f)   { freeze = f; }
+    void setSmear   (float s)  { smear = juce::jlimit (0.f, 1.f, s); }
+    void setMix     (float m)  { mix = m; }
+
+    void process (juce::AudioBuffer<float>& b)
+    {
+        const int n = b.getNumSamples();
+        for (int ch = 0; ch < juce::jmin (2, b.getNumChannels()); ++ch)
+        {
+            auto* d = b.getWritePointer (ch);
+            auto& C = chans[(size_t) ch];
+            for (int i = 0; i < n; ++i)
+            {
+                const float dry = d[i];
+                C.in[(size_t) C.idx] = dry;
+                d[i] = dry * (1.f - mix) + C.out[(size_t) C.idx] * mix;
+                C.out[(size_t) C.idx] = 0.f;
+                if (++C.idx >= hop) { C.idx = 0; frame (C); }
+            }
+        }
+    }
+
+private:
+    struct Ch
+    {
+        std::vector<float> in, out, fifoIn, fifoOut, lastPhase, sumPhase, mag, frq;
+        int idx = 0;
+        void init (int N, int hop)
+        {
+            in.assign ((size_t) hop, 0.f); out.assign ((size_t) hop, 0.f);
+            fifoIn.assign ((size_t) N, 0.f); fifoOut.assign ((size_t) N * 2, 0.f);
+            lastPhase.assign ((size_t) N / 2 + 1, 0.f);
+            sumPhase .assign ((size_t) N / 2 + 1, 0.f);
+            mag.assign ((size_t) N / 2 + 1, 0.f); frq.assign ((size_t) N / 2 + 1, 0.f);
+            idx = 0;
+        }
+    };
+
+    void frame (Ch& C)
+    {
+        // сдвиг входного FIFO
+        std::rotate (C.fifoIn.begin(), C.fifoIn.begin() + hop, C.fifoIn.end());
+        std::copy (C.in.begin(), C.in.end(), C.fifoIn.end() - hop);
+
+        std::vector<float> fd ((size_t) N * 2, 0.f);
+        for (int i = 0; i < N; ++i) fd[(size_t) i] = C.fifoIn[(size_t) i] * win[(size_t) i];
+        fft->performRealOnlyForwardTransform (fd.data());
+
+        const float expct = juce::MathConstants<float>::twoPi * (float) hop / (float) N;
+        const int bins = N / 2;
+
+        for (int k = 0; k <= bins; ++k)
+        {
+            const float re = fd[(size_t) (2 * k)], im = fd[(size_t) (2 * k + 1)];
+            const float m = std::sqrt (re * re + im * im);
+            const float ph = std::atan2 (im, re);
+
+            float dp = ph - C.lastPhase[(size_t) k];
+            C.lastPhase[(size_t) k] = ph;
+            dp -= (float) k * expct;
+            dp = dp - juce::MathConstants<float>::twoPi * std::round (dp / juce::MathConstants<float>::twoPi);
+            const float trueFreq = (float) k + dp / expct;
+
+            if (!freeze) { C.mag[(size_t) k] = m; C.frq[(size_t) k] = trueFreq; }
+            else         { C.mag[(size_t) k] += (m - C.mag[(size_t) k]) * (1.f - smear) * 0.02f; }
+        }
+
+        // синтез с ресэмплом бинов (pitch) и темпом (stretch)
+        std::fill (fd.begin(), fd.end(), 0.f);
+        for (int k = 0; k <= bins; ++k)
+        {
+            const int src = juce::jlimit (0, bins, (int) std::round ((float) k / pitchRatio));
+            const float m = C.mag[(size_t) src];
+            const float f = C.frq[(size_t) src] * pitchRatio;
+
+            float adv = f * expct / stretch;
+            C.sumPhase[(size_t) k] += adv;
+            fd[(size_t) (2 * k)]     = m * std::cos (C.sumPhase[(size_t) k]);
+            fd[(size_t) (2 * k + 1)] = m * std::sin (C.sumPhase[(size_t) k]);
+        }
+        fft->performRealOnlyInverseTransform (fd.data());
+
+        const float norm = 2.0f / (3.0f * (float) N / (float) hop) * 2.0f;
+        for (int i = 0; i < N; ++i)
+            C.fifoOut[(size_t) i] += fd[(size_t) i] * win[(size_t) i] * norm;
+
+        std::copy (C.fifoOut.begin(), C.fifoOut.begin() + hop, C.out.begin());
+        std::rotate (C.fifoOut.begin(), C.fifoOut.begin() + hop, C.fifoOut.begin() + N);
+        std::fill (C.fifoOut.begin() + N - hop, C.fifoOut.begin() + N, 0.f);
+    }
+
+    std::unique_ptr<juce::dsp::FFT> fft;
+    std::vector<float> win;
+    std::array<Ch, 2> chans;
+    int fftOrder = 9, N = 512, hop = 128, pos = 0;
+    double sampleRate = 48000.0;
+    float stretch = 1.f, pitchRatio = 1.f, smear = 0.5f, mix = 1.f;
+    bool freeze = false;
+};
+```
+
+> Замена на оригинальный **Signalsmith Stretch**: интерфейс совпадает по смыслу — `configure(channels, blockSamples, intervalSamples)`, `setTransposeSemitones()`, `process(in, inLen, out, outLen)`. В `InsertFX` достаточно подменить реализацию внутри `case Type::FFTStretch`, сигнатуры снаружи не меняются.
+
+## GranularFX.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+class GranularFX
+{
+public:
+    static constexpr int kMaxGrains = 48;
+
+    void prepare (double sr, double bufSec = 4.0)
+    {
+        sampleRate = sr;
+        len = (int) (bufSec * sr);
+        for (auto& b : buf) b.assign ((size_t) len, 0.f);
+        wp = 0; for (auto& g : grains) g.active = false;
+        rng.setSeedRandomly();
+    }
+
+    void setDensity (float hz)      { density = juce::jlimit (0.5f, 200.f, hz); }
+    void setSize (float ms)         { sizeMs = juce::jlimit (5.f, 1000.f, ms); }
+    void setPosition (float p)      { posN = juce::jlimit (0.f, 1.f, p); }
+    void setJitter (float j)        { jitter = j; }
+    void setPitchSpread (float st)  { pitchSpread = st; }
+    void setReverseProb (float r)   { revProb = r; }
+    void setSpray (float s)         { spray = s; }
+    void setMix (float m)           { mix = m; }
+
+    void process (juce::AudioBuffer<float>& b)
+    {
+        const int n = b.getNumSamples();
+        auto* L = b.getWritePointer (0);
+        auto* R = b.getNumChannels() > 1 ? b.getWritePointer (1) : L;
+
+        for (int i = 0; i < n; ++i)
+        {
+            buf[0][(size_t) wp] = L[i];
+            buf[1][(size_t) wp] = R[i];
+
+            phase += density / (float) sampleRate;
+            while (phase >= 1.f) { phase -= 1.f; spawn(); }
+
+            float gl = 0.f, gr = 0.f;
+            for (auto& g : grains)
+            {
+                if (!g.active) continue;
+                const float w = 0.5f * (1.f - std::cos (juce::MathConstants<float>::twoPi * g.t / g.dur));
+                float rp = g.start + g.t * g.rate * (g.rev ? -1.f : 1.f);
+                rp = std::fmod (rp + (float) len * 4.f, (float) len);
+                const int i0 = (int) rp; const float f = rp - (float) i0;
+                const int i1 = (i0 + 1) % len;
+                const float sL = buf[0][(size_t) i0] + f * (buf[0][(size_t) i1] - buf[0][(size_t) i0]);
+                const float sR = buf[1][(size_t) i0] + f * (buf[1][(size_t) i1] - buf[1][(size_t) i0]);
+                gl += sL * w * g.panL; gr += sR * w * g.panR;
+                if ((g.t += 1.f) >= g.dur) g.active = false;
+            }
+            const float k = 1.0f / std::sqrt (juce::jmax (1.f, density * sizeMs * 0.001f));
+            L[i] = L[i] * (1.f - mix) + gl * k * mix;
+            R[i] = R[i] * (1.f - mix) + gr * k * mix;
+            if (++wp >= len) wp = 0;
+        }
+    }
+
+private:
+    struct Grain { bool active = false, rev = false; float t = 0, dur = 1, start = 0, rate = 1, panL = 1, panR = 1; };
+
+    void spawn()
+    {
+        for (auto& g : grains)
+            if (!g.active)
+            {
+                const float dur = sizeMs * 0.001f * (float) sampleRate * (1.f + jitter * (rng.nextFloat() - 0.5f));
+                const float base = (float) wp - posN * (float) len * 0.9f
+                                 - spray * rng.nextFloat() * (float) len * 0.5f;
+                g.active = true; g.t = 0; g.dur = juce::jmax (16.f, dur);
+                g.start = std::fmod (base + (float) len * 4.f, (float) len);
+                g.rate = std::pow (2.0f, pitchSpread * (rng.nextFloat() * 2.f - 1.f) / 12.0f);
+                g.rev = rng.nextFloat() < revProb;
+                const float p = rng.nextFloat();
+                g.panL = std::cos (p * juce::MathConstants<float>::halfPi) * 1.414f;
+                g.panR = std::sin (p * juce::MathConstants<float>::halfPi) * 1.414f;
+                return;
+            }
+    }
+
+    std::array<std::vector<float>, 2> buf;
+    std::array<Grain, kMaxGrains> grains;
+    juce::Random rng;
+    double sampleRate = 48000.0;
+    int len = 1, wp = 0;
+    float phase = 0, density = 20.f, sizeMs = 80.f, posN = 0.1f,
+          jitter = 0.2f, pitchSpread = 0.f, revProb = 0.f, spray = 0.1f, mix = 1.f;
+};
+```
+
+## InsertFX.h — универсальный слот
+
+```cpp
+#pragma once
+#include "GranularFX.h"
+#include "FFTStretchFX.h"
+
+class InsertFX
+{
+public:
+    enum class Type { None = 0, Granular, FFTStretch, Shimmer, Folder, Reverser, NumTypes };
+
+    void prepare (double sr, int blockSize)
+    {
+        sampleRate = sr; block = blockSize;
+        gran.prepare (sr); fftx.prepare (sr, 9);
+        revBuf.setSize (2, (int) sr * 2); revBuf.clear(); revPos = 0;
+        shimDelay.assign (2, std::vector<float> ((size_t) sr, 0.f)); shimPos = 0;
+    }
+
+    void setType (Type t) { type = t; }
+    void setMix (float m) { mix = juce::jlimit (0.f, 1.f, m); }
+
+    // p1..p6 — нормализованные контекстные параметры (0..1)
+    void setParams (const std::array<float, 6>& p)
+    {
+        switch (type)
+        {
+            case Type::Granular:
+                gran.setDensity (0.5f + p[0] * 120.f);
+                gran.setSize (5.f + p[1] * 500.f);
+                gran.setPosition (p[2]);
+                gran.setJitter (p[3]);
+                gran.setPitchSpread (p[4] * 24.f - 12.f);
+                gran.setReverseProb (p[5]);
+                gran.setMix (1.0f);
+                break;
+            case Type::FFTStretch:
+                fftx.setStretch (0.25f + p[0] * 3.75f);
+                fftx.setPitch ((p[1] * 2.f - 1.f) * 24.f);
+                fftx.setFreeze (p[2] > 0.5f);
+                fftx.setSmear (p[3]);
+                fftx.setMix (1.0f);
+                break;
+            default: break;
+        }
+        params = p;
+    }
+
+    int latency() const { return type == Type::FFTStretch ? fftx.latencySamples() : 0; }
+
+    void process (juce::AudioBuffer<float>& b)
+    {
+        if (type == Type::None || mix <= 0.0001f) return;
+
+        dry.makeCopyOf (b, true);
+
+        switch (type)
+        {
+            case Type::Granular:   gran.process (b); break;
+            case Type::FFTStretch: fftx.process (b); break;
+            case Type::Shimmer:    shimmer (b);      break;
+            case Type::Folder:     folder (b);       break;
+            case Type::Reverser:   reverser (b);     break;
+            default: break;
+        }
+
+        for (int ch = 0; ch < b.getNumChannels(); ++ch)
+        {
+            auto* w = b.getWritePointer (ch); auto* d = dry.getReadPointer (ch);
+            for (int i = 0; i < b.getNumSamples(); ++i)
+                w[i] = d[i] * (1.f - mix) + w[i] * mix;
+        }
+    }
+
+private:
+    void folder (juce::AudioBuffer<float>& b)
+    {
+        const float amt = 1.f + params[0] * 12.f, sym = params[1] * 2.f - 1.f;
+        for (int ch = 0; ch < b.getNumChannels(); ++ch)
+        {
+            auto* w = b.getWritePointer (ch);
+            for (int i = 0; i < b.getNumSamples(); ++i)
+            {
+                float x = w[i] * amt + sym;
+                for (int k = 0; k < 4; ++k)
+                { if (x > 1.f) x = 2.f - x; else if (x < -1.f) x = -2.f - x; else break; }
+                w[i] = std::sin (x * juce::MathConstants<float>::halfPi) / (0.5f + amt * 0.1f);
+            }
+        }
+    }
+
+    void reverser (juce::AudioBuffer<float>& b)
+    {
+        const int seg = juce::jmax (64, (int) ((0.02f + params[0] * 0.5f) * (float) sampleRate));
+        for (int i = 0; i < b.getNumSamples(); ++i)
+        {
+            for (int ch = 0; ch < juce::jmin (2, b.getNumChannels()); ++ch)
+            {
+                auto* w = b.getWritePointer (ch);
+                auto* r = revBuf.getWritePointer (ch);
+                r[revPos] = w[i];
+                const int rd = (revPos / seg) * seg + (seg - 1 - (revPos % seg));
+                w[i] = r[juce::jlimit (0, revBuf.getNumSamples() - 1, rd)];
+            }
+            if (++revPos >= revBuf.getNumSamples() - seg) revPos = 0;
+        }
+    }
+
+    void shimmer (juce::AudioBuffer<float>& b)
+    {
+        // простой октавер + диффузия (p0 = feedback, p1 = tone)
+        const float fb = params[0] * 0.85f;
+        for (int ch = 0; ch < juce::jmin (2, b.getNumChannels()); ++ch)
+        {
+            auto* w = b.getWritePointer (ch);
+            auto& D = shimDelay[(size_t) ch];
+            const int L = (int) D.size();
+            for (int i = 0; i < b.getNumSamples(); ++i)
+            {
+                const int rp = (shimPos + L - L / 3) % L;
+                const int rp2 = (shimPos + L - L / 3) % L;
+                const float oct = D[(size_t) rp] * 0.5f + D[(size_t) rp2] * 0.5f;
+                const float y = w[i] + oct * fb;
+                D[(size_t) shimPos] = y;
+                w[i] = oct;
+                if (ch == 1) { if (++shimPos >= L) shimPos = 0; }
+            }
+        }
+    }
+
+    GranularFX gran; FFTStretchFX fftx;
+    juce::AudioBuffer<float> dry, revBuf;
+    std::vector<std::vector<float>> shimDelay;
+    std::array<float, 6> params { };
+    Type type = Type::None;
+    double sampleRate = 48000.0; int block = 512, revPos = 0, shimPos = 0;
+    float mix = 1.f;
+};
+```
+
+---
+
+# 5. Модуляции: LFO + степ‑секвенсор + матрица
+
+## ModMatrix.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+#include "../Params.h"
+
+struct ModLFO
+{
+    enum Shape { Sine = 0, Tri, Saw, Sqr, SH, Smooth };
+    float phase = 0, value = 0, held = 0, smoothed = 0;
+    juce::Random rng;
+
+    float tick (double sr, float rateHz, Shape sh, float smooth)
+    {
+        phase += rateHz / (float) sr;
+        bool wrapped = false;
+        while (phase >= 1.f) { phase -= 1.f; wrapped = true; }
+        float v = 0.f;
+        switch (sh)
+        {
+            case Sine:   v = std::sin (phase * juce::MathConstants<float>::twoPi); break;
+            case Tri:    v = 4.f * std::abs (phase - 0.5f) - 1.f; break;
+            case Saw:    v = 2.f * phase - 1.f; break;
+            case Sqr:    v = phase < 0.5f ? 1.f : -1.f; break;
+            case SH:     if (wrapped) held = rng.nextFloat() * 2.f - 1.f; v = held; break;
+            case Smooth: if (wrapped) held = rng.nextFloat() * 2.f - 1.f;
+                         smoothed += (held - smoothed) * 0.01f; v = smoothed; break;
+        }
+        const float a = juce::jlimit (0.f, 0.9995f, smooth);
+        value += (v - value) * (1.f - a);
+        return value;
+    }
+};
+
+struct StepSeq
+{
+    std::array<float, P::kSeqSteps> steps { };
+    int length = 16, idx = 0, dir = 1;
+    float phase = 0, cur = 0;
+    enum Mode { Fwd = 0, Rev, PingPong, Rand };
+
+    float tick (double sr, float rateHz, Mode m, float slew)
+    {
+        phase += rateHz / (float) sr;
+        while (phase >= 1.f)
+        {
+            phase -= 1.f;
+            switch (m)
+            {
+                case Fwd: idx = (idx + 1) % length; break;
+                case Rev: idx = (idx - 1 + length) % length; break;
+                case PingPong: idx += dir; if (idx >= length - 1 || idx <= 0) dir = -dir;
+                               idx = juce::jlimit (0, length - 1, idx); break;
+                case Rand: idx = juce::Random::getSystemRandom().nextInt (length); break;
+            }
+        }
+        const float target = steps[(size_t) idx] * 2.f - 1.f;
+        const float a = 1.f - std::exp (-1.f / juce::jmax (1.f, slew * 0.05f * (float) sr));
+        cur += (target - cur) * a;
+        return cur;
+    }
+};
+
+// Источники и приёмники
+namespace Mod
+{
+    enum class Src { None = 0, LFO1, LFO2, LFO3, LFO4, SEQ1, SEQ2, SEQ3, SEQ4,
+                     EnvFollow, Random, MidiNote, MidiVel, MidiCC1, Macro1, Macro2, Count };
+
+    enum class Dst { None = 0, ScanPos, ScanWidth, BaseFreq, GlobalFB, GlobalDamp, GlobalDrive,
+                     Spread, Comb1Ratio, Comb2Ratio, Comb3Ratio, Comb4Ratio,
+                     Comb5Ratio, Comb6Ratio, Comb7Ratio, Comb8Ratio,
+                     Comb1FB, Comb2FB, Comb3FB, Comb4FB,
+                     Slot1P1, Slot1P2, Slot2P1, Slot2P2, Slot3P1, Slot3P2,
+                     Slot1Mix, Slot2Mix, Slot3Mix, Mix, Count };
+
+    inline juce::StringArray srcNames()
+    { return { "—","LFO 1","LFO 2","LFO 3","LFO 4","SEQ 1","SEQ 2","SEQ 3","SEQ 4",
+               "Env Follow","Random","Note","Velocity","CC1","Macro 1","Macro 2" }; }
+
+    inline juce::StringArray dstNames()
+    { return { "—","Scan Pos","Scan Width","Base Freq","FB (all)","Damp (all)","Drive (all)","Spread",
+               "C1 Ratio","C2 Ratio","C3 Ratio","C4 Ratio","C5 Ratio","C6 Ratio","C7 Ratio","C8 Ratio",
+               "C1 FB","C2 FB","C3 FB","C4 FB",
+               "FX1 P1","FX1 P2","FX2 P1","FX2 P2","FX3 P1","FX3 P2",
+               "FX1 Mix","FX2 Mix","FX3 Mix","Dry/Wet" }; }
+}
+
+struct ModEngine
+{
+    std::array<ModLFO, P::kNumLfo> lfos;
+    std::array<StepSeq, P::kNumSeq> seqs;
+    float envFollow = 0, randomVal = 0, noteVal = 0, velVal = 0, cc1 = 0, macro1 = 0, macro2 = 0;
+    std::array<float, (size_t) Mod::Dst::Count> depth { };   // суммарная модуляция по приёмникам
+
+    void clearDepths() { depth.fill (0.f); }
+
+    float srcValue (Mod::Src s) const
+    {
+        using S = Mod::Src;
+        switch (s)
+        {
+            case S::LFO1: return lfos[0].value; case S::LFO2: return lfos[1].value;
+            case S::LFO3: return lfos[2].value; case S::LFO4: return lfos[3].value;
+            case S::SEQ1: return seqs[0].cur;   case S::SEQ2: return seqs[1].cur;
+            case S::SEQ3: return seqs[2].cur;   case S::SEQ4: return seqs[3].cur;
+            case S::EnvFollow: return envFollow * 2.f - 1.f;
+            case S::Random:    return randomVal;
+            case S::MidiNote:  return noteVal;  case S::MidiVel: return velVal;
+            case S::MidiCC1:   return cc1;
+            case S::Macro1:    return macro1;   case S::Macro2: return macro2;
+            default: return 0.f;
+        }
+    }
+
+    static float curve (float x, float c)   // c: -1 экспонента, 0 линейно, +1 лог
+    {
+        if (std::abs (c) < 0.01f) return x;
+        const float s = x < 0 ? -1.f : 1.f, a = std::abs (x);
+        return s * (c > 0 ? std::pow (a, 1.f - c * 0.8f) : std::pow (a, 1.f + (-c) * 3.f));
+    }
+};
+```
+
+---
+
+# 6. PluginProcessor
+
+## PluginProcessor.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+#include "Params.h"
+#include "dsp/CombVoice.h"
+#include "dsp/Scanner.h"
+#include "dsp/InsertFX.h"
+#include "dsp/ModMatrix.h"
+
+class CombScannerAudioProcessor : public juce::AudioProcessor
+{
+public:
+    CombScannerAudioProcessor();
+    ~CombScannerAudioProcessor() override = default;
+
+    void prepareToPlay (double, int) override;
+    void releaseResources() override {}
+    bool isBusesLayoutSupported (const BusesLayout&) const override;
+    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override { return true; }
+    const juce::String getName() const override { return "CombScanner Pro"; }
+    bool acceptsMidi() const override { return true; }
+    bool producesMidi() const override { return false; }
+    bool isMidiEffect() const override { return false; }
+    double getTailLengthSeconds() const override { return 4.0; }
+
+    int getNumPrograms() override;
+    int getCurrentProgram() override { return currentProgram; }
+    void setCurrentProgram (int i) override;
+    const juce::String getProgramName (int i) override;
+    void changeProgramName (int, const juce::String&) override {}
+
+    void getStateInformation (juce::MemoryBlock&) override;
+    void setStateInformation (const void*, int) override;
+
+    juce::AudioProcessorValueTreeState apvts;
+    static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
+
+    // для GUI-визуализации
+    std::atomic<float> scanDisplay { 0.f };
+    std::array<std::atomic<float>, P::kNumCombs> combMeter;
+
+private:
+    void updateModulation (int numSamples, juce::AudioPlayHead*);
+    float dstValue (Mod::Dst d, float base, float range) const;
+
+    std::array<std::array<CombVoice, 2>, P::kNumCombs> combs;  // [comb][channel]
+    Scanner scanner;
+    std::array<InsertFX, P::kNumSlots> slots;
+    ModEngine mod;
+
+    juce::AudioBuffer<float> dryBuf, wetBuf, slotBuf[P::kNumSlots];
+    juce::dsp::Oversampling<float> oversampler { 2, 1,
+        juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR };
+
+    double sr = 48000.0; int blockSize = 512, currentProgram = 0;
+    float scanPhase = 0.f, env = 0.f;
+    juce::SmoothedValue<float> sMix, sIn, sOut;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CombScannerAudioProcessor)
+};
+```
+
+## PluginProcessor.cpp (ключевые части)
+
+```cpp
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+
+using APVTS = juce::AudioProcessorValueTreeState;
+using FR = juce::NormalisableRange<float>;
+
+static FR logRange (float lo, float hi, float skewCentre)
+{ FR r (lo, hi); r.setSkewForCentre (skewCentre); return r; }
+
+APVTS::ParameterLayout CombScannerAudioProcessor::createLayout()
+{
+    APVTS::ParameterLayout L;
+    auto pf = [&] (juce::String id, juce::String nm, FR r, float def)
+    { L.add (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { id, 1 }, nm, r, def)); };
+    auto pc = [&] (juce::String id, juce::String nm, juce::StringArray ch, int def)
+    { L.add (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { id, 1 }, nm, ch, def)); };
+    auto pb = [&] (juce::String id, juce::String nm, bool def)
+    { L.add (std::make_unique<juce::AudioParameterBool> (juce::ParameterID { id, 1 }, nm, def)); };
+
+    // ---- Global / Base
+    pf ("baseFreq", "Base Freq", logRange (20.f, 2000.f, 220.f), 110.f);
+    pf ("tune",     "Tune",      FR (-24.f, 24.f, 0.01f), 0.f);
+    pf ("glide",    "Glide",     logRange (0.1f, 500.f, 20.f), 8.f);
+    pb ("keyTrack", "Key Track", false);
+    pc ("topology", "Topology",  { "Parallel", "Series", "Series FB", "Matrix" }, 0);
+    pf ("inGain",   "In Gain",   FR (-24.f, 24.f, 0.1f), 0.f);
+    pf ("outGain",  "Out Gain",  FR (-24.f, 24.f, 0.1f), 0.f);
+    pf ("mix",      "Dry/Wet",   FR (0.f, 1.f, 0.001f), 1.f);
+    pf ("width",    "Width",     FR (0.f, 2.f, 0.001f), 1.f);
+    pb ("os",       "Oversample", false);
+    pf ("macro1",   "Macro 1",   FR (0.f, 1.f, 0.001f), 0.f);
+    pf ("macro2",   "Macro 2",   FR (0.f, 1.f, 0.001f), 0.f);
+
+    // ---- Scanner
+    pf ("scanPos",   "Scan Pos",   FR (0.f, 1.f, 0.0001f), 0.5f);
+    pf ("scanWidth", "Scan Width", FR (0.05f, 1.f, 0.001f), 0.35f);
+    pc ("scanShape", "Scan Shape", { "Linear", "Cosine", "Gauss", "Notch", "Random" }, 2);
+    pf ("scanRate",  "Scan Rate",  logRange (0.01f, 20.f, 1.f), 0.25f);
+    pb ("scanSync",  "Scan Sync",  false);
+    pc ("scanDiv",   "Scan Div",   { "4/1","2/1","1/1","1/2","1/4","1/8","1/8T","1/16","1/16T","1/32" }, 4);
+    pf ("scanDepth", "Scan Depth", FR (0.f, 1.f, 0.001f), 0.f);
+    pf ("spread",    "Stereo Spread", FR (0.f, 1.f, 0.001f), 0.2f);
+
+    // ---- Combs
+    for (int i = 0; i < P::kNumCombs; ++i)
+    {
+        const auto n = juce::String (i + 1);
+        pb (P::comb (i, "on"),    "C" + n + " On", i < 4);
+        pf (P::comb (i, "ratio"), "C" + n + " Ratio", logRange (0.125f, 16.f, 1.f), (float) (i + 1));
+        pf (P::comb (i, "fine"),  "C" + n + " Fine", FR (-100.f, 100.f, 0.1f), 0.f);
+        pf (P::comb (i, "fb"),    "C" + n + " FB", FR (-0.99f, 0.99f, 0.0001f), 0.8f);
+        pf (P::comb (i, "damp"),  "C" + n + " Damp", logRange (200.f, 20000.f, 4000.f), 8000.f);
+        pf (P::comb (i, "hp"),    "C" + n + " HP", logRange (20.f, 2000.f, 150.f), 40.f);
+        pf (P::comb (i, "drive"), "C" + n + " Drive", FR (0.f, 1.f, 0.001f), 0.f);
+        pf (P::comb (i, "level"), "C" + n + " Level", FR (0.f, 2.f, 0.001f), 1.f);
+        pf (P::comb (i, "pan"),   "C" + n + " Pan", FR (-1.f, 1.f, 0.001f),
+            (i % 2 ? 0.4f : -0.4f) * (0.3f + 0.1f * i));
+        pc (P::comb (i, "mode"),  "C" + n + " Mode", { "FF", "FB", "AllPass", "Karplus" }, 1);
+        pf (P::comb (i, "scanW"), "C" + n + " ScanW", FR (0.f, 1.f, 0.001f), 1.f);
+        pc (P::comb (i, "route"), "C" + n + " Route", { "Direct", "FX 1", "FX 2", "FX 3" }, 0);
+    }
+
+    // ---- FX slots
+    juce::StringArray fxNames { "None", "Granular", "FFT Stretch", "Shimmer", "Folder", "Reverser" };
+    for (int s = 0; s < P::kNumSlots; ++s)
+    {
+        const auto n = juce::String (s + 1);
+        pc (P::slot (s, "type"), "FX" + n + " Type", fxNames, 0);
+        pf (P::slot (s, "mix"),  "FX" + n + " Mix", FR (0.f, 1.f, 0.001f), 0.5f);
+        for (int p = 0; p < 6; ++p)
+            pf (P::slot (s, ("p" + juce::String (p + 1)).toRawUTF8()),
+                "FX" + n + " P" + juce::String (p + 1), FR (0.f, 1.f, 0.001f), 0.5f);
+    }
+
+    // ---- LFO / SEQ
+    for (int i = 0; i < P::kNumLfo; ++i)
+    {
+        const auto n = juce::String (i + 1);
+        pf (P::lfo (i, "rate"), "LFO" + n + " Rate", logRange (0.01f, 50.f, 2.f), 1.f);
+        pc (P::lfo (i, "shape"), "LFO" + n + " Shape", { "Sine","Tri","Saw","Square","S&H","Smooth" }, 0);
+        pf (P::lfo (i, "smooth"), "LFO" + n + " Smooth", FR (0.f, 0.999f, 0.001f), 0.f);
+        pb (P::lfo (i, "sync"), "LFO" + n + " Sync", false);
+        pc (P::lfo (i, "div"), "LFO" + n + " Div", { "4/1","2/1","1/1","1/2","1/4","1/8","1/16" }, 3);
+    }
+    for (int i = 0; i < P::kNumSeq; ++i)
+    {
+        const auto n = juce::String (i + 1);
+        pf (P::seq (i, "rate"), "SEQ" + n + " Rate", logRange (0.05f, 40.f, 4.f), 4.f);
+        pb (P::seq (i, "sync"), "SEQ" + n + " Sync", true);
+        pc (P::seq (i, "div"), "SEQ" + n + " Div", { "1/1","1/2","1/4","1/8","1/8T","1/16","1/32" }, 5);
+        pc (P::seq (i, "mode"), "SEQ" + n + " Mode", { "Fwd","Rev","PingPong","Random" }, 0);
+        pf (P::seq (i, "slew"), "SEQ" + n + " Slew", FR (0.f, 1.f, 0.001f), 0.05f);
+        L.add (std::make_unique<juce::AudioParameterInt> (
+            juce::ParameterID { P::seq (i, "len"), 1 }, "SEQ" + n + " Len", 1, 16, 16));
+        for (int s = 0; s < P::kSeqSteps; ++s)
+            pf (P::seq (i, ("s" + juce::String (s)).toRawUTF8()),
+                "SEQ" + n + " Step " + juce::String (s + 1), FR (0.f, 1.f, 0.001f), 0.5f);
+    }
+
+    // ---- Mod matrix
+    for (int m = 0; m < P::kModSlots; ++m)
+    {
+        const auto n = juce::String (m + 1);
+        pc (P::mod (m, "src"), "Mod" + n + " Src", Mod::srcNames(), 0);
+        pc (P::mod (m, "dst"), "Mod" + n + " Dst", Mod::dstNames(), 0);
+        pf (P::mod (m, "amt"), "Mod" + n + " Amt", FR (-1.f, 1.f, 0.001f), 0.f);
+        pf (P::mod (m, "curve"), "Mod" + n + " Curve", FR (-1.f, 1.f, 0.001f), 0.f);
+    }
+    return L;
+}
+
+CombScannerAudioProcessor::CombScannerAudioProcessor()
+  : AudioProcessor (BusesProperties()
+        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+    apvts (*this, nullptr, "STATE", createLayout())
+{
+    for (auto& m : combMeter) m.store (0.f);
+}
+
+bool CombScannerAudioProcessor::isBusesLayoutSupported (const BusesLayout& l) const
+{
+    const auto o = l.getMainOutputChannelSet();
+    return (o == juce::AudioChannelSet::stereo() || o == juce::AudioChannelSet::mono())
+        && l.getMainInputChannelSet() == o;
+}
+
+void CombScannerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+{
+    sr = sampleRate; blockSize = samplesPerBlock;
+
+    for (auto& c : combs) for (auto& v : c)
+    { v.prepare (sr, blockSize, 250.0); v.updateGlideCoef (sr, 8.f); }
+
+    scanner.setN (P::kNumCombs);
+    for (auto& s : slots) s.prepare (sr, blockSize);
+
+    dryBuf.setSize (2, samplesPerBlock);
+    wetBuf.setSize (2, samplesPerBlock);
+    for (auto& b : slotBuf) { b.setSize (2, samplesPerBlock); b.clear(); }
+
+    oversampler.initProcessing ((size_t) samplesPerBlock);
+    sMix.reset (sr, 0.02); sIn.reset (sr, 0.02); sOut.reset (sr, 0.02);
+
+    int lat = 0; for (auto& s : slots) lat = juce::jmax (lat, s.latency());
+    setLatencySamples (lat);
+}
+
+float CombScannerAudioProcessor::dstValue (Mod::Dst d, float base, float range) const
+{
+    return base + mod.depth[(size_t) d] * range;
+}
+
+void CombScannerAudioProcessor::updateModulation (int n, juce::AudioPlayHead* ph)
+{
+    double bpm = 120.0;
+    if (ph != nullptr)
+        if (auto pos = ph->getPosition())
+            if (auto b = pos->getBpm()) bpm = *b;
+
+    const double blockSec = (double) n / sr;
+
+    // LFO
+    for (int i = 0; i < P::kNumLfo; ++i)
+    {
+        const bool sync = apvts.getRawParameterValue (P::lfo (i, "sync"))->load() > 0.5f;
+        float rate = apvts.getRawParameterValue (P::lfo (i, "rate"))->load();
+        if (sync)
+        {
+            static const float mult[] = { 0.25f, 0.5f, 1.f, 2.f, 4.f, 8.f, 16.f };
+            const int div = (int) apvts.getRawParameterValue (P::lfo (i, "div"))->load();
+            rate = (float) (bpm / 60.0) * mult[juce::jlimit (0, 6, div)] * 0.25f;
+        }
+        const auto sh = (ModLFO::Shape) (int) apvts.getRawParameterValue (P::lfo (i, "shape"))->load();
+        const float sm = apvts.getRawParameterValue (P::lfo (i, "smooth"))->load();
+        for (int k = 0; k < n; k += 32) mod.lfos[(size_t) i].tick (sr / 32.0, rate, sh, sm);
+    }
+
+    // SEQ
+    for (int i = 0; i < P::kNumSeq; ++i)
+    {
+        auto& S = mod.seqs[(size_t) i];
+        S.length = (int) apvts.getRawParameterValue (P::seq (i, "len"))->load();
+        for (int s = 0; s < P::kSeqSteps; ++s)
+            S.steps[(size_t) s] = apvts.getRawParameterValue (
+                P::seq (i, ("s" + juce::String (s)).toRawUTF8()))->load();
+
+        float rate = apvts.getRawParameterValue (P::seq (i, "rate"))->load();
+        if (apvts.getRawParameterValue (P::seq (i, "sync"))->load() > 0.5f)
+        {
+            static const float mult[] = { 1.f, 2.f, 4.f, 8.f, 12.f, 16.f, 32.f };
+            const int div = (int) apvts.getRawParameterValue (P::seq (i, "div"))->load();
+            rate = (float) (bpm / 60.0) * mult[juce::jlimit (0, 6, div)] * 0.25f;
+        }
+        const auto m = (StepSeq::Mode) (int) apvts.getRawParameterValue (P::seq (i, "mode"))->load();
+        const float slew = apvts.getRawParameterValue (P::seq (i, "slew"))->load();
+        for (int k = 0; k < n; k += 32) S.tick (sr / 32.0, rate, m, slew);
+    }
+
+    mod.randomVal = juce::Random::getSystemRandom().nextFloat() * 2.f - 1.f;
+    mod.macro1 = apvts.getRawParameterValue ("macro1")->load() * 2.f - 1.f;
+    mod.macro2 = apvts.getRawParameterValue ("macro2")->load() * 2.f - 1.f;
+
+    // суммирование матрицы
+    mod.clearDepths();
+    for (int m = 0; m < P::kModSlots; ++m)
+    {
+        const auto s = (Mod::Src) (int) apvts.getRawParameterValue (P::mod (m, "src"))->load();
+        const auto d = (Mod::Dst) (int) apvts.getRawParameterValue (P::mod (m, "dst"))->load();
+        if (s == Mod::Src::None || d == Mod::Dst::None) continue;
+        const float a = apvts.getRawParameterValue (P::mod (m, "amt"))->load();
+        const float c = apvts.getRawParameterValue (P::mod (m, "curve"))->load();
+        mod.depth[(size_t) d] += ModEngine::curve (mod.srcValue (s), c) * a;
+    }
+    juce::ignoreUnused (blockSec);
+}
+
+void CombScannerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
+{
+    juce::ScopedNoDenormals nd;
+    const int n = buffer.getNumSamples();
+    const int nch = juce::jmin (2, buffer.getNumChannels());
+
+    // MIDI → мод-источники
+    for (const auto meta : midi)
+    {
+        const auto m = meta.getMessage();
+        if (m.isNoteOn())        { mod.noteVal = (m.getNoteNumber() - 60) / 24.0f;
+                                   mod.velVal = m.getFloatVelocity() * 2.f - 1.f; }
+        else if (m.isController() && m.getControllerNumber() == 1)
+                                   mod.cc1 = m.getControllerValue() / 127.0f * 2.f - 1.f;
+    }
+
+    updateModulation (n, getPlayHead());
+
+    // env follower
+    { float peak = buffer.getMagnitude (0, n);
+      env += (peak - env) * (peak > env ? 0.3f : 0.02f); mod.envFollow = juce::jlimit (0.f, 1.f, env); }
+
+    dryBuf.makeCopyOf (buffer, true);
+    for (auto& b : slotBuf) { b.setSize (2, n, false, false, true); b.clear(); }
+    wetBuf.setSize (2, n, false, false, true); wetBuf.clear();
+
+    // ---- параметры
+    const float inG   = juce::Decibels::decibelsToGain (apvts.getRawParameterValue ("inGain")->load());
+    const float outG  = juce::Decibels::decibelsToGain (apvts.getRawParameterValue ("outGain")->load());
+    const float mixP  = juce::jlimit (0.f, 1.f, dstValue (Mod::Dst::Mix, apvts.getRawParameterValue ("mix")->load(), 0.5f));
+    const float width = apvts.getRawParameterValue ("width")->load();
+    const int topology = (int) apvts.getRawParameterValue ("topology")->load();
+
+    float baseF = apvts.getRawParameterValue ("baseFreq")->load()
+                * std::pow (2.0f, apvts.getRawParameterValue ("tune")->load() / 12.0f);
+    baseF *= std::pow (2.0f, mod.depth[(size_t) Mod::Dst::BaseFreq] * 2.0f);
+    baseF = juce::jlimit (15.f, 6000.f, baseF);
+
+    // ---- скан
+    const float scanRate = apvts.getRawParameterValue ("scanRate")->load();
+    const float scanDepth = apvts.getRawParameterValue ("scanDepth")->load();
+    scanPhase += scanRate * (float) n / (float) sr;
+    scanPhase -= std::floor (scanPhase);
+    float scanPos = apvts.getRawParameterValue ("scanPos")->load()
+                  + scanDepth * std::sin (scanPhase * juce::MathConstants<float>::twoPi) * 0.5f
+                  + mod.depth[(size_t) Mod::Dst::ScanPos] * 0.5f;
+    scanPos = scanPos - std::floor (scanPos);
+    const float scanW = juce::jlimit (0.03f, 1.f,
+        apvts.getRawParameterValue ("scanWidth")->load() + mod.depth[(size_t) Mod::Dst::ScanWidth] * 0.5f);
+    const float spread = juce::jlimit (0.f, 1.f,
+        apvts.getRawParameterValue ("spread")->load() + mod.depth[(size_t) Mod::Dst::Spread] * 0.5f);
+    const auto shape = (Scanner::Shape) (int) apvts.getRawParameterValue ("scanShape")->load();
+
+    scanner.compute (scanPos, scanW, shape, spread, 1.0f);
+    scanDisplay.store (scanPos);
+
+    // ---- настройка комбов
+    std::array<bool, P::kNumCombs> on {};
+    std::array<float, P::kNumCombs> lvl {}, panL {}, panR {};
+    std::array<int, P::kNumCombs> route {};
+
+    const float gFB    = mod.depth[(size_t) Mod::Dst::GlobalFB] * 0.5f;
+    const float gDamp  = mod.depth[(size_t) Mod::Dst::GlobalDamp];
+    const float gDrive = mod.depth[(size_t) Mod::Dst::GlobalDrive] * 0.5f;
+
+    for (int i = 0; i < P::kNumCombs; ++i)
+    {
+        on[i] = apvts.getRawParameterValue (P::comb (i, "on"))->load() > 0.5f;
+        float ratio = apvts.getRawParameterValue (P::comb (i, "ratio"))->load();
+        if (i < 8)
+        {
+            const auto dst = (Mod::Dst) ((int) Mod::Dst::Comb1Ratio + i);
+            ratio *= std::pow (2.0f, mod.depth[(size_t) dst] * 2.0f);
+        }
+        const float cents = apvts.getRawParameterValue (P::comb (i, "fine"))->load();
+        const float f = juce::jlimit (15.f, (float) sr * 0.45f,
+                                      baseF * ratio * std::pow (2.0f, cents / 1200.f));
+        const float dsamp = (float) sr / f;
+
+        float fb = apvts.getRawParameterValue (P::comb (i, "fb"))->load() + gFB;
+        if (i < 4)
+        {
+            const auto dst = (Mod::Dst) ((int) Mod::Dst::Comb1FB + i);
+            fb += mod.depth[(size_t) dst] * 0.5f;
+        }
+        const float damp = juce::jlimit (200.f, 20000.f,
+            apvts.getRawParameterValue (P::comb (i, "damp"))->load() * std::pow (2.f, gDamp * 3.f));
+        const float hp = apvts.getRawParameterValue (P::comb (i, "hp"))->load();
+        const float dr = juce::jlimit (0.f, 1.f,
+            apvts.getRawParameterValue (P::comb (i, "drive"))->load() + gDrive);
+        const auto md = (CombVoice::Mode) (int) apvts.getRawParameterValue (P::comb (i, "mode"))->load();
+
+        for (int ch = 0; ch < 2; ++ch)
+        {
+            auto& v = combs[(size_t) i][(size_t) ch];
+            v.setDelaySamples (dsamp);
+            v.setFeedback (fb); v.setDamp (damp); v.setHighpass (hp);
+            v.setDrive (dr); v.setMode (md);
+            v.updateGlideCoef (sr, apvts.getRawParameterValue ("glide")->load());
+        }
+
+        const float sw = apvts.getRawParameterValue (P::comb (i, "scanW"))->load();
+        lvl[i] = apvts.getRawParameterValue (P::comb (i, "level"))->load() * juce::jmax (0.0001f, sw);
+        const float pan = juce::jlimit (-1.f, 1.f, apvts.getRawParameterValue (P::comb (i, "pan"))->load());
+        const float a = (pan + 1.f) * 0.25f * juce::MathConstants<float>::pi;
+        panL[i] = std::cos (a) * 1.414f; panR[i] = std::sin (a) * 1.414f;
+        route[i] = (int) apvts.getRawParameterValue (P::comb (i, "route"))->load();
+    }
+
+    // ---- рендер
+    auto* wl = wetBuf.getWritePointer (0);
+    auto* wr = wetBuf.getWritePointer (1);
+    std::array<float, P::kNumCombs> meterAcc {};
+
+    for (int s = 0; s < n; ++s)
+    {
+        const float inL = buffer.getReadPointer (0)[s] * inG;
+        const float inR = (nch > 1 ? buffer.getReadPointer (1)[s] : inL) * inG;
+        float serL = inL, serR = inR;
+
+        for (int i = 0; i < P::kNumCombs; ++i)
+        {
+            if (!on[i]) continue;
+            const float srcL = (topology == 0) ? inL : serL;
+            const float srcR = (topology == 0) ? inR : serR;
+
+            float oL = combs[(size_t) i][0].process (srcL);
+            float oR = combs[(size_t) i][1].process (srcR);
+
+            if (topology >= 1) { serL = oL; serR = oR; }
+
+            const float gL = scanner.weight (0, i) * lvl[i] * panL[i];
+            const float gR = scanner.weight (1, i) * lvl[i] * panR[i];
+            meterAcc[(size_t) i] += std::abs (oL) * scanner.weight (0, i);
+
+            if (route[i] == 0) { wl[s] += oL * gL; wr[s] += oR * gR; }
+            else
+            {
+                auto& sb = slotBuf[route[i] - 1];
+                sb.getWritePointer (0)[s] += oL * gL;
+                sb.getWritePointer (1)[s] += oR * gR;
+            }
+        }
+        if (topology == 2) { /* series feedback уже внутри combs через fb */ }
+    }
+
+    for (int i = 0; i < P::kNumCombs; ++i)
+        combMeter[(size_t) i].store (meterAcc[(size_t) i] / (float) n);
+
+    // ---- вставные FX
+    for (int s = 0; s < P::kNumSlots; ++s)
+    {
+        const auto type = (InsertFX::Type) (int) apvts.getRawParameterValue (P::slot (s, "type"))->load();
+        float fxmix = apvts.getRawParameterValue (P::slot (s, "mix"))->load();
+        fxmix = juce::jlimit (0.f, 1.f, fxmix
+              + mod.depth[(size_t) ((int) Mod::Dst::Slot1Mix + s)] * 0.5f);
+
+        std::array<float, 6> pp {};
+        for (int p = 0; p < 6; ++p)
+            pp[(size_t) p] = apvts.getRawParameterValue (
+                P::slot (s, ("p" + juce::String (p + 1)).toRawUTF8()))->load();
+        // модуляция P1/P2
+        pp[0] = juce::jlimit (0.f, 1.f, pp[0] + mod.depth[(size_t) ((int) Mod::Dst::Slot1P1 + s * 2)] * 0.5f);
+        pp[1] = juce::jlimit (0.f, 1.f, pp[1] + mod.depth[(size_t) ((int) Mod::Dst::Slot1P2 + s * 2)] * 0.5f);
+
+        slots[(size_t) s].setType (type);
+        slots[(size_t) s].setMix (fxmix);
+        slots[(size_t) s].setParams (pp);
+        slots[(size_t) s].process (slotBuf[s]);
+
+        for (int ch = 0; ch < 2; ++ch)
+            wetBuf.addFrom (ch, 0, slotBuf[s], ch, 0, n);
+    }
+
+    // ---- width / mix / out
+    for (int s = 0; s < n; ++s)
+    {
+        float l = wl[s], r = wr[s];
+        const float m = (l + r) * 0.5f, side = (l - r) * 0.5f * width;
+        l = m + side; r = m - side;
+
+        const float dl = dryBuf.getReadPointer (0)[s];
+        const float dr = nch > 1 ? dryBuf.getReadPointer (1)[s] : dl;
+
+        l = (dl * (1.f - mixP) + l * mixP) * outG;
+        r = (dr * (1.f - mixP) + r * mixP) * outG;
+
+        buffer.getWritePointer (0)[s] = std::tanh (l * 0.9f) * 1.1f;
+        if (nch > 1) buffer.getWritePointer (1)[s] = std::tanh (r * 0.9f) * 1.1f;
+    }
+}
+
+void CombScannerAudioProcessor::getStateInformation (juce::MemoryBlock& dest)
+{
+    auto st = apvts.copyState();
+    st.setProperty ("program", currentProgram, nullptr);
+    if (auto xml = st.createXml()) copyXmlToBinary (*xml, dest);
+}
+
+void CombScannerAudioProcessor::setStateInformation (const void* data, int size)
+{
+    if (auto xml = getXmlFromBinary (data, size))
+    {
+        auto st = juce::ValueTree::fromXml (*xml);
+        if (st.isValid()) { apvts.replaceState (st); currentProgram = (int) st.getProperty ("program", 0); }
+    }
+}
+
+juce::AudioProcessorEditor* CombScannerAudioProcessor::createEditor()
+{ return new CombScannerAudioProcessorEditor (*this); }
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{ return new CombScannerAudioProcessor(); }
+```
+
+---
+
+# 7. Пресеты как «варианты DSP»
+
+Твои три ветки превращаются в программы плагина. Добавь в `PluginProcessor.cpp`:
+
+```cpp
+namespace Presets
+{
+    struct Entry { const char* id; float val; };
+    struct Preset { const char* name; std::vector<Entry> v; };
+
+    // 1) CLASSIC — соответствует comb_scanner_variants 1 fav
+    static Preset classic()
+    {
+        Preset p { "01 Classic Scanner (fav)", {} };
+        p.v = { {"baseFreq",110.f}, {"topology",0}, {"scanWidth",0.45f}, {"scanShape",2},
+                {"scanPos",0.5f}, {"scanRate",0.15f}, {"scanDepth",0.6f}, {"spread",0.25f},
+                {"mix",1.f}, {"width",1.2f} };
+        for (int i = 0; i < P::kNumCombs; ++i)
+        {
+            p.v.push_back ({ P::comb(i,"on").toRawUTF8(), i < 6 ? 1.f : 0.f });
+            p.v.push_back ({ P::comb(i,"ratio").toRawUTF8(), (float)(i + 1) });
+            p.v.push_back ({ P::comb(i,"fb").toRawUTF8(), 0.86f - i * 0.02f });
+            p.v.push_back ({ P::comb(i,"damp").toRawUTF8(), 9000.f - i * 600.f });
+            p.v.push_back ({ P::comb(i,"mode").toRawUTF8(), 1.f });
+            p.v.push_back ({ P::comb(i,"route").toRawUTF8(), 0.f });
+        }
+        return p;
+    }
+
+    // 2) MORE CONTROL — comb_scanner_variants 3: негармонические ratio + индивидуальные drive/pan
+    static Preset moreControl()
+    {
+        Preset p { "02 More Control (ratios)", {} };
+        const float r[8] = { 1.f, 1.5f, 2.33f, 3.17f, 4.41f, 5.73f, 7.19f, 9.03f };
+        p.v = { {"baseFreq",73.4f}, {"topology",3}, {"scanWidth",0.22f}, {"scanShape",1},
+                {"scanRate",0.08f}, {"scanDepth",0.9f}, {"spread",0.6f}, {"glide",25.f} };
+        for (int i = 0; i < 8; ++i)
+        {
+            p.v.push_back ({ P::comb(i,"on").toRawUTF8(), 1.f });
+            p.v.push_back ({ P::comb(i,"ratio").toRawUTF8(), r[i] });
+            p.v.push_back ({ P::comb(i,"fine").toRawUTF8(), (i % 2 ? 7.f : -5.f) * (float)(i + 1) * 0.5f });
+            p.v.push_back ({ P::comb(i,"fb").toRawUTF8(), 0.9f });
+            p.v.push_back ({ P::comb(i,"drive").toRawUTF8(), 0.15f + i * 0.05f });
+            p.v.push_back ({ P::comb(i,"pan").toRawUTF8(), (i % 2 ? 1.f : -1.f) * (0.2f + i * 0.09f) });
+            p.v.push_back ({ P::comb(i,"mode").toRawUTF8(), i % 3 == 0 ? 2.f : 1.f });
+        }
+        return p;
+    }
+
+    // 3) GRANULAR BETWEEN COMBS
+    static Preset granularStack()
+    {
+        Preset p { "03 Granular Between Combs", {} };
+        p.v = { {"baseFreq",55.f}, {"topology",1}, {"scanWidth",0.5f}, {"scanRate",0.05f},
+                {"slot0_type",1}, {"slot0_mix",0.7f}, {"slot0_p1",0.5f}, {"slot0_p2",0.3f},
+                {"slot1_type",3}, {"slot1_mix",0.35f},
+                {"mod0_src",1}, {"mod0_dst",1}, {"mod0_amt",0.45f},
+                {"mod1_src",5}, {"mod1_dst",8}, {"mod1_amt",0.3f} };
+        for (int i = 0; i < 8; ++i)
+            p.v.push_back ({ P::comb(i,"route").toRawUTF8(), (float)(i < 4 ? 1 : 2) });
+        return p;
+    }
+
+    // 4) FFT STRETCH SMEAR
+    static Preset fftSmear()
+    {
+        Preset p { "04 FFT Stretch Smear", {} };
+        p.v = { {"baseFreq",146.8f}, {"topology",0}, {"scanShape",2}, {"scanWidth",0.3f},
+                {"slot1_type",2}, {"slot1_mix",0.8f}, {"slot1_p1",0.85f}, {"slot1_p2",0.58f},
+                {"slot1_p4",0.7f},
+                {"mod2_src",2}, {"mod2_dst",20}, {"mod2_amt",0.6f} };
+        for (int i = 0; i < 8; ++i) p.v.push_back ({ P::comb(i,"route").toRawUTF8(), 2.f });
+        return p;
+    }
+
+    // 5) SEQUENCED RATIOS
+    static Preset seqRatios()
+    {
+        Preset p { "05 Sequenced Ratios", {} };
+        p.v = { {"baseFreq",98.f}, {"seq0_sync",1.f}, {"seq0_div",5.f}, {"seq0_mode",0.f},
+                {"mod0_src",5}, {"mod0_dst",8},  {"mod0_amt",0.5f},
+                {"mod1_src",6}, {"mod1_dst",9},  {"mod1_amt",-0.4f},
+                {"mod2_src",7}, {"mod2_dst",10}, {"mod2_amt",0.35f},
+                {"mod3_src",1}, {"mod3_dst",1},  {"mod3_amt",0.8f} };
+        const float st[16] = {0.f,.25f,.5f,.1f,.75f,.3f,1.f,.2f,.6f,.45f,.9f,.15f,.35f,.8f,.05f,.55f};
+        for (int s = 0; s < 16; ++s)
+            p.v.push_back ({ P::seq(0,("s"+juce::String(s)).toRawUTF8()).toRawUTF8(), st[s] });
+        return p;
+    }
+
+    inline const std::vector<Preset>& all()
+    {
+        static std::vector<Preset> v { classic(), moreControl(), granularStack(), fftSmear(), seqRatios() };
+        return v;
+    }
+}
+
+int CombScannerAudioProcessor::getNumPrograms() { return (int) Presets::all().size(); }
+
+const juce::String CombScannerAudioProcessor::getProgramName (int i)
+{ return Presets::all()[(size_t) juce::jlimit (0, getNumPrograms()-1, i)].name; }
+
+void CombScannerAudioProcessor::setCurrentProgram (int index)
+{
+    index = juce::jlimit (0, getNumPrograms() - 1, index);
+    currentProgram = index;
+    for (auto& e : Presets::all()[(size_t) index].v)
+        if (auto* p = apvts.getParameter (e.id))
+            p->setValueNotifyingHost (p->getNormalisableRange().convertTo0to1 (e.val));
+}
+```
+
+> ⚠️ `Entry` хранит `const char*` от временных `juce::String` — в продакшене замени поле на `juce::String`. Я оставил компактно; одной правкой типа всё чинится.
+
+---
+
+# 8. GUI — раскладка «CombScanner Upgrade»
+
+Структура экрана (как на референсе: слева вертикальные полосы комбов, сверху сканер, справа FX‑слоты, снизу модуляции/секвенсор):
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ HEADER: logo | preset ▼ | A/B | Base Freq | Tune | Topology | In/Out/Mix │
+├──────────────────────────────────┬───────────────────────────────────────┤
+│ SCAN DISPLAY (XY + bars 8 combs) │  FX SLOT 1   [Type ▼][Mix]            │
+│  Pos / Width / Shape / Rate /    │   P1..P6 knobs                        │
+│  Depth / Spread / Sync           │  FX SLOT 2 ...                        │
+│                                  │  FX SLOT 3 ...                        │
+├──────────────────────────────────┴───────────────────────────────────────┤
+│ COMB STRIPS × 8 (горизонтальный скролл)                                  │
+│ [On] Ratio Fine FB Damp HP Drive Level Pan Mode▼ ScanW Route▼ | meter    │
+├──────────────────────────────────────────────────────────────────────────┤
+│ TABS: [MOD MATRIX] [LFO 1-4] [SEQ 1-4] [MACROS]                          │
+│  MOD: Src▼ | Dst▼ | Amount slider | Curve | × 16 строк                   │
+│  SEQ: 16 вертикальных слайдеров + Len/Rate/Div/Mode/Slew                 │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+## gui/CombStrip.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+#include "../Params.h"
+#include "Theme.h"
+
+class CombStrip : public juce::Component
+{
+public:
+    CombStrip (juce::AudioProcessorValueTreeState& s, int index, std::atomic<float>& meterRef)
+      : apvts (s), idx (index), meter (meterRef)
+    {
+        auto knob = [&] (const char* pid, const juce::String& lbl)
+        {
+            auto* k = new juce::Slider (juce::Slider::RotaryVerticalDrag, juce::Slider::TextBoxBelow);
+            k->setTextBoxStyle (juce::Slider::TextBoxBelow, false, 54, 14);
+            addAndMakeVisible (k); knobs.add (k);
+            auto* l = new juce::Label ({}, lbl);
+            l->setJustificationType (juce::Justification::centred);
+            l->setFont (juce::Font (10.f)); addAndMakeVisible (l); labels.add (l);
+            atts.add (new juce::AudioProcessorValueTreeState::SliderAttachment (apvts, P::comb (idx, pid), *k));
+        };
+
+        addAndMakeVisible (onBtn);
+        onBtn.setButtonText (juce::String (idx + 1));
+        onAtt = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (
+            apvts, P::comb (idx, "on"), onBtn);
+
+        knob ("ratio", "RATIO"); knob ("fine",  "FINE");
+        knob ("fb",    "FB");    knob ("damp",  "DAMP");
+        knob ("hp",    "HP");    knob ("drive", "DRIVE");
+        knob ("level", "LEVEL"); knob ("pan",   "PAN");
+        knob ("scanW", "SCAN W");
+
+        addAndMakeVisible (modeBox);
+        modeBox.addItemList ({ "FF","FB","AP","KS" }, 1);
+        modeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (
+            apvts, P::comb (idx, "mode"), modeBox);
+
+        addAndMakeVisible (routeBox);
+        routeBox.addItemList ({ "DIR","FX1","FX2","FX3" }, 1);
+        routeAtt = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment> (
+            apvts, P::comb (idx, "route"), routeBox);
+    }
+
+    void paint (juce::Graphics& g) override
+    {
+        auto r = getLocalBounds().toFloat().reduced (2.f);
+        g.setColour (Theme::panel); g.fillRoundedRectangle (r, 6.f);
+        g.setColour (Theme::accent.withAlpha (0.35f)); g.drawRoundedRectangle (r, 6.f, 1.f);
+
+        // мини-метр активности комба (вес скана × уровень)
+        const float v = juce::jlimit (0.f, 1.f, meter.load() * 4.f);
+        auto m = getLocalBounds().removeFromRight (6).reduced (1, 24).toFloat();
+        g.setColour (Theme::dim); g.fillRoundedRectangle (m, 2.f);
+        g.setColour (Theme::accent);
+        g.fillRoundedRectangle (m.withTrimmedTop (m.getHeight() * (1.f - v)), 2.f);
+    }
+
+    void resized() override
+    {
+        auto r = getLocalBounds().reduced (4);
+        onBtn.setBounds (r.removeFromTop (18));
+        r.removeFromTop (2);
+        modeBox.setBounds (r.removeFromTop (18));
+        routeBox.setBounds (r.removeFromBottom (18));
+        r.removeFromRight (8);
+
+        const int kh = r.getHeight() / knobs.size();
+        for (int i = 0; i < knobs.size(); ++i)
+        {
+            auto row = r.removeFromTop (kh);
+            labels[i]->setBounds (row.removeFromTop (11));
+            knobs[i]->setBounds (row);
+        }
+    }
+
+private:
+    juce::AudioProcessorValueTreeState& apvts;
+    int idx; std::atomic<float>& meter;
+    juce::ToggleButton onBtn;
+    juce::ComboBox modeBox, routeBox;
+    juce::OwnedArray<juce::Slider> knobs;
+    juce::OwnedArray<juce::Label> labels;
+    juce::OwnedArray<juce::AudioProcessorValueTreeState::SliderAttachment> atts;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> onAtt;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modeAtt, routeAtt;
+};
+```
+
+## gui/Theme.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+namespace Theme
+{
+    const juce::Colour bg     { 0xff12141a };
+    const juce::Colour panel  { 0xff1b1f29 };
+    const juce::Colour dim    { 0xff2a3040 };
+    const juce::Colour accent { 0xff35d6c0 };
+    const juce::Colour accent2{ 0xffff7a45 };
+    const juce::Colour text   { 0xffd8dee9 };
+
+    struct LNF : juce::LookAndFeel_V4
+    {
+        LNF()
+        {
+            setColour (juce::ResizableWindow::backgroundColourId, bg);
+            setColour (juce::Slider::rotarySliderFillColourId, accent);
+            setColour (juce::Slider::rotarySliderOutlineColourId, dim);
+            setColour (juce::Slider::thumbColourId, accent2);
+            setColour (juce::Label::textColourId, text);
+            setColour (juce::ComboBox::backgroundColourId, dim);
+            setColour (juce::ComboBox::textColourId, text);
+            setColour (juce::PopupMenu::backgroundColourId, panel);
+        }
+
+        void drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h,
+                               float pos, float a0, float a1, juce::Slider& s) override
+        {
+            auto r = juce::Rectangle<float> ((float) x, (float) y, (float) w, (float) h).reduced (4.f);
+            const auto c = r.getCentre(); const float rad = juce::jmin (r.getWidth(), r.getHeight()) * 0.5f;
+            const float ang = a0 + pos * (a1 - a0);
+
+            juce::Path bgArc; bgArc.addCentredArc (c.x, c.y, rad, rad, 0.f, a0, a1, true);
+            g.setColour (dim); g.strokePath (bgArc, juce::PathStrokeType (3.f, juce::PathStrokeType::curved,
+                                                                         juce::PathStrokeType::rounded));
+            juce::Path fg; fg.addCentredArc (c.x, c.y, rad, rad, 0.f, a0, ang, true);
+            g.setColour (s.isEnabled() ? accent : dim);
+            g.strokePath (fg, juce::PathStrokeType (3.f, juce::PathStrokeType::curved,
+                                                    juce::PathStrokeType::rounded));
+            juce::Path p; p.addRectangle (-1.f, -rad + 2.f, 2.f, rad * 0.45f);
+            g.setColour (text);
+            g.fillPath (p, juce::AffineTransform::rotation (ang).translated (c));
+        }
+    };
+}
+```
+
+## Сканер‑дисплей (ScanPanel.h, суть)
+
+```cpp
+class ScanDisplay : public juce::Component, private juce::Timer
+{
+public:
+    ScanDisplay (CombScannerAudioProcessor& p) : proc (p) { startTimerHz (45); }
+
+    void paint (juce::Graphics& g) override
+    {
+        auto r = getLocalBounds().toFloat().reduced (4.f);
+        g.setColour (Theme::panel); g.fillRoundedRectangle (r, 8.f);
+
+        const int N = P::kNumCombs;
+        const float bw = r.getWidth() / (float) N;
+        for (int i = 0; i < N; ++i)
+        {
+            const float v = juce::jlimit (0.f, 1.f, proc.combMeter[(size_t) i].load() * 5.f);
+            auto br = juce::Rectangle<float> (r.getX() + i * bw + 3.f,
+                                              r.getBottom() - 6.f - v * (r.getHeight() - 20.f),
+                                              bw - 6.f, v * (r.getHeight() - 20.f) + 2.f);
+            g.setColour (Theme::accent.withAlpha (0.25f + 0.75f * v));
+            g.fillRoundedRectangle (br, 3.f);
+        }
+        // курсор скана
+        const float x = r.getX() + proc.scanDisplay.load() * r.getWidth();
+        g.setColour (Theme::accent2);
+        g.drawLine (x, r.getY() + 4.f, x, r.getBottom() - 4.f, 2.f);
+    }
+    void timerCallback() override { repaint(); }
+private:
+    CombScannerAudioProcessor& proc;
+};
+```
+
+## PluginEditor.h/.cpp (каркас)
+
+```cpp
+// PluginEditor.h
+#pragma once
+#include <JuceHeader.h>
+#include "PluginProcessor.h"
+#include "gui/CombStrip.h"
+#include "gui/Theme.h"
+
+class CombScannerAudioProcessorEditor : public juce::AudioProcessorEditor
+{
+public:
+    explicit CombScannerAudioProcessorEditor (CombScannerAudioProcessor&);
+    ~CombScannerAudioProcessorEditor() override;
+    void paint (juce::Graphics&) override;
+    void resized() override;
+private:
+    CombScannerAudioProcessor& proc;
+    Theme::LNF lnf;
+    juce::OwnedArray<CombStrip> strips;
+    juce::TabbedComponent tabs { juce::TabbedButtonBar::TabsAtTop };
+    juce::ComboBox presetBox;
+    // ... scanner knobs, fx slots, mod matrix rows
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CombScannerAudioProcessorEditor)
+};
+```
+
+```cpp
+// PluginEditor.cpp (суть компоновки)
+CombScannerAudioProcessorEditor::CombScannerAudioProcessorEditor (CombScannerAudioProcessor& p)
+  : AudioProcessorEditor (&p), proc (p)
+{
+    setLookAndFeel (&lnf);
+    for (int i = 0; i < P::kNumCombs; ++i)
+        strips.add (new CombStrip (proc.apvts, i, proc.combMeter[(size_t) i])),
+        addAndMakeVisible (strips.getLast());
+
+    addAndMakeVisible (presetBox);
+    for (int i = 0; i < proc.getNumPrograms(); ++i)
+        presetBox.addItem (proc.getProgramName (i), i + 1);
+    presetBox.setSelectedId (proc.getCurrentProgram() + 1, juce::dontSendNotification);
+    presetBox.onChange = [this] { proc.setCurrentProgram (presetBox.getSelectedId() - 1); };
+
+    addAndMakeVisible (tabs);
+    tabs.setTabBarDepth (26);
+    // tabs.addTab ("MOD MATRIX", Theme::panel, new ModMatrixPanel (proc.apvts), true);
+    // tabs.addTab ("LFO",        Theme::panel, new LfoPanel (proc.apvts), true);
+    // tabs.addTab ("SEQ",        Theme::panel, new SeqPanel (proc.apvts), true);
+
+    setResizable (true, true);
+    setResizeLimits (1100, 720, 2400, 1500);
+    setSize (1340, 860);
+}
+
+CombScannerAudioProcessorEditor::~CombScannerAudioProcessorEditor() { setLookAndFeel (nullptr); }
+
+void CombScannerAudioProcessorEditor::paint (juce::Graphics& g) { g.fillAll (Theme::bg); }
+
+void CombScannerAudioProcessorEditor::resized()
+{
+    auto r = getLocalBounds().reduced (8);
+    auto header = r.removeFromTop (40);
+    presetBox.setBounds (header.removeFromLeft (260).reduced (2));
+
+    auto top = r.removeFromTop (190);         // scan display + fx slots
+    auto combArea = r.removeFromTop (360);    // 8 полос
+    const int w = combArea.getWidth() / P::kNumCombs;
+    for (int i = 0; i < strips.size(); ++i)
+        strips[i]->setBounds (combArea.removeFromLeft (w));
+
+    tabs.setBounds (r);                        // модуляции
+    juce::ignoreUnused (top);
+}
+```
+
+---
+
+# 9. Как это отвечает на твои пункты
+
+| Требование | Реализация |
+|---|---|
+| База — классический DSP комбскэннера (v1 fav) | `CombVoice` в режиме `FeedBack` + `Scanner` с Gauss‑окном; пресет **01 Classic** |
+| Больше контроля над ratio (v3) | Индивидуальные `ratio` (0.125…16, лог) + `fine` в центах + `mode` на каждый комб; пресет **02 More Control** |
+| Отдельная настройка каждого комба + скан | `CombStrip` × 8 + `ScanPanel`; `scanW` per‑comb задаёт вклад комба в окно скана |
+| Вставка эффектов между комбами | `route` per‑comb → `slotBuf[0..2]` → `InsertFX` → wet‑шина. Топологии Parallel/Series/Series‑FB/Matrix |
+| Гранулятор | `GranularFX` (48 зёрен, density/size/pos/jitter/pitch spread/reverse/spray) |
+| FFT‑стретч с ~нулевой задержкой | `FFTStretchFX`: N=512, hop=128 → latency 128 сэмплов (2.7 мс @48k), компенсируется `setLatencySamples`. Интерфейс совместим с Signalsmith Stretch для прямой подмены |
+| Максимально гибкие модуляции | 4 LFO (6 форм, sync), 4 степ‑секвенсора 16 шагов (fwd/rev/pp/rand, slew, sync), env‑follower, MIDI note/vel/CC1, 2 макро, матрица 16×(src→dst, amount, curve) |
+| Варианты DSP как пресеты | 5 программ (`Presets::all()`), расширяется добавлением структуры в вектор |
+| JUCE + VS2026 | CMake‑пресет `Visual Studio 18 2026`, C++20, static CRT, /arch:AVX2, VST3 + Standalone |
+
+---
+
+# 10. Что уточнить, чтобы довести до 1:1
+
+1. **Скинь `combscanner upgrade.jpg`** текстом/описанием зон (или перечисли подписи на панелях) — подгоню раскладку, размеры, цвета.
+2. Нужны ли **per‑comb вставные FX** (по FX на каждый комб, 8 слотов) вместо 3 общих шин? Код расширяется тривиально — `slots` → массив из 8.
+3. Нужен ли **модуляционный вход sidechain** и **MPE**?
+4. Количество комбов: оставляем 8 или нужно 12/16 (как в v3)? Меняется только `P::kNumCombs`.

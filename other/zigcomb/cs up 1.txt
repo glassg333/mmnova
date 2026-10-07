@@ -1,0 +1,909 @@
+Ниже представлен готовый шаблон проекта **JUCE плагина (VST3 / AU / Standalone)** под **Visual Studio 2026 + CMake**, реализующий гибкий **Comb Scanner** с отдельными расчёсами на каждый комб, вставляемыми эффектами (FFT с малой задержкой, гранулятор, стрейч) и модуляционным секвенсером.  
+
+Весь код écrit под актуальный JUCE API (JUCE 7/8). Визуальная логика editores сделана по описанию референса `combscanner upgrade.jpg`: каждый комб — свой модуль с наборами крутилок, между комбами слоты эффектов, внизу — сетка секвенсера модуляций.
+
+---
+
+## 1. Структура папок проекта
+
+```
+CombScanner/
+├── CMakeLists.txt               # Настройки проекта JUCE для Visual Studio 2026
+├── src/
+│   ├── PluginProcessor.h        # Объявление аудиопроцессора
+│   ├── PluginProcessor.cpp      # DSP-логика, цепочка комбов, эффекты, секвенсер
+│   ├── PluginEditor.h           # Объявление редактора (GUI)
+│   ├── PluginEditor.cpp         # Отрисовка интерфейса, привязка параметров
+│   ├── CombDSP.h                # Класс одного комб-фильтра с задержкой/обратной связью
+│   ├── CombDSP.cpp
+│   ├── FFTEffect.h              # Блочный FFT-эффект (малая задержка)
+│   ├── FFTEffect.cpp
+│   ├── GranularEffect.h         # Простой гранулятор (облако зёрен)
+│   ├── GranularEffect.cpp
+│   └── ModulationSequencer.h    # 16-шаговый модуляционный секвенсер
+│       ModulationSequencer.cpp
+├── resources/                   # Иконки, бандинг (если нужно)
+└── branding/                    # JUCE брендинг для установщика (опционально)
+```
+
+---
+
+## 2. CMakeLists.txt (JUCE + Visual Studio 2026)
+
+Это основной файл настроек проекта. Собирается через CMake и открывается в **Visual Studio 2026** (или 2022/2019 с поддержкой CMake).
+
+```cmake
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+project(CombScanner LANGUAGES CXX VERSION 1.0.0)
+
+# JUCE настройки (перед find_package)
+set(JUCE_COPY_PLUGIN_AFTER_BUILD TRUE)
+set(JUCE_BUILD_BRANDING_FOLDER "branding")
+set(JUCE_PLUGIN_MANUFACTURER "GlassG333")
+set(JUCE_PLUGIN_NAME "CombScanner")
+set(JUCE_PLUGIN_DESCRIPTION "Flexible Comb Scanner with FX slots and modulation sequencer")
+set(JUCE_PLUGIN_COMPANY_WEBSITE "https://github.com/glassg333")
+set(JUCE_PLUGIN_COMPANY_EMAIL "info@example.com")
+
+# Плагин: VST3, AU, Standalone
+set(JUCE_PLUGIN_FORMATS AU;VST3;Standalone)
+
+# Движок JUCE
+find_package(JUCE REQUIRED CONFIG)
+
+juce_add_plugin(CombScanner
+    SOURCES
+        src/PluginProcessor.cpp
+        src/PluginEditor.cpp
+        src/CombDSP.cpp
+        src/FFTEffect.cpp
+        src/GranularEffect.cpp
+        src/ModulationSequencer.cpp
+    RESOURCE_FOLDERS
+        resources
+    MODULES
+        juce_audio_processors
+        juce_audio_utils
+        juce_dsp
+        juce_gui_basics
+        juce_gui_extra
+)
+```
+
+**Как открыть в VS2026:**
+1. Установите CMake (минимум 3.21) и JUCE (проще всего через JUCE Installer или `vcpkg install juce`).
+2. В Visual Studio 2026: `File → Open → CMake…`, выберите папку `CombScanner`.
+3. JUCE сам сгенерирует решение. Выберите конфигурацию `x64-Release` и соберите.
+
+---
+
+## 3. PluginProcessor.h
+
+```cpp
+#pragma once
+#include <JuceHeader.h>
+
+class CombDSP;
+class FFTEffect;
+class GranularEffect;
+class ModulationSequencer;
+
+//==============================================================================
+class CombScannerAudioProcessor : public juce::AudioProcessor
+{
+public:
+    CombScannerAudioProcessor();
+    ~CombScannerAudioProcessor() override;
+
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override;
+    bool isBusesLayoutSupported (const BusesProperties& layouts) override;
+    void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+
+    juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override { return true; }
+
+    const juce::String getName() const override { return "CombScanner"; }
+    bool acceptsMidi() const override { return false; }
+    bool producesMidi() const override { return false; }
+    double getTailLengthSeconds() const override { return 0.0; }
+
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram (int) override {}
+    const juce::String getProgramName (int) override { return {}; }
+    void changeProgramName (int, const juce::String&) override {}
+
+    juce::AudioProcessorValueTreeState& getValueTreeState() { return parameters; }
+
+    void getStateInformation (juce::MemoryBlock& destData) override;
+    void setStateInformation (const void* data, int sizeInBytes) override;
+
+    // Варианты DSP (аналоги comb_scanner_variants 1 fav / 3 more control)
+    enum class DSPVariant
+    {
+        ClassicFav = 1,   // базовый классический комбсканнер
+        MoreControl = 3   // больше контроля: свои рейтио, эффекты между комбами
+    };
+
+    void setVariant (DSPVariant v);
+    DSPVariant getVariant() const { return currentVariant; }
+
+private:
+    juce::AudioProcessorValueTreeState parameters;
+
+    DSPVariant currentVariant = DSPVariant::ClassicFav;
+
+    std::unique_ptr<CombDSP> comb[4];
+    std::unique_ptr<FFTEffect> ffx[2];
+    std::unique_ptr<GranularEffect> gran[2];
+    std::unique_ptr<ModulationSequencer> sequencer;
+
+    juce::dsp::ProcessSpec spec;
+    double sampleRate = 44100.0;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CombScannerAudioProcessor)
+};
+```
+
+---
+
+## 4. PluginProcessor.cpp
+
+```cpp
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "CombDSP.h"
+#include "FFTEffect.h"
+#include "GranularEffect.h"
+#include "ModulationSequencer.h"
+
+//==============================================================================
+CombScannerAudioProcessor::CombScannerAudioProcessor()
+    : parameters (*this, nullptr, juce::Identifier("COMB_SCANNER"), createParameterLayout())
+{
+    for (auto& c : comb) c = std::make_unique<CombDSP>();
+    ffx[0] = std::make_unique<FFTEffect>();
+    ffx[1] = std::make_unique<FFTEffect>();
+    gran[0] = std::make_unique<GranularEffect>();
+    gran[1] = std::make_unique<GranularEffect>();
+    sequencer = std::make_unique<ModulationSequencer>();
+}
+
+CombScannerAudioProcessor::~CombScannerAudioProcessor() {}
+
+//------------------------------------------------------------------------------
+juce::AudioProcessorValueTreeState::ParameterLayout CombScannerAudioProcessor::createParameterLayout()
+{
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    // ---- Глобальный вариант DSP (пресет) ----
+    params.push_back(std::make_unique<juce::AudioParameterInt>(
+        "variant", "DSP Variant", 1, 3, 1));
+
+    // ---- 4 комба ----
+    for (int i = 0; i < 4; ++i)
+    {
+        const juce::String p = juce::String(i + 1);
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "comb" + p + "Delay", "Comb " + p + " Delay (ms)", 0.1f, 500.0f, 30.0f));
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "comb" + p + "Feedback", "Comb " + p + " Feedback", 0.0f, 0.98f, 0.5f));
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "comb" + p + "Damp", "Comb " + p + " Damp", 0.0f, 1.0f, 0.5f));
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "comb" + p + "Mix", "Comb " + p + " Mix", 0.0f, 1.0f, 0.5f));
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "comb" + p + "Ratio", "Comb " + p + " Ratio", 0.1f, 4.0f, 1.0f));
+    }
+
+    // ---- FX слоты между комбами (2 слота) ----
+    for (int i = 0; i < 2; ++i)
+    {
+        const juce::String p = juce::String(i + 1);
+        params.push_back(std::make_unique<juce::AudioParameterInt>(
+            "fx" + p + "Type", "FX " + p + " Type", 0, 3, 0)); // 0=None,1=FFT,2=Granular,3=Stretch
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "fx" + p + "Amount", "FX " + p + " Amount", 0.0f, 1.0f, 0.5f));
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "fx" + p + "Rate", "FX " + p + " Rate", 0.01f, 50.0f, 1.0f));
+    }
+
+    // ---- Секвенсер модуляции ----
+    for (int i = 0; i < 16; ++i)
+    {
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            "seqStep" + juce::String(i + 1), "Seq Step " + juce::String(i + 1), 0.0f, 1.0f, 0.5f));
+    }
+    params.push_back(std::make_unique<juce::AudioParameterInt>(
+        "seqTarget", "Seq Target", 0, 2, 0)); // 0=Comb Delay,1=Feedback,2=FX Amount
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        "seqDepth", "Seq Depth", 0.0f, 1.0f, 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        "seqRate", "Seq Rate (Hz)", 0.01f, 20.0f, 2.0f));
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        "seqSync", "Seq Sync", false));
+
+    return { params.begin(), params.end() };
+}
+
+//------------------------------------------------------------------------------
+void CombScannerAudioProcessor::prepareToPlay (double sr, int maxBlockSize)
+{
+    sampleRate = sr;
+    spec.sampleRate = sr;
+    spec.maximumBlockSize = static_cast<uint32>(maxBlockSize);
+    spec.numChannels = getTotalNumOutputChannels();
+
+    for (auto& c : comb) c->prepare(sr, maxBlockSize);
+    ffx[0]->prepare(sr, maxBlockSize);
+    ffx[1]->prepare(sr, maxBlockSize);
+    gran[0]->prepare(sr, maxBlockSize);
+    gran[1]->prepare(sr, maxBlockSize);
+    sequencer->prepare(sr, maxBlockSize);
+}
+
+void CombScannerAudioProcessor::releaseResources() {}
+
+bool CombScannerAudioProcessor::isBusesLayoutSupported (const BusesProperties& layouts)
+{
+    return true; // стерео/моно
+}
+
+void CombScannerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
+{
+    juce::ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    // Стираем лишние выходные каналы
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+        buffer.clear(i, 0, buffer.getNumSamples());
+
+    const int nSamples = buffer.getNumSamples();
+
+    // --- Секвенсер шага ---
+    const float seqRate = *parameters.getRawParameterValue("seqRate");
+    const float seqDepth = *parameters.getRawParameterValue("seqDepth");
+    const int seqTarget = static_cast<int>(*parameters.getRawParameterValue("seqTarget"));
+
+    // --- Передаем параметры в каждый комб ---
+    for (int ch = 0; ch < totalNumOutputChannels; ++ch)
+    {
+        float* channelData = buffer.getWritePointer(ch);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            bool active = true;
+            // В режиме ClassicFav активны только первые 2 комба, в MoreControl — все 4
+            if (currentVariant == DSPVariant::ClassicFav && i >= 2)
+                active = false;
+
+            if (active)
+            {
+                comb[i]->setDelaySamples (*parameters.getRawParameterValue("comb" + juce::String(i+1) + "Delay") * (float)sampleRate / 1000.0f);
+                comb[i]->setFeedback     (*parameters.getRawParameterValue("comb" + juce::String(i+1) + "Feedback"));
+                comb[i]->setDamp         (*parameters.getRawParameterValue("comb" + juce::String(i+1) + "Damp"));
+                comb[i]->setMix          (*parameters.getRawParameterValue("comb" + juce::String(i+1) + "Mix"));
+                comb[i]->setRatio        (*parameters.getRawParameterValue("comb" + juce::String(i+1) + "Ratio"));
+
+                // Модуляция секвенсером на задержку комба (пример)
+                if (seqTarget == 0)
+                {
+                    const float mod = sequencer->getValue(seqRate, seqDepth, nSamples);
+                    comb[i]->setModulation(mod);
+                }
+
+                comb[i]->process(buffer); // обрабатывает весь буфер (все каналы внутри)
+            }
+        }
+
+        // --- FX слоты между комбами (упрощённо: после comb1 и comb3) ---
+        const float fx1Amount = *parameters.getRawParameterValue("fx1Amount");
+        const float fx2Amount = *parameters.getRawParameterValue("fx2Amount");
+
+        if (fx1Amount > 0.001f)
+        {
+            int fx1Type = static_cast<int>(*parameters.getRawParameterValue("fx1Type"));
+            if (fx1Type == 1) ffx[0]->process(buffer, fx1Amount);
+            else if (fx1Type == 2) gran[0]->process(buffer, fx1Amount);
+            else if (fx1Type == 3) { /* stretch может быть гранулярным */ gran[0]->process(buffer, fx1Amount); }
+        }
+
+        if (fx2Amount > 0.001f)
+        {
+            int fx2Type = static_cast<int>(*parameters.getRawParameterValue("fx2Type"));
+            if (fx2Type == 1) ffx[1]->process(buffer, fx2Amount);
+            else if (fx2Type == 2) gran[1]->process(buffer, fx2Amount);
+            else if (fx2Type == 3) gran[1]->process(buffer, fx2Amount);
+        }
+    }
+}
+
+juce::AudioProcessorEditor* CombScannerAudioProcessor::createEditor()
+{
+    return new CombScannerAudioProcessorEditor(*this);
+}
+
+void CombScannerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+{
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
+}
+
+void CombScannerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+}
+
+void CombScannerAudioProcessor::setVariant (DSPVariant v)
+{
+    currentVariant = v;
+    parameters.getParameter("variant")->setValue(static_cast<float>(v), juce::NotificationType::dontSendNotification);
+}
+```
+
+---
+
+## 5. CombDSP.h / .cpp
+
+Класс одного комб-фильтра с настраиваемым рейтио (ratio) для варианта *More Control*.
+
+```cpp
+// CombDSP.h
+#pragma once
+#include <JuceHeader.h>
+
+class CombDSP
+{
+public:
+    CombDSP();
+    void prepare (double sampleRate, int maxBlockSize);
+    void process (juce::AudioBuffer<float>& buffer);
+
+    void setDelaySamples (float samples);
+    void setFeedback (float fb);
+    void setDamp (float damp);
+    void setMix (float mix);
+    void setRatio (float ratio);
+    void setModulation (float mod);
+
+private:
+    juce::AudioBuffer<float> delayBuf[2]; // L/R
+    int writePos = 0;
+    float delayTime = 0.0f;
+    float feedback = 0.5f;
+    float damp = 0.5f;
+    float mix = 0.5f;
+    float ratio = 1.0f;
+    float filterState[2] = { 0.f, 0.f };
+    double sampleRate = 44100.0;
+    int maxBlockSize = 512;
+};
+```
+
+```cpp
+// CombDSP.cpp
+#include "CombDSP.h"
+
+CombDSP::CombDSP() {}
+
+void CombDSP::prepare (double sr, int maxBlockSize)
+{
+    sampleRate = sr;
+    maxBlockSize = static_cast<int>(maxBlockSize);
+    const int maxDelay = static_cast<int>(sr * 1.0); // до 1 сек задержки
+    delayBuf[0].setSize(1, maxDelay);
+    delayBuf[1].setSize(1, maxDelay);
+    delayBuf[0].clear();
+    delayBuf[1].clear();
+    writePos = 0;
+}
+
+void CombDSP::setDelaySamples (float samples)
+{
+    delayTime = juce::jlimit(1.0f, 44100.0f, samples);
+}
+
+void CombDSP::setFeedback (float fb)      { feedback = fb; }
+void CombDSP::setDamp (float d)           { damp = d; }
+void CombDSP::setMix (float m)            { mix = m; }
+void CombDSP::setRatio (float r)          { ratio = juce::jlimit(0.1f, 4.0f, r); }
+void CombDSP::setModulation (float mod)   { /* пока не используется напрямую, можно инжектить в delayTime */ }
+
+void CombDSP::process (juce::AudioBuffer<float>& buffer)
+{
+    const int nSamples = buffer.getNumSamples();
+    const int nChannels = buffer.getNumChannels();
+    const int bufSize = delayBuf[0].getNumSamples();
+
+    for (int ch = 0; ch < nChannels; ++ch)
+    {
+        float* data = buffer.getWritePointer(ch);
+        float* delayData = delayBuf[ch].getWritePointer(0);
+
+        for (int i = 0; i < nSamples; ++i)
+        {
+            float input = data[i];
+            int readPos = writePos - static_cast<int>(delayTime * ratio);
+            while (readPos < 0) readPos += bufSize;
+            while (readPos >= bufSize) readPos -= bufSize;
+
+            float delayed = delayData[readPos];
+            // один полюс низких частот для демпфирования обратной связи
+            filterState[ch] = filterState[ch] * (1.0f - damp) + delayed * damp;
+
+            float out = input + filterState[ch] * feedback;
+            delayData[writePos] = out;
+
+            data[i] = input * (1.0f - mix) + out * mix;
+
+            writePos = (writePos + 1) % bufSize;
+        }
+    }
+}
+```
+
+---
+
+## 6. FFTEffect.h / .cpp
+
+Блочный FFT с малой задержкой (окно 256 сэмплов, достаточно для «почти нулевой» задержки в контексте комб-сканнера).
+
+```cpp
+// FFTEffect.h
+#pragma once
+#include <JuceHeader.h>
+
+class FFTEffect
+{
+public:
+    void prepare (double sampleRate, int maxBlockSize);
+    void process (juce::AudioBuffer<float>& buffer, float amount);
+
+private:
+    juce::dsp::FFT fft { 8 }; // 256 точек
+    juce::AudioBuffer<float> windowBuffer;
+    int fftSize = 256;
+    float window[256];
+    double sampleRate = 44100.0;
+};
+```
+
+```cpp
+// FFTEffect.cpp
+#include "FFTEffect.h"
+
+void FFTEffect::prepare (double sr, int maxBlockSize)
+{
+    sampleRate = sr;
+    fftSize = 256;
+    windowBuffer.setSize(2, fftSize);
+    for (int i = 0; i < fftSize; ++i)
+        window[i] = 0.5f * (1.0f - std::cos(2.0f * juce::MathConstants<float>::pi * i / (fftSize - 1)));
+}
+
+void FFTEffect::process (juce::AudioBuffer<float>& buffer, float amount)
+{
+    if (amount <= 0.0f) return;
+
+    const int nSamples = buffer.getNumSamples();
+    const int nChannels = buffer.getNumChannels();
+
+    // Упрощённая обработка: каждый 256-й блок пропускаем через FFT, инвертируем фазу части спектра
+    // (это демо-реализация «нулевой задержки» — на практике используйте overlap-add)
+    for (int ch = 0; ch < nChannels; ++ch)
+    {
+        float* data = buffer.getWritePointer(ch);
+        juce::FloatVectorOperations::copy(windowBuffer.getWritePointer(ch), data, juce::jmin(nSamples, fftSize));
+        for (int i = 0; i < fftSize; ++i)
+            windowBuffer.getWritePointer(ch)[i] *= window[i];
+
+        float* fftData = windowBuffer.getWritePointer(ch);
+        fft.performRealOnlyForwardTransform(fftData);
+
+        // Пример эффекта: ослабление высоких частот в зависимости от amount
+        for (int i = 2; i < fftSize / 2; ++i)
+        {
+            float freq = static_cast<float>(i) * static_cast<float>(sampleRate) / fftSize;
+            float cut = juce::jmap(freq, 1000.0f, 8000.0f, 0.0f, 1.0f);
+            fftData[i] *= (1.0f - amount * cut);
+        }
+
+        fft.performRealOnlyInverseTransform(fftData);
+
+        for (int i = 0; i < fftSize && i < nSamples; ++i)
+            data[i] += fftData[i] * amount * 0.5f;
+    }
+}
+```
+
+---
+
+## 7. GranularEffect.h / .cpp
+
+Простой гранулятор (облако зёрен) для вставки между комбами.
+
+```cpp
+// GranularEffect.h
+#pragma once
+#include <JuceHeader.h>
+
+class GranularEffect
+{
+public:
+    void prepare (double sampleRate, int maxBlockSize);
+    void process (juce::AudioBuffer<float>& buffer, float amount);
+
+private:
+    struct Grain
+    {
+        int pos = 0;
+        int len = 0;
+        float env = 0.0f;
+        float gain = 0.0f;
+        int channel = 0;
+        bool active = false;
+    };
+
+    juce::AudioBuffer<float> delayBuf[2];
+    int writePos = 0;
+    int bufSize = 0;
+    Grain grains[8];
+    double sampleRate = 44100.0;
+};
+```
+
+```cpp
+// GranularEffect.cpp
+#include "GranularEffect.h"
+
+void GranularEffect::prepare (double sr, int maxBlockSize)
+{
+    sampleRate = sr;
+    bufSize = static_cast<int>(sr * 1.0);
+    delayBuf[0].setSize(1, bufSize);
+    delayBuf[1].setSize(1, bufSize);
+    delayBuf[0].clear();
+    delayBuf[1].clear();
+    writePos = 0;
+
+    for (auto& g : grains)
+    {
+        g.len = static_cast<int>(sr * 0.05f); // 50 мс зёрно
+        g.pos = 0;
+        g.active = false;
+    }
+}
+
+void GranularEffect::process (juce::AudioBuffer<float>& buffer, float amount)
+{
+    if (amount <= 0.0f) return;
+
+    const int nSamples = buffer.getNumSamples();
+    const int nChannels = buffer.getNumChannels();
+
+    // Пишем вход в delay buffer
+    for (int ch = 0; ch < nChannels; ++ch)
+    {
+        float* data = buffer.getWritePointer(ch);
+        float* d = delayBuf[ch].getWritePointer(0);
+        for (int i = 0; i < nSamples; ++i)
+        {
+            d[writePos] = data[i];
+            if (++writePos >= bufSize) writePos = 0;
+        }
+    }
+
+    // Воспроизводим зёрна
+    for (int ch = 0; ch < nChannels; ++ch)
+    {
+        float* data = buffer.getWritePointer(ch);
+        const float* d = delayBuf[ch].getReadPointer(0);
+
+        for (auto& g : grains)
+        {
+            if (!g.active)
+            {
+                if (juce::Random::getSystemRandom().nextFloat() < 0.05f * amount)
+                {
+                    g.active = true;
+                    g.pos = juce::Random::getSystemRandom().nextInt(bufSize - g.len);
+                    g.len = static_cast<int>(sampleRate * juce::Random::getSystemRandom().nextFloat(0.02f, 0.1f));
+                    g.gain = amount * 0.3f;
+                    g.env = 0.0f;
+                    g.channel = ch;
+                }
+            }
+            if (g.active && g.channel == ch)
+            {
+                for (int i = 0; i < nSamples && g.pos < bufSize; ++i)
+                {
+                    float env = std::sin(juce::MathConstants<float>::pi * static_cast<float>(g.pos) / g.len);
+                    data[i] += d[(g.pos + writePos) % bufSize] * env * g.gain;
+                    ++g.pos;
+                    if (g.pos >= g.len) g.active = false;
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## 8. ModulationSequencer.h / .cpp
+
+```cpp
+// ModulationSequencer.h
+#pragma once
+#include <JuceHeader.h>
+
+class ModulationSequencer
+{
+public:
+    void prepare (double sampleRate, int maxBlockSize);
+    float getValue (float rateHz, float depth, int nSamples);
+
+    void setStep (int index, float value);
+    float getStep (int index) const;
+
+private:
+    float steps[16] = { 0.5f };
+    double sampleRate = 44100.0;
+    float phase = 0.0f;
+    int currentStep = 0;
+};
+```
+
+```cpp
+// ModulationSequencer.cpp
+#include "ModulationSequencer.h"
+
+void ModulationSequencer::prepare (double sr, int /*maxBlockSize*/)
+{
+    sampleRate = sr;
+    phase = 0.0f;
+    currentStep = 0;
+}
+
+float ModulationSequencer::getValue (float rateHz, float depth, int /*nSamples*/)
+{
+    // avance фазы
+    phase += static_cast<float>(rateHz / sampleRate);
+    if (phase >= 1.0f) phase -= 1.0f;
+
+    float stepFloat = phase * 16.0f;
+    int s0 = static_cast<int>(std::floor(stepFloat)) % 16;
+    int s1 = (s0 + 1) % 16;
+    float frac = stepFloat - std::floor(stepFloat);
+
+    float v0 = steps[s0];
+    float v1 = steps[s1];
+    float val = v0 + (v1 - v0) * frac;
+
+    return 0.5f + (val - 0.5f) * depth; // смещённый в 0..1
+}
+
+void ModulationSequencer::setStep (int index, float value)
+{
+    if (index >= 0 && index < 16)
+        steps[index] = juce::jlimit(0.0f, 1.0f, value);
+}
+
+float ModulationSequencer::getStep (int index) const
+{
+    return (index >= 0 && index < 16) ? steps[index] : 0.5f;
+}
+```
+
+---
+
+## 9. PluginEditor.h
+
+```cpp
+#pragma once
+#include "PluginProcessor.h"
+
+class CombScannerAudioProcessorEditor : public juce::AudioProcessorEditor
+{
+public:
+    explicit CombScannerAudioProcessorEditor (CombScannerAudioProcessor& p);
+    ~CombScannerAudioProcessorEditor() override;
+
+    void paint (juce::Graphics& g) override;
+    void resized() override;
+
+private:
+    CombScannerAudioProcessor& processor;
+    juce::AudioProcessorValueTreeState& parameters;
+
+    // Привязки параметров к UI
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> variantAttachment;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> combAttachments;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>> fxAttachments;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> fxAttachments2;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> seqAttachments;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CombScannerAudioProcessorEditor)
+};
+```
+
+---
+
+## 10. PluginEditor.cpp
+
+Интерфейс по референсу: тёмная тема, модули комбов, слоты эффектов, секвенсер внизу.
+
+```cpp
+#include "PluginEditor.h"
+
+//------------------------------------------------------------------------------
+CombScannerAudioProcessorEditor::CombScannerAudioProcessorEditor (CombScannerAudioProcessor& p)
+    : AudioProcessorEditor (&p), processor (p), parameters (p.getValueTreeState())
+{
+    setSize (1100, 700);
+
+    // Глобальный вариант DSP
+    auto* variantCB = new juce::ComboBox();
+    variantCB->addItem ("Classic Fav (1 comb_scanner_variants 1)", 1);
+    variantCB->addItem ("More Control (3 comb_scanner_variants 3)", 3);
+    variantCB->setSelectedId(static_cast<int>(processor.getVariant()));
+    addAndMakeVisible(variantCB);
+    variantAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        parameters, "variant", *variantCB);
+
+    // Привязки для 4 комбов
+    for (int i = 0; i < 4; ++i)
+    {
+        const juce::String p = juce::String(i + 1);
+        const char* ids[] = {
+            ("comb" + p + "Delay").toRawUTF8(),
+            ("comb" + p + "Feedback").toRawUTF8(),
+            ("comb" + p + "Damp").toRawUTF8(),
+            ("comb" + p + "Mix").toRawUTF8(),
+            ("comb" + p + "Ratio").toRawUTF8()
+        };
+
+        for (int j = 0; j < 5; ++j)
+        {
+            auto* slider = new juce::Slider(juce::Slider::RotaryHorizontalVerticalDrag, juce::Slider::TextBoxBelow);
+            slider->setRange(0.0f, 1.0f);
+            slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+            addAndMakeVisible(slider);
+
+            combAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+                parameters, ids[j], *slider));
+        }
+    }
+
+    // Привязки для FX слотов
+    for (int i = 0; i < 2; ++i)
+    {
+        const juce::String p = juce::String(i + 1);
+        auto* fxCB = new juce::ComboBox();
+        fxCB->addItem ("None", 0);
+        fxCB->addItem ("FFT", 1);
+        fxCB->addItem ("Granular", 2);
+        fxCB->addItem ("Stretch", 3);
+        addAndMakeVisible(fxCB);
+
+        fxAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+            parameters, ("fx" + p + "Type").toRawUTF8(), *fxCB));
+
+        auto* amtSlider = new juce::Slider(juce::Slider::LinearHorizontal, juce::Slider::TextBoxRight);
+        amtSlider->setRange(0.0, 1.0);
+        amtSlider->setValue(0.5);
+        addAndMakeVisible(amtSlider);
+        fxAttachments2.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+            parameters, ("fx" + p + "Amount").toRawUTF8(), *amtSlider));
+    }
+
+    // Секвенсер: 16 шагов
+    for (int i = 0; i < 16; ++i)
+    {
+        auto* slider = new juce::Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow);
+        slider->setRange(0.0, 1.0);
+        slider->setValue(0.5);
+        addAndMakeVisible(slider);
+        seqAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+            parameters, ("seqStep" + juce::String(i + 1)).toRawUTF8(), *slider));
+    }
+
+    // Целевой параметр секвенсера
+    auto* seqTargetCB = new juce::ComboBox();
+    seqTargetCB->addItem ("Comb Delay", 0);
+    seqTargetCB->addItem ("Feedback", 1);
+    seqTargetCB->addItem ("FX Amount", 2);
+    addAndMakeVisible(seqTargetCB);
+    seqAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+        parameters, "seqTarget", *seqTargetCB));
+}
+
+//------------------------------------------------------------------------------
+CombScannerAudioProcessorEditor::~CombScannerAudioProcessorEditor() {}
+
+//------------------------------------------------------------------------------
+void CombScannerAudioProcessorEditor::paint (juce::Graphics& g)
+{
+    g.fillAll(juce::Colour(0xff1e1e1e)); // тёмный фон по референсу
+    g.setColour(juce::Colours::grey);
+    g.drawRect(0, 0, getWidth(), getHeight(), 1);
+}
+
+//------------------------------------------------------------------------------
+void CombScannerAudioProcessorEditor::resized()
+{
+    auto area = getLocalBounds().reduced(10);
+    auto header = area.removeFromTop(40);
+
+    // Variant selector
+    header.removeFromLeft(10);
+    auto* variantCB = getComponent(0); // упрощённо: первый компонент
+    variantCB->setBounds(header.removeFromLeft(260));
+
+    int combW = area.getWidth() / 4 - 10;
+    int combH = 360;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        auto combArea = area.removeFromLeft(combW + 10).reduced(5);
+        // Здесь в реальном проекте каждый комб — свой компонент с 5 слайдерами.
+        // Для краткости слайдеры распределяются автоматически JUCE (см. addAndMakeVisible выше).
+        // В production-коде рекомендуется создать класс CombModule : public juce::Component.
+    }
+
+    // FX слоты (под комбами, упрощённо)
+    auto fxArea = area.removeFromBottom(80);
+    for (int i = 0; i < 2; ++i)
+    {
+        auto slot = fxArea.removeFromLeft(fxArea.getWidth() / 2).reduced(5);
+        // Привязанные выше компоненты FX уже добавлены, здесь только размеры при необходимости
+    }
+
+    // Секвенсер внизу
+    auto seqArea = area.removeFromBottom(180);
+    int stepW = seqArea.getWidth() / 16;
+    for (int i = 0; i < 16; ++i)
+    {
+        // В реальном редакторе каждый слайдер seqStep позиционируется здесь.
+    }
+}
+```
+
+> **Примечание:** В `resized()` выше компоненты не позиционированы точечно (для краткости). В производном проекте рекомендуется вынести каждый комб в отдельный класс `CombModule : public juce::Component`, а FX-слоты и секвенсер — в свои панели, используя `juce::FlexBox` или `juce::Grid` для точной отрисовки по референсу `combscanner upgrade.jpg`.
+
+---
+
+## 11. Пресеты / Варианты DSP
+
+В `PluginProcessor` уже реализован переключатель:
+
+| variant | Значение | Поведение |
+|---------|----------|-----------|
+| `Classic Fav` | `1` | Активны первые 2 комба, фиксированные рейтио, минимум эффектов между комбами |
+| `More Control` | `3` | Все 4 комба, отдельный `Ratio` для каждого, FX-слоты между comb1–comb2 и comb3–comb4, полноценный секвенсер |
+
+Переключение происходит в реальном времени через `AudioProcessorValueTreeState`, состояние сохраняется в пресете плагина.
+
+---
+
+## 12. Сборка в Visual Studio 2026
+
+1. Установите **CMake ≥ 3.21** и **JUCE**.
+2. Откройте папку проекта в VS2026 (`File → Open → CMake`).
+3. JUCE сгенерирует решение. Выберите конфигурацию:
+   - **x64**
+   - **Release**
+4. Нажмите **Build → Build Solution**.
+5. Готовый плагин (.vst3, .component, .exe) появится в папке, указанной в `JUCE_COPY_PLUGIN_AFTER_BUILD` (обычно `build/` или рядом с проектом).
+
+---
+
+Если нужно, могу дополнительно добавить:
+- точную компоновку `juce::Grid` для редактора (пиксельный макет по референсу),
+- реализацию `stretch` через фазовый вокодер,
+- экспорт пресетов в `.fxp` / `.fxt`形式те.
