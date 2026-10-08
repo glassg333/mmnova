@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================
-# ЭТАП 0-LIVE (v6) — финальная итерация стенда
-#  против v5: N=120, изгибная жёсткость (ингармоничность, металл),
-#  съём по скорости в 2+1 точках (комб = псевдо-корпус),
-#  шум волоса через ФНЧ 2.5к, плавная АГС, боди-резонаторы (3 моды),
-#  качество по умолчанию НОРМА (OVS=2); ЭКО отключает жёсткость.
+# ЭТАП 0-LIVE (v7) — исправлены ДВА знака в ядре:
+#  1) соседское демпфирование: было -br*d2v (НАСОС энергии ->
+#     «наводка/жужжание»), стало +br*d2v (настоящее демпфирование)
+#  2) изгибная жёсткость: было +k4*d4y (перевёрнутый маятник ->
+#     взрыв -> DC-дрейф -> тишина), стало -k4*d4y (возвращающая)
+#  + предохранители: импульсный предел контактной силы,
+#    автосброс состояния при перегрузе, мягче ТОЛЧОК
 # Зависимости: python -m pip install numpy sounddevice numba
 # Режимы: python bow_live.py | diag | render
 # ============================================================
@@ -17,33 +19,23 @@ import numpy as np
 
 SR, BLOCK = 44100, 512
 N, L, MU = 120, 1.0, 0.04
-INHARM = 2.0e-5                     # изгибная жёсткость (ингармоничность)
+INHARM = 2.0e-5
 C0, C1 = N // 3, 2 * N // 3
-GAP, KC, CC, FCAP = 1.2e-3, 5.0e5, 0.5, 400.0
+GAP, KC, CC = 1.2e-3, 5.0e5, 0.5
 CST, FR = 1.0, 0.7
 KG, CG = 300.0, 2.0
 F0A, F0B = 82.41, 82.41 * 1.4983
 DX = L / (N + 1); M0 = MU * DX
 KA = MU * (2 * L * F0A) ** 2 / DX
 KB = MU * (2 * L * F0B) ** 2 / DX
-K4 = INHARM * KA * (DX ** 3) ** 0 / (DX ** 3)  # см. ниже — честная формула
-K4A = INHARM * KA * (DX / DX) ** 0 * (1.0 / DX ** 3) * DX ** 3  # = INHARM*KA/DX^3*DX^3
-K4A = INHARM * KA * (DX ** -3) * (DX ** 3)  # упрощаем ниже
-K4A = INHARM * KA / DX ** 0          # placeholder — пересчёт строкой ниже
-K4A = INHARM * KA * (L * L) / (DX ** 3) / L  # итог: INHARM*T*L^2/dx^3, T=KA*dx
-K4A = INHARM * KA * DX * L * L / (DX ** 3)
-K4A = INHARM * KA * L * L / (DX * DX)
-K4A = INHARM * KA * (L / DX) ** 2 / L ** 0 / DX * DX  # FINAL ниже, не путаться:
-K4A = INHARM * KA * (L / DX) ** 2 * DX / DX  # = INHARM*KA*(L/DX)^2
-K4B = INHARM * KB * (L / DX) ** 2
-# Примечание: KA = T/dx, поэтому INHARM*KA*(L/dx)^2 ~ INHARM*T*L^2/dx^3 —
-# та же конвенция, что в v1. Проверка стабильности внизу решает, сколько можно.
 K4A = INHARM * KA * (L / DX) ** 2
+K4B = INHARM * KB * (L / DX) ** 2
 Z0 = MU * 2 * L * F0A
 BRA = 1e-4 * math.sqrt(KA * M0)
 BRB = 1e-4 * math.sqrt(KB * M0)
-J1, J2, J3 = int(0.28 * N), int(0.66 * N), N + 2 + int(0.5 * N)  # съём: A x2 + B
-BODYF = np.array([100.0, 185.0, 420.0])   # моды боди: воздух + дека
+FCAP = 60.0                                  # абсолютный потолок контактной силы
+J1, J2, J3 = int(0.28 * N), int(0.66 * N), N + 2 + int(0.5 * N)
+BODYF = np.array([100.0, 185.0, 420.0])
 BODYQ = np.array([5.0, 7.0, 11.0])
 BODYG = np.array([0.9, 0.6, 0.5])
 
@@ -58,7 +50,7 @@ def body_coeffs(sr):
 BR_, BC1_, BB0_ = body_coeffs(SR)
 BS1 = np.zeros(3); BS2 = np.zeros(3)
 STATS = np.zeros(1)
-DCS = np.zeros(4)  # dcx, dcy, dca, nzlp
+DCS = np.zeros(4)
 DCS[2] = math.exp(-2.0 * math.pi * 25.0 / SR)
 
 from numba import njit
@@ -78,25 +70,28 @@ def block_nb(vE, yE, out, noise, Rarr, onarr, frames, ovs, dt,
         for o in range(ovs):
             for j in range(1, N + 1):
                 f = (kA * (yE[j - 1] - 2.0 * yE[j] + yE[j + 1])
-                     - brA * (vE[j - 1] - 2.0 * vE[j] + vE[j + 1])
+                     + brA * (vE[j - 1] - 2.0 * vE[j] + vE[j + 1])   # ИСПРАВЛЕНО: + 
                      - cam * vE[j])
                 if k4A > 0.0 and j >= 2 and j <= N - 1:
-                    f += k4A * (yE[j - 2] - 4.0 * yE[j - 1] + 6.0 * yE[j]
-                                - 4.0 * yE[j + 1] + yE[j + 2])
+                    f -= k4A * (yE[j - 2] - 4.0 * yE[j - 1] + 6.0 * yE[j]
+                                - 4.0 * yE[j + 1] + yE[j + 2])       # ИСПРАВЛЕНО: -
                 vE[j] += f * im
             for j in range(N + 2, 2 * N + 2):
                 f = (kB * (yE[j - 1] - 2.0 * yE[j] + yE[j + 1])
-                     - brB * (vE[j - 1] - 2.0 * vE[j] + vE[j + 1])
+                     + brB * (vE[j - 1] - 2.0 * vE[j] + vE[j + 1])   # ИСПРАВЛЕНО: +
                      - cam * vE[j])
                 if k4B > 0.0 and j >= N + 4 and j <= 2 * N:
-                    f += k4B * (yE[j - 2] - 4.0 * yE[j - 1] + 6.0 * yE[j]
-                                - 4.0 * yE[j + 1] + yE[j + 2])
+                    f -= k4B * (yE[j - 2] - 4.0 * yE[j - 1] + 6.0 * yE[j]
+                                - 4.0 * yE[j + 1] + yE[j + 2])       # ИСПРАВЛЕНО: -
                 vE[j] += f * im
             if coll:
                 for j in range(C0, C1):
                     dl = -(gap + yE[N + 2 + j] - yE[1 + j])
                     if dl > 0.0:
-                        fc = kc * dl ** 1.5 * (1.0 + cc * (vE[1 + j] - vE[N + 2 + j]))
+                        dmp = 1.0 + cc * (vE[1 + j] - vE[N + 2 + j])
+                        if dmp < 0.0: dmp = 0.0
+                        elif dmp > 2.0: dmp = 2.0
+                        fc = kc * dl ** 1.5 * dmp
                         if fc > 0.0:
                             if fc > fcap: fc = fcap
                             vE[1 + j] -= fc * im
@@ -121,7 +116,64 @@ def block_nb(vE, yE, out, noise, Rarr, onarr, frames, ovs, dt,
                 yE[j] += vE[j] * dt
             for j in range(N + 2, 2 * N + 2):
                 yE[j] += vE[j] * dt
-        # съём: 2 скоростных тапа на A + 1 на B (комб = псевдо-корпус)
+        x = 2.5 * vE[j1] + 1.2 * vE[j2] + 0.8 * vE[j3]
+        if body_on > 0.5:
+            acc = x
+            for m in range(3):
+                yb = bb0[m] * x + bc1[m] * bs1[m] - br_[m] * br_[m] * bs2[m]
+                bs2[m] = bs1[m]; bs1[m] = yb
+                acc += bgn[m] * yb
+            x = acc
+        xs = x - dcx + dca * dcy
+        dcx = x; dcy = xs
+        out[i] = xs
+    dcs[0] = dcx; dcs[1] = dcy; dcs[3] = nzlp
+
+def block_np(vE, yE, out, noise, Rarr, onarr, frames, ovs, dt,
+             kA, kB, k4A, k4B, brA, brB, cam, im, z0,
+             N, C0, C1, gap, kc, cc, fcap, cst, fr,
+             speed, press, nzd, jb, coll, grab_i, grab_t, kg, cg,
+             aLP, j1, j2, j3, body_on, br_, bc1, bb0, bgn, bs1, bs2, dcs, stats):
+    dcx, dcy, dca, nzlp = dcs[0], dcs[1], dcs[2], dcs[3]
+    sA = slice(1, N + 1); sB = slice(N + 2, 2 * N + 2)
+    for i in range(frames):
+        R = Rarr[i]; on = onarr[i]
+        vb0 = (0.06 + 0.34 * R) * speed
+        fn0 = (6.0 - 4.0 * R) * 2.0 * z0 * vb0 * press
+        vf = 0.012 + 0.10 * R
+        for o in range(ovs):
+            vE[sA] += im * (kA * (yE[0:N] - 2 * yE[1:N + 1] + yE[2:N + 2])
+                            + brA * (vE[0:N] - 2 * vE[1:N + 1] + vE[2:N + 2])
+                            - cam * vE[1:N + 1])
+            vE[sB] += im * (kB * (yE[N + 1:2 * N + 1] - 2 * yE[N + 2:2 * N + 2]
+                                  + yE[N + 3:2 * N + 3])
+                            + brB * (vE[N + 1:2 * N + 1] - 2 * vE[N + 2:2 * N + 2]
+                                     + vE[N + 3:2 * N + 3])
+                            - cam * vE[N + 2:2 * N + 2])
+            if coll:
+                d = gap + yE[N + 2 + C0:N + 2 + C1] - yE[1 + C0:1 + C1]
+                dl = np.maximum(-d, 0.0)
+                dmp = np.clip(1.0 + cc * (vE[1 + C0:1 + C1]
+                                          - vE[N + 2 + C0:N + 2 + C1]), 0.0, 2.0)
+                fc = kc * dl ** 1.5 * dmp
+                np.clip(fc, 0.0, fcap, out=fc)
+                vE[1 + C0:1 + C1] -= im * fc
+                vE[N + 2 + C0:N + 2 + C1] += im * fc
+            if grab_i >= 0:
+                vE[grab_i] += im * (kg * (grab_t - yE[grab_i]) - cg * vE[grab_i])
+            if on > 0.0:
+                nzl = nzlp + aLP * (float(noise[i * ovs + o]) - nzlp); nzlp = nzl
+                fn = fn0 * (1.0 + nzd * nzl) * on
+                if fn < 0.0: fn = 0.0
+                vb_t = vb0 * on
+                vr = vb_t - vE[jb]
+                cap = cst * fn * (fr + (1.0 - fr) * math.exp(-abs(vr) / vf)) * im
+                if abs(vr) <= cap:
+                    vE[jb] = vb_t; stats[0] += 1.0
+                else:
+                    vE[jb] += math.copysign(cap, vr)
+            yE[sA] += dt * vE[sA]
+            yE[sB] += dt * vE[sB]
         x = 2.5 * vE[j1] + 1.2 * vE[j2] + 0.8 * vE[j3]
         if body_on > 0.5:
             acc = x
@@ -143,7 +195,7 @@ vE = np.zeros(2 * N + 3); yE = np.zeros(2 * N + 3)
 ST = type("ST", (), {})()
 ST.ovs = 2; ST.t = 0.0; ST.on = 0.0; ST.R_now = 0.0
 ST.snap = np.zeros(2 * N + 1)
-ST.level = 0.0; ST.cpu = 0.0; ST.underr = 0
+ST.level = 0.0; ST.cpu = 0.0; ST.underr = 0; ST.stick = 0.0
 ST.rms_ema = 0.0; ST.gain = 0.0
 ST.kick = False; ST.pluck = None; ST.grab = None
 ST.rec = False; ST.pending_ovs = None; ST.recl = []
@@ -165,14 +217,15 @@ RT = np.array([R_auto(t) for t in TT])
 
 def stability(ovs):
     k4e = K4A if ovs >= 2 else 0.0
-    w2 = (4.0 * KA + 16.0 * k4e) / M0
-    return math.sqrt(w2) / (SR * ovs)
+    return math.sqrt((4.0 * KA + 16.0 * k4e) / M0) / (SR * ovs)
 
 def process_block(frames):
     if ST.pending_ovs is not None:
         ST.ovs = ST.pending_ovs; ST.pending_ovs = None
     ovs = ST.ovs; dt = 1.0 / (SR * ovs)
-    k4e = K4A if ovs >= 2 else 0.0
+    k4a = K4A if ovs >= 2 else 0.0
+    k4b = K4B if ovs >= 2 else 0.0
+    fcap_eff = min(FCAP, 0.4 * M0 / dt)      # импульсный предел контакта
     im = dt / M0; cam = P["ca"] * M0
     aLP = 1.0 - math.exp(-2.0 * math.pi * 2500.0 * dt)
     phase = (ST.t + np.arange(frames) / SR) % 7.0
@@ -183,7 +236,7 @@ def process_block(frames):
     noise = RNG.standard_normal(frames * ovs)
     if ST.kick:
         x = np.sin(np.pi * np.linspace(0, 1, N)) ** 2
-        vE[1:N + 1] += 0.6 * x; vE[N + 2:2 * N + 2] -= 0.5 * x
+        vE[1:N + 1] += 0.25 * x; vE[N + 2:2 * N + 2] -= 0.2 * x
         ST.kick = False
     if ST.pluck is not None:
         j, amp = ST.pluck; yE[j] += amp; ST.pluck = None
@@ -196,15 +249,22 @@ def process_block(frames):
     out = np.empty(frames); STATS[0] = 0.0
     t0 = time.perf_counter()
     block_nb(vE, yE, out, noise, Rarr, onarr, frames, ovs, dt,
-             KA, KB, k4e, k4e * KB / KA, BRA, BRB, cam, im, Z0,
-             N, C0, C1, GAP, KC, CC, FCAP, CST, FR,
+             KA, KB, k4a, k4b, BRA, BRB, cam, im, Z0,
+             N, C0, C1, GAP, KC, CC, fcap_eff, CST, FR,
              P["speed"], P["press"], P["noise"], jb, P["coll"],
              gi, tg, KG, CG, aLP, J1, J2, J3,
              1.0 if P["body"] else 0.0, BR_, BC1_, BB0_, BODYG, BS1, BS2,
              DCS, STATS)
     ST.cpu = 0.9 * ST.cpu + 0.1 * (time.perf_counter() - t0) / (frames / SR)
+    # предохранитель: при перегрузе — сброс, а не вечная тишина
+    if (not np.isfinite(vE).all()) or (not np.isfinite(yE).all()) \
+            or np.abs(yE).max() > 1.0 or np.abs(vE).max() > 100.0:
+        vE[:] = 0.0; yE[:] = 0.0; BS1[:] = 0.0; BS2[:] = 0.0
+        DCS[0] = DCS[1] = 0.0; out[:] = 0.0
+        print("ПЕРЕГРУЗ ФИЗИКИ -> состояние сброшено (если повторяется — сообщи)")
     ST.snap[:] = yE[1:2 * N + 2]
-    ST.stick = 0.9 * getattr(ST, "stick", 0.0) + 0.1 * STATS[0] / max(frames * ovs, 1)
+    ST.stick = 0.9 * ST.stick + 0.1 * STATS[0] / max(frames * ovs, 1)
+    ST.R_now = float(Rarr[-1])
     rms = float(np.sqrt(np.mean(out * out))) + 1e-12
     ST.rms_ema = 0.85 * ST.rms_ema + 0.15 * rms
     g_t = min(0.10 / max(ST.rms_ema, 1e-9), 2.5)
@@ -248,7 +308,7 @@ def render_wav(path, seconds=14.0):
 def run_gui():
     import tkinter as tk
     from tkinter import ttk
-    root = tk.Tk(); root.title("physmod live v6")
+    root = tk.Tk(); root.title("physmod live v7")
     W, H = 920, 360
     cv = tk.Canvas(root, width=W, height=H, bg="#101018", highlightthickness=0)
     cv.pack(fill="both", expand=True)
@@ -262,7 +322,8 @@ def run_gui():
             cv.create_rectangle(XM0 + C0 * (XM1 - XM0) // N, 20,
                                 XM0 + C1 * (XM1 - XM0) // N, H - 20,
                                 fill="#1a1a28", width=0)
-            for off, base, col in ((0, A_BASE, "#e8e8f0"), (N + 1, B_BASE, "#7f7fd0")):
+            for off, base, col in ((0, A_BASE, "#e8e8f0"),
+                                   (N + 1, B_BASE, "#7f7fd0")):
                 pts = []
                 for j in range(N):
                     pts += [XM0 + j * (XM1 - XM0) / (N - 1),
@@ -271,7 +332,8 @@ def run_gui():
             jb = int(P["beta"] * N)
             xj = XM0 + jb * (XM1 - XM0) / (N - 1)
             yj = A_BASE - float(sn[jb]) * ZOOM
-            cv.create_oval(xj - 5, yj - 5, xj + 5, yj + 5, fill="#ff5040", width=0)
+            cv.create_oval(xj - 5, yj - 5, xj + 5, yj + 5,
+                           fill="#ff5040", width=0)
             lv = min(1.0, ST.level * 4)
             cv.create_rectangle(20, H - 18, 20 + int((W - 40) * lv), H - 8,
                                 fill="#40c080", width=0)
@@ -339,7 +401,7 @@ def run_gui():
         try:
             if P["automorph"]: sv["R"].set(ST.R_now)
             status.config(text=f"CPU {ST.cpu*100:4.0f}%  сбои {ST.underr}  "
-                               f"стик {ST.stick*100:3.0f}%  R={Rarr[-1]:.2f}"
+                               f"стик {ST.stick*100:3.0f}%  R={ST.R_now:.2f}"
                                + ("  ЗАПИСЬ..." if ST.rec else ""))
         except Exception as e:
             print("tick:", e)
@@ -365,7 +427,7 @@ def run_gui():
     root.bind("<k>", lambda e: setattr(ST, "kick", True))
     root.protocol("WM_DELETE_WINDOW", root.destroy)
     print("""УПРАВЛЕНИЕ: ЛКМ — тянуть; ПКМ — щипок; ПРОБЕЛ — смычок; K — толчок;
-БОДИ — резонанс корпуса вкл/выкл; ЗАПИСЬ — jam_ЧЧММСС.wav. НОРМА минимум!""")
+БОДИ — резонанс корпуса; ЗАПИСЬ — jam_ЧЧММСС.wav. Качество: НОРМА минимум.""")
     stream = sd.OutputStream(samplerate=SR, blocksize=BLOCK, channels=1,
                              callback=audio_cb, latency="low")
     stream.start()
@@ -376,12 +438,18 @@ def main():
     args = [a.lower() for a in sys.argv[1:]]
     print(f"python {sys.version.split()[0]} | numpy {np.__version__}")
     for q, o in OVS_MAP.items():
-        print(f"  качество {q}: w*dt = {stability(o):.2f} "
-              + ("ОК" if stability(o) < 1.0 else "НЕСТАБИЛЬНО (жёсткость off)"))
+        s = stability(o)
+        print(f"  качество {q}: w*dt = {s:.2f} "
+              + ("ОК" if s < 1.0 else "ВЫКЛ жёсткость"))
     if "diag" in args:
-        print(sd.query_devices()); return
+        print(sd.query_devices()); print("default:", sd.default.device); return
+    print("компиляция ядра (один раз, до ~20 c)...")
+    t0 = time.time()
+    process_block(64); process_block(64)
+    vE[:] = 0.0; yE[:] = 0.0; BS1[:] = 0.0; BS2[:] = 0.0
+    DCS[0] = DCS[1] = 0.0; ST.t = 0.0; ST.gain = 0.0
+    print(f"ядро готово за {time.time()-t0:.1f} c")
     if "render" in args:
-        process_block(64)
         render_wav(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "bow_render.wav")); return
     run_gui()
