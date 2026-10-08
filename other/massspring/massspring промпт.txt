@@ -1,10 +1,13 @@
+https://github.com/glassg333/mmnova/blob/main/other/massspring/massspring%20промпт.txt апдейты по промпту и история промптов
+
+
 https://github.com/mi-creative/miPhysics_Processing mi physics
 https://github.com/SilvinWillemsen/ModularVST physical mod
 https://github.com/pooya-shams/massspring 3d
 https://github.com/davrempe/2d-mass-spring-sim 2d
 https://github.com/arasgungore/mass-spring-damper-system damp
 https://github.com/lucasw/tao_synth physical mod
-https://hal.science/hal-01262144v1/file/VCC15_Conf_NIME.pdf genesis
+https://github.com/glassg333/mmnova/blob/main/other/massspring/massspring%20промпт.txt genesis
 
 
 я готовлюсь сделать плагин масс дамп физикал моделинг синт + резонатор желательно что бы я мог потом в качестве источника
