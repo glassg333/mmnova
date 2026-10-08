@@ -1,3 +1,17 @@
+промпт 1 сам комбсканер
+
+ https://github.com/glassg333/mmnova/tree/main/other/zigcomb у меня есть несколько проб вариантов combscanner я знаю что одна из них звучит хорошо но я забыл какая больше всего мне кажется comb_scanner_juce_package 2 try должна хорошо звучать можешь ли ты сделать сразу все варианты дсп с разными крутилками что бы я мог переключить все имеющиеся коды и решить какой мне оставить? типо как 5 слотов фксов вст в одном с разными страницами крутилками 
+
+я использую juce 8 + visual studio 2026 создай мне проект  пример проекта для удачной компиляции 
+
+ https://github.com/glassg333/mmnova/tree/main/JUCE/old%20versions%201.0.0-1.6.9/Monomachine-Nova-1.6.27%20stable п8 juce + visual studio 2026 больше по решениям кода ничего другое 
+
+ не смотри, только настройки проекта джус и визуал студио. 
+
+
+промпт 2 апгрейд комбсканера
+
+
 самое главное в этом промпте это изображение интерфейса combscanner upgrade.jpg  и  comb_scanner_variants 1 fav  -
  https://github.com/glassg333/mmnova/tree/main/other/zigcomb comb_scanner_variants 1 fav база классический дсп комбсканнера и comb_scanner_variants 3 
  more control попытка добавить больше управления разных рейтио соотношений комбов. первичные попытки проанализировать такой же промпт cs up 1.txt и cs up 2.txt 
@@ -9,3 +23,7 @@
  пример проекта для удачной компиляции 
  https://github.com/glassg333/mmnova/tree/main/JUCE/old%20versions%201.0.0-1.6.9/Monomachine-Nova-1.6.27%20stable п8 juce + visual studio 2026 больше по решениям кода ничего другое 
  не смотри, только настройки проекта джус и визуал студио. 
+
+
+
+
