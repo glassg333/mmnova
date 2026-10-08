@@ -1,0 +1,553 @@
+command
+
+$ cd /home/user/CombScannerLab/Source/engines && python3 - <<'PYEOF' # Умолчания структур должны совпадать с умолчаниями страниц (таблицы в EngineRegistry.cpp): # в тестах без APVTS движок стартует именно со значений структуры. h1 = "CombScannerVariants1Fav.h" s = open(h1, encoding="utf-8").read() s = s.replace(" float gain = 1.0f; // раскачка банка (1.0 = как в оригинале)", " float gain = 0.99f; // раскачка банка, при 1.0 = как в оригинале") open(h1, "w", encoding="utf-8").write(s) h3 = "CombScannerVariants3.h" s = open(h3, encoding="utf-8").read() s = s.replace(" float damp = 0.0f; // демпфирование в петле (0 = не вмешивается)", " float damp = 0.90f; // демпфирование в петле (0 = не вмешивается)") s = s.replace(" float phase = 0.0f; // all-pass в петле (0 = не мылит)", " float phase = 0.75f; // all-pass в петле (0 = не мылит)") s = s.replace(" float scanMode = 1.0f; // 0 = свип, 1 = мультиплексор", " float scanMode = 0.0f; // 0 = свип (поведение var3), 1 = мультиплексор") open(h3, "w", encoding="utf-8").write(s) h2 = "CombScannerVariants2.h" s = open(h2, encoding="utf-8").read() s = s.replace(" float gain = 1.0f; // раскачка банка (1.0 = как в оригинале)", " float gain = 0.99f; // раскачка банка, при 1.0 = как в оригинале") open(h2, "w", encoding="utf-8").write(s) print("умолчания структур выровнены с таблицами страниц") PYEOF grep -n "gain = 0.99f\|damp = 0.90f\|scanMode" CombScannerVariants1Fav.h CombScannerVariants2.h CombScannerVariants3.h
+stdout
+
+умолчания структур выровнены с таблицами страниц
+CombScannerVariants1Fav.h:25:        float gain = 0.99f;       // раскачка банка, при 1.0 = как в оригинале
+CombScannerVariants1Fav.h:48:        float scanMode = 1.0f;       // 0 = свип, 1 = мультиплексор
+CombScannerVariants2.h:26:        float gain = 0.99f;       // раскачка банка, при 1.0 = как в оригинале
+CombScannerVariants2.h:49:        float scanMode = 1.0f;       // 0 = свип, 1 = мультиплексор
+CombScannerVariants3.h:29:        float damp = 0.90f;       // демпфирование в петле (0 = не вмешивается)
+CombScannerVariants3.h:51:        float scanMode = 0.0f;       // 0 = свип (поведение var3), 1 = мультиплексор
+
+Thought for 9 seconds
+
+Hmm, careful: var1/var2 struct scanMode = 1.0f (mux) ✓ matches their tables ✓ (var1/var2 table scanmode def = 1.0). ✓
+
+Now write the new checks into engine_checks.cpp. Append functions:
+
+cpp
+
+
+// ---------- 4. умолчания и диапазоны страниц ----------
+static void checkTables()
+{
+    // страниц 6; у комб-страниц delay 0..1000 мс с мелким шагом 0.01 ниже 5 мс;
+    // умолчания: damp 0 / phase 0 (var1,var2), delay1 32.6 / delay2 13.1 / scan 0
+}
+Requirements: lab::kNumSlots == 6; for slot 0..3: delay1/delay2 max == 1000, fineStep == 0.01, fineBelow == 5, def 32.6/13.1; scan def 0; and no "crossmix"/"motion" keys on var3/var4; var1/var2 have "feedback" and no "gain"? no — var1 keeps gain. Also var3/var4 have "diffusion". Print result + PASS/FAIL flag.
+
+cpp
+
+
+// ---------- 5. скан выбирает комб (не удлиняет время) ----------
+static void checkMuxSelectsComb()
+{
+   for slot in {0 (var1 mux), 2 (var3 sweep)}: 
+     scan = 0 → dominant echo period ≈ delay1*ratio[0]; scan = 1 → ≈ delay1*ratio[7]
+     measure via impulse response AC.
+}
+Implementation: impulse at t=0.25s; render 1.5 s; then analyze L from the impulse; compute normalized autocorrelation for lags 100..12000 samples; find the max.
+
+Careful: with a short delay2 (13.1*0.33=4.3) etc. the AC peaks may be dominated by the shorter period. For comb 8 (ratio 3.33): d1 = 108.6 ms, d2 = 43.6 ms. The AC peak → 108.6 (longest common period, the loop repeats at d1? no: the loop is a comb with two taps: the recursion repeats with period d1 (the feedback path) → the AC peak at d1 ✓ (108.6ms), plus at multiples.
+
+For comb 1: d1 = 10.76 ms, d2 = 4.3 ms → AC peak at d1 ≈ 10.76 ms? The feedback loop delay is d1 (write into delay1 from the loop) → the period is d1 ✓ (though the loop also reads delay2 which is fed by the same node → d2 < d1 doesn't change the loop period but adds early reflections).
+
+So expect: period(scan=1)/period(scan=0) ≈ 3.33/0.33 = 10.09 ✓.
+
+Tolerance: ±8%? The modulation (modDepth 0.045 * movement sin) may offset by a few %; set modx=0 for the test to keep it clean. Yes: setP(en, "modx", 0).*
+
+Watch out: with a strong feedback 0.9 the AC is noisy; use feedback ~0.6, gain 0.8.
+
+Also the AC must be normalized (as I learned). Implement:
+
+cpp
+
+
+static double dominantPeriod(const std::vector<float>& x, int start, int minLag, int maxLag)
+{
+    // нормализованная автокорреляция
+    double best = 0; int bestLag = 0;
+    for (int lag = minLag; lag <= maxLag; ++lag) {
+        double num = 0, d1 = 0, d2 = 0;
+        for (int i = start; i + lag < (int) x.size(); i += 3) { num += x[i]*x[i+lag]; d1 += x[i]*x[i]; d2 += x[i+lag]*x[i+lag]; }
+        const double r = num / std::sqrt(d1*d2 + 1e-12);
+        if (r > best) { best = r; bestLag = lag; }
+    }
+    return bestLag / SR * 1000.0;  // ms
+}
+O(n*lags) with stride 3: for 1.5s@48k = 72000 samples, lags 480..12000 → 11520 lags × 24000 iterations = 276M — too slow with -O2? ~0.3-1 s each, ×4 = fine actually. Let me reduce: analyze only 0.6 s window (28800 samples, stride 4 → 7200) × 11520 lags = 83M ✓ OK.
+
+Range: minLag = 4 ms = 192, maxLag = 150 ms = 7200. Use maxLag 7200 ✓.
+
+cpp
+
+
+// ---------- 6. damp / phase не съедают хвост ----------
+static void checkTailNotEaten()
+For var1 (damp, phase) and var3 (damp, phase, diffusion):
+
+Render with the defaults except delay1 32.6, delay2 13.1, feedback 0.99, gain 0.99; input = 0.2 s of noise burst, then silence for 1.8 s.
+tailRMS(window 0.6..1.6 s) for damp=0 vs damp=0.9 → assert tail(0) > tail(0.9).
+tailRMS for phase=0 vs phase=0.75 (var1: phase must not shorten the tail: ratio > 0.8; var3: same ratio > 0.8).
+var3: diffusion 0 vs 1 → the tails must differ (relative difference > 2%) → proves two allpass stages are live and audible. Also print the numbers.
+Let me define a helper renderTail(slot, overrides...) returning tail RMS.
+
+Simplify: write a function that takes a slot and a lambda setup(lab::Engine&) and returns (tailRMS, peak), with a fixed stimulus.
+
+Also the "no sudden loudness" scan sweep check: render 3 s with the scan swept slowly, measure the max block-wise RMS jump ratio vs. the previous block, assert < 4x (mux steps must not blast). And for the mux switching specifically: max |x[n]-x[n-1]| relative to the signal's typical slope. Let me do a simpler version: the ratio max block RMS / median block RMS < 6 (no bursts). Good enough as a smoke test.
+Let me write the code. I'll append to engine_checks.cpp.
+
+
+Ran commands
+2
+
+Thought for 45 seconds
+
+Very interesting results. Issues:
+
+Test 4 "!!! см. условия" for var3/var4: my printing logic requires special && pageOk && damp->def > 0 — but pageOk required damp->def == 0 for all. Test bug, not code bug. Fix the condition: only require damp/phase def == 0 for var1/var2, and > 0 for var3/var4.
+
+Test 6 reveals REAL problems:
+
+"фаза on/off 0.09x" for var1 — with phase=0.75 the tail is 11× weaker! So Phase IS eating the tail (exactly the user's complaint "Phase smears the already-weak feedback too much"). In my var1 code the allpass coefficient = apBase + apPhasephase → apBase = 0.12 (model 01) + 0.800.75?? No wait: apPhase = config.allpassPhaseDepth * apPhaseX = 0.801.0 = 0.8; coefficient = clamp(apBase + apPhasephaseAmount + ...) = 0.12 + 0.80.75 = 0.72. Allpass coefficient 0.72 in the loop → strong phase scrambling → and each comb output mixes 0.72comb + 0.28allpass... the allpass with a high coefficient inside a feedback loop can create resonances that increase gain → the soft limiter kicks in → ... but the tail got 11× weaker. Why? Because the allpass output = -cres + state, and with the feedback path using the allpass 0.28 weight... it acts as an additional smoothing filter, and — most importantly — a big allpass coefficient in the loop shifts phases so that the comb peaks move (the loop resonance condition changes) → with the same delay, the effective loop gain can drop if the phase doesn't align... Complicated, but empirically it kills the tail. Even in var3 (which uses phase 0.75 by default): "фаза on/off 0.05x" → 20× weaker!! That's terrible: var3's default has phase 0.75 → the tail is 20× weaker than the phase=0 tail. But wait — the user LIKES var3 today. Hmm, the tail (0.6–1.6 s) is 20× weaker with phase — but the perceived character is what it is. Hmm, careful: this test measures the tail at 0.6-1.6s, with feedback 0.99 → the var3 default tail is short-ish. My change made phase multiply BOTH the allpass coefficient and...*
+Hold on. In var3, is the "phase on/off ratio 0.05" because phase adds movement (motion) — var3's phase also drives movement? In my var3 code I removed the "(0.55+0.55phaseAmount)" multiplier on movement (that's var2 only). But phase still enters both allpass coefficients: c1 = apBase(0.2+0.8diff) + apPhasephase*(0.25+0.75diff) → with apBase=0.121.0 = 0.120.64 = 0.077; apPhase = 0.801.0 = 0.8 → 0.80.750.66 = 0.396 → c1 ≈ 0.47. c2 = 0.25+0.550.55+0.20.75 + ... ≈ 0.25+0.30+0.15+0.03 = 0.73. Two allpasses with c 0.47 and 0.73 in the loop — with such high coefficients, the allpass output has a strong amplitude/phase response... An allpass shouldn't lose energy, BUT inside a feedback loop, the loop must satisfy the phase condition; heavy phase scrambling → the resonant buildup at the comb frequencies is destroyed → shorter tail. Right: the comb's resonance comes from the delay line; the allpass inside the feedback is fine, but it delays energy in the allpass state, and more importantly the combination 0.72resonant + 0.28allpass back into the delay: if allpass = -c*x (at the moment) rather than x, the effective feedback becomes 0.72 - 0.28c → with c=0.73 → 0.52 → much weaker loop → tail dies 20×.
+
+The user's complaint: "PHASE behaves like a damp. Fix it." So I must FIX this: phase must not reduce the tail energy. The right approach: make the feedback path allpass-SUMMED so it doesn't cancel, e.g. use the allpass output as the sum for the feedback: excitation = inputdrive + fb(0.72resonant + 0.28allpassOutput) — when the allpass is phase-shifted, the sum can cancel → tail collapse. Alternative: put the allpass in the loop in a way that keeps the magnitude — a true allpass has |H|=1 at every frequency, so if the loop contained ONLY the allpass (fb * allpassOutput) the loop gain magnitude would be preserved. The cancellation comes from the MIX (0.72resonant + 0.28allpass) — a complex zero can appear.
+
+Actually the deeper issue: the excitation mixes two versions of the same signal in phase; the "0.72/0.28" mix is a comb filter in the feedback path — it has zeros at some frequencies (|0.72 + 0.28H_ap| can dip), and combined with the delay's phase the loop gain dips → but the user's original code had the same structure. The original code (from the memory) was: excitation = input*0.42f + feedback*(0.72*resonant + 0.28*allpass) — yes, the same. And the user says that's what smears/eats the feedback in the original!
+
+Hmm, but the user wants: "хвост должен получить сложность от allpass'ов + металлический оттенок, и чтобы у damp была позиция где он не трогает хвост, и фаза не должна работать как дамп". So the fix: make the allpass contribute WITHOUT killing the loop gain. Options:
+
+(a) Put the allpass in series with the delay-line feedback path (i.e., before writing into delay1) rather than mixing it: write(delay1, input*drive + fb * ap(resonant)) — an allpass has unity magnitude → the loop magnitude is preserved, but the phase shifts the resonance positions (that's what an allpass in a feedback loop does musically: it creates a phasey tail WITHOUT losing energy, plus metallic character since the allpass state adds a long diffusion tail). This is likely exactly the "complex tail" he wants. But careful: an allpass in the feedback path with a high coefficient creates an internal feedback of its own (state = x + cy) — the loop is still stable as long as |allpass| = 1 and fb < 1 with the soft limiter.
+
+But: pure |H|=1 in the feedback preserves energy → the tail becomes LONGER with phase → could self-oscillate? With fb=0.99 and a unity-magnitude loop the tail is very long; with the soft limiter, it decays. Hmm, risky for the "never gets loud" rule, but the limiter + declick + softLimit exist. Let me test empirically: measure the tail energy and peak.
+
+(b) Keep the mix but normalize: use weights that don't cancel: e.g. feedback path = fb * (mix*resonant + (1-mix)*ap) where ap is a delayed allpass... The cancellation is inherent to adding two out-of-phase signals.
+
+(c) Make the allpass act on the OUTPUT only (not in the loop): the tail keeps its energy (feedback path = fb*resonant, clean), and the metallic tint is added by an allpass chain after the comb (post-filtering). Then phase = "metallic color" without touching the tail length. That's the most "safe" for the user's complaints: "phase must not act like a damp" ✓ and "damp must not touch the tail" ✓ and the metallic tint is added post-loop ✓. But then it's not really "complexity in the tail" — a post allpass DOES add metallic resonance to the tail sound, and it's audible (allpass chains after a resonator are the classic "metallic" trick).
+
+Best solution: combine (a) and (c):
+
+Feedback path: fb * resonant (clean loop; magnitude equals feedback → the tail length depends on Feedback only; damp=0 → untouched).
+Phase knob: an allpass INSIDE the loop but in a phase-only manner? Hmm, that changes the tail length as we saw.*
+Let me reconsider (a) with a moderate allpass coefficient: allpass in the feedback path with |H|=1 in magnitude — the loop gain stays = fb → tail length unchanged ✓✓ — this satisfies "phase doesn't behave like a damp" exactly: a unity-magnitude allpass cannot change the decay rate. And it does add metallic character (phase scrambling + the allpass state creates a diffusion tail). The risk of the internal state growing: the allpass is stable (|c|<1) and the loop gain is fb<1 → decays ✓ (the limiter handles the transients).
+
+So implement:
+
+
+
+const float res = 0.70*comb + 0.30*dampingState;   // damp filter
+// allpass cascade in the feedback path (phase only, |H| = 1):
+ap1 = -c1*res + ap1state; ap1state = res + c1*ap1;
+ap2 = -c2*ap1 + ap2state; ap2state = ap1 + c2*ap2;
+excitation = input*drive + fb * ap2;   // or fb * (0.5*res + 0.5*ap2)?
+delay1.write(softLimit(excitation))
+Hmm, the original wrote into delay1: input*0.42 + fb*(0.72*res + 0.28*ap) and into delay2: input*0.42 + fb*(0.52*res + 0.48*ap). If I make both paths pure AP: delay1.write(inputdrive + fbap2), delay2.write(inputdrive + fb(something)). Then the loop is the AP cascade — magnitude preserved.*
+
+But careful: a pure allpass in the loop means the comb resonance frequencies shift; with the AP cascade the loop still has |gain| = fb → the SAME decay rate as phase=0? Not exactly: the decay rate of the loop is determined by the loop gain magnitude at the resonance frequencies; with an allpass, |loop| = fb everywhere → the decay per period is fb regardless of phase → the tail LENGTH is the same as without the allpass ✓ (just the resonance pattern shifts). Actually with the mix (0.72/0.28) the magnitude dips at some frequencies → those modes decay faster — that's what made the tail die. So the pure-AP loop fixes it.
+
+Empirically the phase on/off ratio should then be ~0.8-1.2 → let me test.
+
+And the metallic tint: the AP cascade adds its own "diffusion" ring (the AP state stores energy, smearing transients — that's literally the "complex tail"). ✓
+
+Also I need to keep the "0.72/0.28" style blend for tonal character? Let me use: delay1.write(inputdrive + fbap2) where ap2 = the AP cascade output of the damping-filtered comb; and delay2.write(inputdrive0.85 + fb*ap2) (the second line driven by the same loop signal, its own time). Hmm, in the original the two lines have different blends. Simplest: both lines write the same excitation, with delay2 slightly less (0.9). This preserves the cross-line interaction.
+
+Now what about the var1/var2 (original) engines? The user says the var1 "orig" sometimes sounds like the original, but Phase smears the weak feedback too much → so for var1/var2 I should ALSO use the AP-in-loop approach (mag-preserving) instead of the mix → the tail won't collapse with phase=0.75 ✓. And var1's model 01 has apBase 0.12 and allpassPhaseDepth 0.80: with phase=0, c1 = apBase = 0.12*... small → almost no AP → "orig" stays like the original ✓. With phase up → AP grows → metallic but the tail stays ✓.*
+
+Let me restructure the DSP loop for var1 (and thus var2 via copy, var3 via copy):
+
+
+
+const float apIn = resonant;                 // damp-фильтр
+ap1 = -c1*apIn + ap1state; ap1state = apIn + c1*ap1;
+ap2 = -c2*ap1 + ap2state;  ap2state = ap1 + c2*ap2;
+const float loopSig = ap2;   // |H| = 1 -> длина хвоста зависит только от Feedback
+float excitation = input*drive + voiceFeedback*loopSig;
+Wait, but then dampingState/resonant (the damp lowpass) sits before the AP; damping still shortens the tail (that's damp's job at >0) ✓.
+
+And the second line: delay2.write(inputdrive + voiceFeedbackloopSig) — hmm, in the original, delay2 was fed with a different blend (0.52/0.48). With only one loop signal, the two lines are fed identically, but they have different times → still a rich two-tap comb ✓. Let me differentiate slightly: delay2.write(inputdrive + voiceFeedbackloopSig) as well — keep simple and stable. Actually, differentiating by feeding delay2 with the pre-AP resonant (slightly different phase) is nice: delay2.write(inputdrive + voiceFeedback(0.5floopSig + 0.5fresonant)) — this is again a mix that can cancel... but the delay-2 line is not the main loop path (it's read into the comb mix, not into the write-back?) — wait, what does the comb read? Let me re-read my processMono: tap1 = delay1.read, tap2 = delay2.read, comb = 0.5*(tap1+tap2), then damp, AP, back into both delay1 and delay2 writes. So BOTH lines are in the loop! Both writes are the loop's feedback path → both must be magnitude-preserving for the loop gain to be fb. Delay2's write = 0.5*(loopSig + resonant) — this is a mix of two phase-different signals → the loop gain through delay2 can dip → but the loop through delay1 is clean; the total loop gain = combination of the two parallel paths (they sum in the comb mix 0.5*(tap1+tap2) with different delays → the magnitudes add incoherently). Simpler = safer: feed both lines with the same loopSig. Let me do that and check the tail length with phase.
+
+Also then the allpass itself becomes the "metallic diffusion" — good, and Diffusion in var3 controls c1/c2 ✓ and phase pushes them (appPhaseX) ✓ — but careful: c2 = 0.25+0.55diff + 0.20phase + 0.25spreadswirlB + 0.05*sin → with diff 0.55, phase 0.75: c2 = 0.25+0.30+0.15+0.03+0.02 ≈ 0.75 — that's a big coefficient but it's an allpass → |H| = 1 ✓ fine. The AP's own internal resonance (|c| close to 1) creates a long "diffusion ring" — with |c| = 0.75, the AP's internal decay time = 1/(1-|c|) ≈ 4 samples → short; the "ring" is short but colored ✓. For "metallic" the AP series is what matters ✓.
+
+Now, will the tail be LONGER with the AP in the loop? The loop gain magnitude = fb everywhere ✓ (same as no AP), so the decay rate is the same. But the comb's resonance positions change (they now satisfy phase = 2πk with the AP's phase added) → different frequencies ring → the timbre becomes more inharmonic/metallic ✓ exactly what he asked.
+
+Also we must double check that the loop with a pure AP is stable: fb*|H|=fb<0.998 ✓ + soft limit ✓.*
+
+Let me now implement this in var1's cpp and propagate to var2/var3 (re-run the generator with the fix — the generators were run inline; I'll patch all three files consistently with the same edit via Python).
+
+NOTE: I should write the generator scripts to disk this time to avoid repeating history... The session memory says patch scripts were lost with /tmp. Let me save the generator under CombScannerLab/tools/ for reproducibility? That would add files to the .jucer (not needed for building, but tidiness...). The user's directive: "проверяемые артефакты" — a tools/ script is fine (tools/ already exists with render_engines.cpp and build scripts). But adding a non-build file to the .jucer isn't required; files not listed in the .jucer are simply not part of the Projucer project (fine — they're dev tools). tools/BuildProjucer.ps1 already exists outside the source lists. So: save the codegen script as tools/gen_variant_engines.py ✓ good for reproducibility, and it doesn't affect the build.
+
+Let me first fix the AP-in-loop in the three cpp files, then re-run the tests.
+
+Also fix the test 4 printing bug.
+
+Additionally: var1's phase=0.75 vs 0 ratio 0.09 → after the fix should be ~0.8-1.2. Let me verify.
+
+One more thing: with the AP now in the loop, the old allpassOutput variable used in the output mix (outputs[i] = dcBlock(voice, 0.72f * comb + 0.28f * allpassOutput)) — the AP is now the loop signal; for the OUTPUT I should use the comb itself (the original output was 0.72comb + 0.28ap). Keep the output as a mix of the raw comb and the loop signal? Since the loop signal = AP(resonant), mixing them for the output can cancel → volume dips. Better: output = the comb (post-damp) — hmm, but the character... Let me output dcBlock(voice, comb) where comb = 0.5*(tap1+tap2) (the raw cross-mixed taps). Hmm, but then the AP color only appears in the loop (audible over time as the tail's timbre) ✓ — which is what we want, plus no cancellation ✓. But careful: if the output is the raw comb, the AP's presence in the loop shifts resonance and colors the sustained tail ✓, and transients are uncolored — fine.*
+
+Hmm, one risk: without any AP on the output the sound becomes "more like a plain comb" (less metallic) — but the loop AP does color the ringing ✓. Test: the "diffusion changes the tail" assertion will confirm audibility ✓.
+
+Let me implement.
+
+Implementation for var1 cpp (replace the AP + write + outputs block):
+
+cpp
+
+
+        // Каскад all-pass СТОИТ В ПЕТЛЕ (а не подмешивается): у all-pass |H| = 1,
+        // поэтому длина хвоста зависит только от Feedback, а Фаза/Диффузия
+        // только окрашивают резонансы (металлический оттенок) и не работают как дамп.
+        const float c1 = clamp(apBase + apPhase * phaseAmount + 0.6f * spread * swirlA
+                                   + 0.04f * std::sin(voice.phase * 1.7f), -0.9f, 0.9f);
+        const float ap1 = -c1 * resonant + voice.allpassState;
+        voice.allpassState = resonant + c1 * ap1;
+        const float c2 = clamp(apBase2 ... );
+For var1/var2 (models 01/04) there's only one AP (config.allpassBase/allpassPhaseDepth); for var3/var4 there are two. Keep that distinction: var1/var2 → single AP in the loop; var3/var4 → two APs.
+
+Writes:
+
+cpp
+
+
+        const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f);
+        const float excitation = input * drive + voiceFeedback * apOut;   // |loop| = feedback
+        voice.delay1.write(clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f));
+        voice.delay2.write(clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f));
+        outputs[i] = dcBlock(voice, 0.72f * comb + 0.28f * voice.dampingState);
+Hmm — using 0.72comb + 0.28dampingState for the output: both are the same signal (dampingState is a lowpassed version) → no phase cancellation (same sign, lowpass) ✓. That gives a "resonant/output" character with a bit of smoothing ✓. Good: resonant = exactly that.
+
+So outputs[i] = dcBlock(voice, resonant). Keep it simple ✓.
+
+Wait — there's an issue with var2's detune2 thing: rawComb = 0.5*(tap1 + tap2*detune2) — fine, keep.*
+
+Let me apply the patch to the three cpp files with Python (identical blocks where possible).
+
+Current var1 block:
+
+cpp
+
+
+        const float rawComb = 0.5f * (tap1 + tap2);
+        const float comb = rawComb * (1.0f - config.crossMix) + previous * config.crossMix;
+        const float step = clamp(dampingStep * (1.0f - 0.35f * spread * swirlA), 0.02f, 1.0f);
+        voice.dampingState += step * (comb - voice.dampingState);
+        const float resonant = 0.70f * comb + 0.30f * voice.dampingState;
+        const float coefficient = clamp(apBase + apPhase * phaseAmount + 0.6f * spread * swirlA
+                                            + 0.04f * std::sin(voice.phase * 1.7f), -0.95f, 0.95f);
+        const float allpassOutput = -coefficient * resonant + voice.allpassState;
+        voice.allpassState = resonant + coefficient * allpassOutput;
+        const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f);
+        const float excitation = input * drive
+            + voiceFeedback * (0.72f * resonant + 0.28f * allpassOutput);
+        // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба).
+        voice.delay1.write(clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f));
+        // ПРАВКА ДЛЯ СБОРКИ: в исходнике был clamp() с одним аргументом (не компилируется).
+        voice.delay2.write(clamp(lab::softLimit(input * drive + voiceFeedback * (0.52f * resonant
+                                                        + 0.48f * allpassOutput), 0.9f), -1.5f, 1.5f));
+        outputs[i] = dcBlock(voice, 0.72f * comb + 0.28f * allpassOutput);
+        previous = outputs[i];
+New (var1/var2, single AP):
+
+cpp
+
+
+        const float rawComb = 0.5f * (tap1 + tap2);
+        const float comb = rawComb * (1.0f - config.crossMix) + previous * config.crossMix;
+        const float step = clamp(dampingStep * (1.0f - 0.35f * spread * swirlA), 0.02f, 1.0f);
+        voice.dampingState += step * (comb - voice.dampingState);
+        const float resonant = 0.70f * comb + 0.30f * voice.dampingState;
+        // all-pass СТОИТ В ПЕТЛЕ: |H| = 1, поэтому Phase/Diffusion окрашивают резонансы
+        // (металлический оттенок), но НЕ укорачивают хвост, как это делал старый микс.
+        const float coefficient = clamp(apBase + apPhase * phaseAmount + 0.6f * spread * swirlA
+                                            + 0.04f * std::sin(voice.phase * 1.7f), -0.9f, 0.9f);
+        const float apOut = -coefficient * resonant + voice.allpassState;
+        voice.allpassState = resonant + coefficient * apOut;
+        const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f);
+        const float excitation = input * drive + voiceFeedback * apOut;
+        // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба).
+        const float loopWrite = clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f);
+        voice.delay1.write(loopWrite);
+        voice.delay2.write(loopWrite);
+        outputs[i] = dcBlock(voice, resonant);
+        previous = outputs[i];
+New (var3/var4, two APs in the loop):
+
+cpp
+
+
+        const float c1 = clamp(apBase * (0.20f + 0.80f * diffusion)
+                                   + apPhase * phaseAmount * (0.25f + 0.75f * diffusion)
+                                   + 0.6f * spread * swirlA
+                                   + 0.04f * std::sin(voice.phase * 1.7f), -0.9f, 0.9f);
+        const float ap1 = -c1 * resonant + voice.allpassState;
+        voice.allpassState = resonant + c1 * ap1;
+        const float c2 = clamp(0.25f + 0.55f * diffusion + 0.20f * phaseAmount
+                                   + 0.25f * spread * swirlB
+                                   + 0.05f * std::sin(voice.phase * 2.3f + 1.1f), -0.9f, 0.9f);
+        const float ap2 = -c2 * ap1 + voice.allpass2State;
+        voice.allpass2State = ap1 + c2 * ap2;
+        const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f);
+        const float excitation = input * drive + voiceFeedback * ap2;
+        ... both delays write loopWrite
+        outputs[i] = dcBlock(voice, resonant);
+Wait — diffusion in var3 also affects dampingStep (0.75+0.5*diff) ✓ keep.
+
+Hmm, one concern: with the AP in the loop and fb=0.99 the loop is a pure-magnitude loop → the tail length is ~ the same as phase=0. Test 6 will verify: phase on/off ratio should now be ≈ 1.0 (within ±25%), and "diffusion changes the tail" > 2%.
+
+Another concern: the previous tail (var1) with phase=0 was 0.0307 and now the excitation changed from (0.72res + 0.28ap) to apOut — with phase=0, c ≈ 0.12*... hmm apBase for model 01 = 0.12 → c ≈ 0.12 + tiny → apOut ≈ -0.12*res + state; with such a small coefficient the AP ≈ a tiny smear ✓ and the loop gain from apOut is ≈ 1 * fb ✓ but the SIGN: apOut ≈ (1 - c²)x/(1 + c z^-1) — at DC the AP has gain 1 but the instantaneous sign is negative-ish... The AP transfer: H(z) = (-c + z^-1)/(1 - c z^-1) → at low frequencies H ≈ 1 ✓ (not -1) — let me verify at DC (z=1): (-c+1)/(1-c) = 1 ✓. Good, so the loop keeps a positive gain at DC → similar to the original ✓.
+
+Let me apply and re-test.
+
+Нашёл настоящую причину «фаза как дамп»: all-pass подмешивался в петлю миксом и гасил её. Переношу all-pass внутрь петли (|H|=1 → хвост не трогает).
+
+command
+
+$ cd /home/user/CombScannerLab/Source/engines && python3 - <<'PYEOF' old1 = """ const float coefficient = clamp(apBase + apPhase * phaseAmount + 0.6f * spread * swirlA + 0.04f * std::sin(voice.phase * 1.7f), -0.95f, 0.95f); const float allpassOutput = -coefficient * resonant + voice.allpassState; voice.allpassState = resonant + coefficient * allpassOutput; const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f); const float excitation = input * drive + voiceFeedback * (0.72f * resonant + 0.28f * allpassOutput); // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба). voice.delay1.write(clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f)); // ПРАВКА ДЛЯ СБОРКИ: в исходнике был clamp() с одним аргументом (не компилируется). voice.delay2.write(clamp(lab::softLimit(input * drive + voiceFeedback * (0.52f * resonant + 0.48f * allpassOutput), 0.9f), -1.5f, 1.5f)); outputs[i] = dcBlock(voice, 0.72f * comb + 0.28f * allpassOutput);""" new1 = """ // all-pass СТОИТ В ПЕТЛЕ, а не подмешивается: |H| = 1, поэтому Phase/Diffusion // только окрашивают резонансы (металлический оттенок) и НЕ укорачивают хвост - // старый микс 0.72/0.28 давал вычитание и глушил фидбек. const float coefficient = clamp(apBase + apPhase * phaseAmount + 0.6f * spread * swirlA + 0.04f * std::sin(voice.phase * 1.7f), -0.9f, 0.9f); const float apOut = -coefficient * resonant + voice.allpassState; voice.allpassState = resonant + coefficient * apOut; const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f); const float excitation = input * drive + voiceFeedback * apOut; // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба). const float loopWrite = clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f); voice.delay1.write(loopWrite); voice.delay2.write(loopWrite); outputs[i] = dcBlock(voice, resonant);""" old3 = """ const float c1 = clamp(apBase * (0.20f + 0.80f * diffusion) + apPhase * phaseAmount * (0.25f + 0.75f * diffusion) + 0.6f * spread * swirlA + 0.04f * std::sin(voice.phase * 1.7f), -0.95f, 0.95f); const float ap1 = -c1 * resonant + voice.allpassState; voice.allpassState = resonant + c1 * ap1; const float c2 = clamp(0.25f + 0.55f * diffusion + 0.20f * phaseAmount + 0.25f * spread * swirlB + 0.05f * std::sin(voice.phase * 2.3f + 1.1f), -0.95f, 0.95f); const float ap2 = -c2 * ap1 + voice.allpass2State; voice.allpass2State = ap1 + c2 * ap2; const float allpassOutput = ap2;""" new3 = """ // Два all-pass СТОЯТ В ПЕТЛЕ (|H| = 1): сложный хвост с металлическим оттенком, // при этом хвост не укорачивается - за длину отвечает только Feedback. const float c1 = clamp(apBase * (0.20f + 0.80f * diffusion) + apPhase * phaseAmount * (0.25f + 0.75f * diffusion) + 0.6f * spread * swirlA + 0.04f * std::sin(voice.phase * 1.7f), -0.9f, 0.9f); const float ap1 = -c1 * resonant + voice.allpassState; voice.allpassState = resonant + c1 * ap1; const float c2 = clamp(0.25f + 0.55f * diffusion + 0.20f * phaseAmount + 0.25f * spread * swirlB + 0.05f * std::sin(voice.phase * 2.3f + 1.1f), -0.9f, 0.9f); const float ap2 = -c2 * ap1 + voice.allpass2State; voice.allpass2State = ap1 + c2 * ap2; const float allpassOutput = ap2;""" old3_tail = """ const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f); const float excitation = input * drive + voiceFeedback * (0.72f * resonant + 0.28f * allpassOutput); // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба). voice.delay1.write(clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f)); // ПРАВКА ДЛЯ СБОРКИ: в исходнике был clamp() с одним аргументом (не компилируется). voice.delay2.write(clamp(lab::softLimit(input * drive + voiceFeedback * (0.52f * resonant + 0.48f * allpassOutput), 0.9f), -1.5f, 1.5f)); outputs[i] = dcBlock(voice, 0.72f * comb + 0.28f * allpassOutput);""" new3_tail = """ const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f); const float excitation = input * drive + voiceFeedback * allpassOutput; // Мягкий лимитер в петле (в оригинале - omx.peaklim~ на выходе каждого комба). const float loopWrite = clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f); voice.delay1.write(loopWrite); voice.delay2.write(loopWrite); outputs[i] = dcBlock(voice, resonant);""" for f, old, new in (("CombScannerVariants1Fav.cpp", old1, new1), ("CombScannerVariants2.cpp", old1, new1), ("CombScannerVariants3.cpp", old3 + "\n\n" + old3_tail, new3 + "\n\n" + new3_tail)): s = open(f, encoding="utf-8").read() if old not in s: if f == "CombScannerVariants3.cpp": # в var3 блоки стоят не подряд - правим по частям assert old3 in s and old3_tail in s, f s = s.replace(old3, new3, 1).replace(old3_tail, new3_tail, 1) else: raise SystemExit("не найден блок в " + f) else: s = s.replace(old, new, 1) open(f, "w", encoding="utf-8").write(s) print("пропатчен", f) PYEOF cd /home/user/_tests && g++ -std=c++17 -O2 -I ../CombScannerLab/Source engine_checks.cpp ../CombScannerLab/Source/lab/EngineRegistry.cpp ../CombScannerLab/Source/engines/*.cpp -o engine_checks && ./engine_checks 2>&1 | sed -n '/6) демпфер/,$p'
+stdout
+
+пропатчен CombScannerVariants1Fav.cpp
+пропатчен CombScannerVariants2.cpp
+пропатчен CombScannerVariants3.cpp
+=== 6) демпфер/фаза не съедают хвост (damp=0 = хвост не тронут) ===
+  var_1fav   хвост: damp0 0.0266 | damp0.9 0.0038 (14%), фаза on/off 0.23x, diffusion 0..1 меняет хвост на 0.0% !!!
+  var_2      хвост: damp0 0.0090 | damp0.9 0.0017 (18%), фаза on/off 1.09x, diffusion 0..1 меняет хвост на 0.0% !!!
+  var_3ctl   хвост: damp0 0.0088 | damp0.9 0.0015 (17%), фаза on/off 0.47x, diffusion 0..1 меняет хвост на 64.7% !!!
+  var_4scan  хвост: damp0 0.0088 | damp0.9 0.0015 (17%), фаза on/off 0.47x, diffusion 0..1 меняет хвост на 64.7% !!!
+  итог: !!! ЕСТЬ ПРОБЛЕМЫ
+
+=== 7) медленный скан: никаких скачков громкости ===
+  var_1fav   rms сред 0.1626, максимум 0.2024 (1.2x среднего), минимум 0.0577 ok: без выбросов
+  var_4scan  rms сред 0.2174, максимум 0.3103 (1.4x среднего), минимум 0.0776 ok: без выбросов
+
+
+Thought for 34 seconds
+
+Improvement but not enough. Observations:
+
+"diffusion 0..1 меняет хвост на 0.0%" for var1/var2 — my test calls setP(en, "diffusion", ...) but var1/var2 HAVE NO diffusion param! So it's ignored → 0% change. Test bug: for var1/var2 the relevant "AP amount" is phase (scaled by Allpass Phase) — the diffusion sub-test only applies to var3/var4. Fix the test: run the diffusion sub-check only for var3/var4.
+
+var1: phase on/off = 0.23x → the tail still drops 4× with phase=0.75 while diffusion is set (ignored) — the AP in the loop with c = 0.12 + 0.8*0.75 = 0.72. Hmm, but why does the tail still shrink if |H| = 1?
+
+Because the AP has a group delay — the loop period grows with the AP's phase delay, and more importantly, the AP with c=0.72 has a big internal state: apOut = -c*x + state, state = x + c*apOut — this is a "one-pole-ish" allpass whose internal recursion creates a long impulse response; at the loop level, |H|=1 holds exactly ✓, so the steady-state loop gain magnitude is fb... yet the tail (0.6–1.6 s) is 4× weaker with phase. Why? Because with c≈0.72 the AP delays/phase-scrambles the energy — the tail energy measured in a fixed window at 0.6-1.6s may simply be "spread" differently?? No — 4× is real.
+
+Hmm, maybe it's not the tail length but the excitation amplitude of the resonances: the loop's modes decay at fb regardless, but the input coupling differs. The measured tail is the response to the input burst; with the AP, the mode distribution changes → the mode energies change. Also, the dampingState lowpass + AP: the AP is applied to resonant which includes a smoothed component...
+
+Alternatively — an important subtlety — the soft limiter (softLimit(excitation, 0.9)) — no, that's a saturator; if the loop signal is smaller nothing changes.
+
+Hmm, maybe my clamp(..., -0.9f, 0.9f) clips. No, c = 0.72.
+
+Wait, there might be a genuine reason: with c = 0.72, the AP's magnitude is exactly 1, but the phase it adds at the resonance frequencies shifts the resonant frequencies; the loop decay per round trip is fb only if the loop magnitude is exactly the feedback gain. But the loop here is: comb mix → dampingState (step=1 → passes) → resonant = 0.7comb + 0.3dampingState = comb → AP → fbapOut → delay1/delay2 writes → readers 0.5(tap1+tap2) → comb. So the loop transfer = fb * 0.5*(z^-d1 + z^-d2) * AP(z). The magnitude of 0.5*(z^-d1 + z^-d2) is NOT 1 — it's a comb of the two taps with |·| ≤ 1 (it's 1 only when the taps align). The AP phase ALTERS which frequencies get |0.5(tap1+tap2)| = 1 → so the modes that ring the longest change: without the AP, the modes with tap alignment ring; with the AP, the effective loop is 0.5*(z^-d1 + z^-d2)AP(z), which has magnitude 1 for the whole loop only when the AP's phase compensates the tap sum's phase — the AP phase is arbitrary → the resonance amplitudes differ. Overall the loop gain magnitude can be lowered at some modes and raised at others → the tail can get weaker or stronger depending on the combination. So with d1/d2 = 32.6/13.1 (relationship 2.49, non-integer) the loops interfere arbitrarily.
+
+Hmm. In practice the tail is the strongest when the two taps add constructively.
+
+Observation from the numbers: var2's phase on/off = 1.09x (fine!) while var1's = 0.23x. var2 differs only by the detune2 factor (0.025*(2phase-1)) and the movement multiplier. Difference: var1's c = apBase + apPhasephase + 0.6spreadswirlA + ... and var2 also has the movement factor... Wait, why 1.09 vs 0.23? The detune term shifts tap2's time slightly, which changes the tap-sum cancellation pattern → dramatic difference. This shows the metric is very sensitive/chaotic — the "tail RMS at 0.6-1.6 s" is dominated by the exact resonance alignment.*
+
+Hmm, so is var1 with phase=0.75 actually "worse" sonically? The user reported: "orig иногда звучит как оригинальный код, но Phase размазывает и без того слабый фидбек слишком сильно" — so yes, phase=0.75 was killing his tail too. My change to AP-in-loop didn't fully fix var1 (0.23x is still a big drop!). Note: before the fix it was 0.09x; now 0.23x. Hmm.
+
+Root cause: the AP phase with high coefficient creates big phase shifts → the loop's mode structure changes → some modes get MORE feedback, some less... and there's another factor: with a unity-magnitude allpass in a loop the total energy is preserved, but the time at which the energy arrives spreads over the AP's internal ring (its impulse response has a long tail at c=0.72: decay ~ 1/(1-0.72) ≈ 3.6 samples — negligible).
+
+Let me think about the measured window again: 0.6–1.6 s, dampingState=pass, step=1. Hmm.
+
+Wait, actually there's something else! dampingStep = 1 - 0.92*damp — with damp=0 → 1.0. Then step = clamp(dampingStep * (1 - 0.35*spread*swirlA), 0.02, 1.0) — with spread=0.12, swirlA can be negative → step = 11.04 → clamped to 1.0 ✓ or if negative → >1 → clamped to 1.0 ✓. Fine → dampingState = comb exactly.
+
+OK. So the physics: the loop = 0.5*(z^-d1 + z^-d2) · AP(z) · fb, with the input coupling to both lines. The mode decay rate for a mode at frequency f: |0.5(e^-jwd1 + e^-jwd2)||AP| = |cos(w(d1-d2)/2)| (up to 1). So the maximum possible mode gain is fb (perfectly aligned) and there's a "notch" comb of the two taps. With the AP adding phase, the frequencies where the loop's phase = 0 shift, but the amplitude envelope |cos(w(d1-d2)/2)| doesn't change with the AP → the SET of possible decay rates is the same (max fb). So the tail cannot be fundamentally shorter... unless the input coupling to the modes changes: the tail amplitude at 0.6-1.6 s = mode amplitudes; the input excites each mode via the taps too (the same comb). So a mode with |gain| close to 1 is also strongly excited. Hmm, so the total tail energy should be roughly conserved...*
+
+BUT: the highest-gain mode is the one where the loop phase = 2πk. With the AP in the loop the frequencies satisfying this shift; the excitation coupling at those frequencies = the input coupling which is also the loop comb 0.5(tap1+tap2) — since the excitation is injected at the same place, the mode amplitude ∝ 1/(1-|loop|) ... so the tail at the aligned frequencies should be similar.
+
+Unless: the response is dominated by the "movement"/modulation? The AP phase wobbles with the phase term 0.04*sin(voice.phase*1.7) — that's just the coefficient.
+
+Hmm, one thing I overlooked: the clamp(..., -0.9f, 0.9f). c1 for var1 with phase=0.75: apBase=0.12 + apPhase(0.8)0.75 = 0.72 + spread term + 0.04 sin ✓ ≈ 0.72.
+
+And with c=0.72: H(z) = (z^-1 - 0.72)/(1 - 0.72 z^-1) — this is an allpass whose phase at low frequencies (well below Nyquist) is ~0 but whose group delay near DC = (1+c²-2c)/(...) — the phase response has a strong negative slope at high frequencies... The AP's phase delay near DC is -1 sample + something.
+
+Let me test the hypothesis differently: maybe the drop is caused by the AP's phase making the two-tap sum CANCEL in the loop: the loop needs 0.5(tap1+tap2)·AP = +1 (positive feedback). Without the AP, the alignment gives +1 sum (real). With the AP, the phase at that frequency is rotated by φ; to keep the loop phase = 0, the delay-frequency must change to ω' where 0.5(tap1+tap2) has phase -φ. Then |0.5(sum)| at ω' = |cos(ω'(d1-d2)/2)| which is likely SMALLER than 1 (only 1 at ω'=0 mod 2π/(d1-d2)) → the mode gain drops → shorter tail! THAT's the mechanism: the AP rotates the loop phase, forcing the resonant peak to move to a frequency where the two-tap sum is weaker → less feedback → shorter tail. So the tail length genuinely depends on phase in this two-line structure. The two lines (d1, d2 different) are the culprit: the loop with two parallel delay lines has a sum that peaks only when both phases align.
+
+So the user's "phase acts like a damp" is structural with two lines in the loop. Fix options: (a) Feed the loop from only ONE line (delay1) and let delay2 be a "side tap" (not in the loop) → then the loop gain is exactly fb·|AP| = fb at EVERY frequency → the tail length becomes independent of the phase ✓✓ and independent of the delay times (the tail decays at fb per period ✓). Then the comb output = tap1 + delay2 tap (side flavor) — but delay2's read isn't in the loop then. That's how many two-line combs are built: line 1 = the resonator loop; line 2 = a parallel tap fed by the same excitation, not fed back.
+
+Hmm, but that changes the sound vs. the original (the original had both lines in the loop). Test: is the tail then phase-invariant? Yes: loop = z^-d1 · AP · fb → mode gain = fb everywhere → the same decay rate regardless of the AP phase (the mode frequencies shift, the decay stays fb) ✓✓✓. And damp>0 reduces the loop gain magnitude (lowpass) → damps ✓ as intended. And the phase knob changes only the timbre ✓. And the "metallic" complexity comes from the AP in the loop ✓.
+
+But careful: does removing delay2 from the loop kill the "two delay" character? delay2 remains as a parallel tap (its own delay), producing additional echo taps in the output → still "two delays" ✓ and the scan still selects combs by ratio ✓. Also the echo-grid test (checkJerkInstant) looks at the peaks of the output — with delay2 = 13.1*ratio as a parallel tap it still appears in the output ✓ (as an early tap) → the test may print different grids but the assertion (the new time appears immediately after the jump) still holds, since both taps retarget ✓.
+
+Hmm, but the checkJerkInstant test expects after the jump ~5×t0 (delay1 60→300, ratio 0.33 → 19.8 → 99 ms) ✓ tap1 gives that ✓.
+
+Also the user's earlier requirement "two delays, max ~1000ms" ✓.
+
+Actually hold on. Let me reconsider: is the loop with a single line + parallel tap too "clean"? The original comb_scanner had 2 lines in the loop; the sonic signature (dense inharmonic pattern) comes from both. With delay1 in the loop only, delay2 as a parallel tap still adds its echoes to the output (mixed at the comb mix stage) → the sound keeps both taps' fingerprints in the output, but the decay is governed by delay1's loop ✓.
+
+Hmm, but I can keep BOTH in the loop while avoiding the phase problem: make the two lines' sum phase-invariant by feeding the loop from a single node... that's the same thing.
+
+Alternative (b): keep both lines in the loop but normalize the feedback by the tap sum: precompute the inverse magnitude... no.
+
+Let me go with (a): the loop reads delay1 only; delay2 is a parallel/side tap whose output is mixed into the comb sum. Implementation: currently comb = 0.5*(tap1 + tap2). Change to:*
+
+
+
+const float loopTap = tap1;                    // петля идёт только через линию 1
+const float sideTap = tap2;                    // линия 2 - параллельный отвод, вне петли
+const float comb = loopTap * (1 - crossMix2) + sideTap * crossMix2 ...
+Hmm, but let me preserve the structure: rawComb = 0.5f*(tap1 + tap2) used for damping and the AP and the loop write. If I feed the loop from tap1 only, the write-back into delay2 makes delay2 = a delayed copy of the loop signal (not fed back) ✓ good: delay2 provides extra taps of the loop signal ✓ and is not part of the loop.*
+
+So:
+
+
+
+const float rawMix = 0.5f * (tap1 + tap2);        // для выхода/тона
+const float loopInput = tap1;                     // петля: только линия 1 -> длина хвоста = Feedback
+const float damped = dampFilter(loopInput)  ... 
+Hmm, but then dampingState/allpass operate on tap1 only, while the output mixes in tap2 (unfiltered). Let me define:
+
+loopSig (in the loop path): damp filter → AP → ×fb → write into delay1 (AND into delay2, which then acts as a delay-line tap of the same loop signal, not part of the loop).
+comb output: 0.5*(tap1 + tap2) → that's the voice's output (through dcBlock) ✓ plus the "crossMix" term with the previous voice ✓.*
+So restructuring:
+
+
+
+// петля: одна линия -> |loop| = feedback * |AP| = feedback
+const float damping = ...; // lowpass on the loop signal
+voice.dampingState += step * (tap1 - voice.dampingState);
+const float resonated = 0.70f * tap1 + 0.30f * voice.dampingState;
+... AP on resonated ...
+const float excitation = input*drive + voiceFeedback*apOut;
+write delay1 & delay2 with excitation
+// выход голоса: оба отвода
+const float voiceOut = 0.5f * (tap1 + tap2);
+const float comb = voiceOut * (1 - crossMix) + previous * crossMix;
+outputs[i] = dcBlock(voice, comb);
+This is clean and keeps "two delays" ✓.
+
+But wait: with delay1 in the loop and delay2 as a plain tap, the comb sum (tap1+tap2) is only for tone. The decoupling means the resonance pattern = a single-delay comb with the AP → metallic and phase-shiftable ✓ and the decay = fb ✓ phase-invariant ✓✓ — exactly what the user wants: "damp has a position where it doesn't touch the tail" (damp=0 → the damping filter is a passthrough → the loop gain = fb exactly; damp>0 shortens) and "phase must not act like a damp" ✓ (phase never touches the loop magnitude).
+
+Hmm, one worry: an idealized single-delay loop with fb=0.99 → very long ringing (tail ~ 1/(1-0.99) periods = 100 periods × 10.76 ms ≈ 1 s) ✓ nice; with the AP it stays. Self-oscillation? fb < 0.998 + soft limiter ✓.
+
+But hmm, one more consideration: with a single line in the loop, the loop gain magnitude is exactly fb at all frequencies → the sustain is maximal → the tail will be much longer than before (0.0266 → maybe 0.05+). Fine, that's "the tail exists" which is what he wants. Risk: "the plugin must never suddenly get loud/noisy" — the soft limiter + tanh + the output limiter handle it; also the fuzz test with feedback 0.999 will check.
+
+Let me also double check the AP-in-loop stability with |H|=1 and fb=0.998: the loop is a marginally-stable resonator; the soft limiter keeps it bounded ✓ (softLimit(x, 0.9) = soft saturation → for large x it hard-limits near 0.9·ln? Let me check Declick.h's softLimit: x / (1 + |x|/0.9)? whatever, it's a bounded saturator ✓.
+
+Let me apply this restructure to all three engines and re-test. Also fix the test's diffusion sub-check to apply only to var3/var4.
+
+The change in the three cpp files:
+
+var1/var2 (current code after my last patch):
+
+cpp
+
+
+        const float rawComb = 0.5f * (tap1 + tap2);
+        const float comb = rawComb * (1.0f - config.crossMix) + previous * config.crossMix;
+        const float step = clamp(dampingStep * (1.0f - 0.35f * spread * swirlA), 0.02f, 1.0f);
+        voice.dampingState += step * (comb - voice.dampingState);
+        const float resonant = 0.70f * comb + 0.30f * voice.dampingState;
+        <AP block on resonant>
+        const float voiceFeedback = ...;
+        const float excitation = input * drive + voiceFeedback * apOut;
+        const float loopWrite = clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f);
+        voice.delay1.write(loopWrite);
+        voice.delay2.write(loopWrite);
+        outputs[i] = dcBlock(voice, resonant);
+        previous = outputs[i];
+New:
+
+cpp
+
+
+        // Петля строится ТОЛЬКО на линии 1: тогда её усиление = feedback * |AP| = feedback,
+        // то есть длину хвоста задаёт исключительно Feedback, а Phase/Diffusion
+        // окрашивают резонансы и НЕ работают как демпфер.
+        const float step = clamp(dampingStep * (1.0f - 0.35f * spread * swirlA), 0.02f, 1.0f);
+        voice.dampingState += step * (tap1 - voice.dampingState);
+        const float resonant = 0.70f * tap1 + 0.30f * voice.dampingState;
+        <AP block on resonant → apOut>
+        const float voiceFeedback = clamp(feedback * (1.0f + 0.35f * spread * swirlB), 0.0f, 0.998f);
+        const float excitation = input * drive + voiceFeedback * apOut;
+        const float loopWrite = clamp(lab::softLimit(excitation, 0.9f), -1.5f, 1.5f);
+        voice.delay1.write(loopWrite);
+        voice.delay2.write(loopWrite);   // линия 2 - параллельный отвод той же петли
+        // Выход голоса: оба отвода, поэтому два времени задержки слышны как раньше.
+        const float rawComb = 0.5f * (tap1 + tap2);
+        const float comb = rawComb * (1.0f - config.crossMix) + previous * config.crossMix;
+        outputs[i] = dcBlock(voice, comb);
+        previous = outputs[i];
+✓ This is a small structural change. Note it also changes the decay: tap1's loop contains the damping filter and the AP; the output taps tap1 and tap2 ✓.
+
+var3/var4: same with two APs (ap2 in the loop) ✓.
+
+Let me now also think about checkJerkInstant for var3: the peak grid after the jump printed "7.9 21.9 34.2 42.0 54.6 68.0" — after the fix, the grid should show the new delay1 time ✓ (tap1 in the loop). We'll see.
+
+Apply.
+
+
+Thought for 12 seconds
+
+Two problems:
+
+The Python patch script FAILED on CombScannerVariants2.cpp (assert) — but it already patched CombScannerVariants1Fav.cpp before failing! So now var1 has the new loop but var2/var3 don't → inconsistent. Why did var2 fail? Because in var2 the block contains const float rawComb = 0.5f * (tap1 + tap2 * detune2); ✓ that's the difference. Also var3's outputs[i] = dcBlock(voice, resonant); — hmm, var3 got the same tail_old_1? The script died before var3. Let me redo carefully with per-file variants.
+
+Test 5 (comb selection) regressed for var1: scan=1 → 43.96 ms instead of 108.56. Why? Because with delay2 now a parallel tap that also gets written with the loop signal, the AC peak may lock onto a different period... Hmm, 43.96 ≈ delay23.33 = 43.6 ✓ — the detected period is delay2's time (comb 8 → delay2 = 13.13.33 = 43.6 ms)! Because the output mixes tap1 (108.6) and tap2 (43.6); the AC peak picks 43.6 (delay2's period) since the mixed signal has strong energy at that period? The AC of a signal with two periodicities → both peaks; the normalization picked 43.6 (probably slightly stronger).
+
+So my test metric needs to be robust to which tap dominates → better: search for the strongest AC peak AMONG the expected/known candidate times, or check that the scan=1 period ∈ {d1, d2, d1-d2, ...}. Simplest robust assertion: with scan=1 the detected period must be MUCH larger than with scan=0 (the ratio ≈ 10 both ways) OR a ratio matching (3.33/0.33) for either tap: period could be 10.76k or 4.3k...
+
+Cleaner: make the test measure which comb is ACTIVE, not the period: compare the output of the engine set to scan=k/7 against a mono reference where I restrict the ratio bank so only one comb matters... no.
+
+Alternative approach: measure the period but exclude the delay2 tap by setting delay2 = 0 (then tap2 ≈ 0 samples → the tap2 time = max(1 sample) → tiny; tap2 then contributes a nearly-zero tap and d2 doesn't add a period). With delay2 = 0, the output is dominated by tap1's loop → the AC period = d1 ✓ clean: var1's loop is (by design) delay1-only ✓ and var3 also loop=delay1 ✓.
+
+Since the loop now IS delay1-only, using delay2=0 in this test isolates the loop period ✓. Let me set delay2 0.0 in checkScanSelectsComb. Then expect period(scan=0) = 32.60.33 = 10.76 and period(scan=1) = 32.63.33 = 108.56 ✓ (tolerance 15%).
+
+Hmm, but careful: DelayLine::read clamps delaySamples to ≥ 1 sample ✓ so delay2 = 0 ms → 1 sample → tap2 ≈ input (a direct-ish feedforward) → the output contains a nearly-raw copy of the excitation → does that break the AC? The tiny tap contributes the input signal at ~0 delay → the AC includes the input's own autocorrelation (a decaying noise-ish burst) → at lag 10.76 ms (comb 1) the burst's AC is small ✓ so the comb period dominates ✓. Set the delay2 → hmm, but delay2 = 0 changes what the user hears (line 2 nearly bypasses). For a test that's fine ✓.
+
+Test 6: var3 phase on/off = 0.47 (still eats the tail!), var1 = 1.77 ✓ (fixed), var2 = 1.09 ✓ (but var2 wasn't patched with the new loop — it had the AP-in-loop version → 1.09).
+Why does var3 still show 0.47? Because var3's AP coefficients c1/c2 are Larger (c1 ≈ 0.47, c2 ≈ 0.73) — and with a single delay line in the loop, |loop| = fb regardless of the AP phase... so the tail energy should be phase-invariant. Unless — hmm, wait, var3 was NOT patched (the script died before it), so var3 still has: (a) the resonant built from comb (both taps) and (b) the AP in the loop with the tap sum... Right: var3 still has the "comb" version where the loop goes through 0.5*(tap1+tap2) — no wait, var3's patch of the tail (old3_tail/new3_tail) was applied in the previous round (the single-AP→two-AP and the write of loopWrite both lines) — in that previous round the loop was still resonant-based (from comb). So var3's loop = 0.5(tap1+tap2) → AP → fb: the phase-dependent cancellation remains → 0.47 ✓ explains it.*
+
+So I must apply the loop restructure to var2 and var3 too. Let me redo it carefully:
+
+var1: DONE (new loop).
+var2: the rawComb line has the detune2 factor. Patch separately.
+var3: patch separately (its outputs[i] = dcBlock(voice, resonant); is in the tail block which I already replaced... hmm: my earlier var3 patch (old3_tail → new3_tail) ended with outputs[i] = dcBlock(voice, resonant); ✓ and var1's current tail block (after my loop patch) ends with the new rawComb/comb/outputs lines ✓. So for var3 the same tail_old_1 doesn't match (it has resonant in outputs and the AP output variable name allpassOutput). Let me handle var3 explicitly.
+Let me write a careful patch for var2 and var3, then re-run.
+
+Also var2 keeps its detune: tap2 * detune2 — with the loop now on tap1, the detune affects only the output tap ✓ fine.*
+
+Test 4 printing bug for var3/var4 (still "!!! см. условия") — I fixed the condition in the earlier patch but the printf condition also has the special logic... The print expression: (! special && pageOk) || (special && pageOk && (damp ? damp->def > 0.0f : false)) → for var3, pageOk requires damp->def == 0 (line if (damp) pageOk = pageOk && damp->def == 0.0f;) → false → the print shows !!!. I need to make pageOk's damp/phase checks conditional on v12: if (damp) pageOk = pageOk && (special ? damp->def > 0.0f : damp->def == 0.0f); Let me restructure that test properly.
+
+Let me rewrite the whole checkTables function cleanly (replace by markers).
+
+Also test 3 note: var_1fav's grid before shows 20.0/40.2/60.3/80.4 (multiples of 20 ✓ single comb) ✓ and var3 shows 20.2/22.6/34.0/40.1 (the AP coloring adds early peaks from delay2 ✓ fine).
+
+And test 7 for var1 now shows max 2.0× mean (was 1.2) — the tail got longer/stronger (fine, < 6 threshold ✓ no bursts).
+
+Let me now do the patches.
+
+
+Ran commands
+2
+
+Thought for 1 second
+
+Now fix the test: checkScanSelectsComb should set delay2 = 0 to isolate the loop period; and checkTables' damp/phase conditions.
+
+Let me rewrite checkTables and patch checkScanSelectsComb.
+
+
+Thought for 7 seconds
+
+Great progress:
+
+Test 4 ✓ all pages ok.
+Test 5 ✓ scan selects the comb (ratio 10.06 ✓).
+Test 6: var1/var2 ✓ (phase on/off 1.77 — the tail is even LONGER with phase, no eating). var3/var4: phase on/off 0.64 → the tail drops 36% with phase=0.75. Hmm, threshold is >0.75 → fails.
+Why does var3 still lose 36% with phase? var3's AP coefficients are high (c1 ≈ 0.47, c2 ≈ 0.73). With a single delay line in the loop, |loop| = fb at all frequencies... but there's a subtlety: the loop signal = fb * AP(damped tap1). The AP is stable and magnitude-1, so the loop gain magnitude = fb everywhere → the decay rate is fb... but the energy in the loop also resides in the AP's internal states, and the measured tail (0.6-1.6 s) depends on how the input excites the modes.*
+
+Hmm — actually there's one more consideration: my dampingState filter with step=1 passes. But the resonant = 0.70*tap1 + 0.30*dampingState = tap1 exactly when step = 1 ✓.
+
+So why is var3's tail 36% weaker with phase? Think about the input excitation: excitation = inputdrive + fbAP(tap1). The AP with a big coefficient (c2=0.73) has an instantaneous response: ap2 ≈ -c2ap1 + state ≈ -0.73anything... The instantaneous sign flips don't matter for the steady-state magnitude, but the AP does have a phase delay; the resonant frequencies (where the total loop phase = 0 mod 2π) shift; the mode spacing stays 1/d1 ✓. The energy per mode depends on input coupling at those frequencies: the input goes into the delay line and the resonance builds up; the coupling magnitude |1/(1 - fbAPe^{-jwd})| peaks at the resonance frequencies with the same height (1/(1-fb)) ✓. So the tail should be nearly phase-invariant...
+
+Unless: the phase shifts the resonances to frequencies where the input signal has less energy! The test input is a burst of two sines (0.041 and 0.0031 rad/sample → ~313 Hz and ~24 Hz) — the modes near those frequencies ring. If the AP shifts the modes, the ringing at the input's frequencies changes → the measured tail differs. That's a measurement artifact, not a real "phase eats the tail"!
+
+Yes — that's very likely: with the AP moving the modes away from 313/24 Hz, the excitation drops. In the real world, music is broadband, so the tail is not systematically eaten.
+
+To make the test meaningful, use a BROADBAND excitation (noise burst) so the mode positions don't matter. Let me switch the test signal to a noise burst (pseudo-random) — then the tail energy measures the total decay, and phase invariance should hold.
+
+Let me update renderTail to use a noise burst (use a simple LCG).
+
+Also for var1/var2 the tail with phase got LONGER (1.77) — with broadband excitation it should be ~1.0.
+
+Let me change the stimulus and re-run. If var3 still shows a big drop, I'll dig deeper.
+
+Actually, hmm, one more thought: with a sustained (steady-state) burst of 0.2 s, modes need to be excited; a broadband noise burst excites all modes equally ✓ and the tail RMS then reflects the sum over modes ≈ the same total energy regardless of the AP phase ✓. Let's test.
+
+Also note the threshold phaseRatio > 0.75 — with noise I'd expect 0.9-1.1.
+
+Let me implement: replace the sine burst with a noise burst (LCG).
+
+
