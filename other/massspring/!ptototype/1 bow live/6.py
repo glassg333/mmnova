@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ============================================================
-# ЭТАП 0-LIVE (v13.3, ФИНАЛ прототипа) — 2D-сеть масс (mini-miPhysics)
-#  ЛКМ: рука (клик по струне = выбрать её материал) / РИСОВАТЬ струны
-#  Shift+клик x2 = связь ПРУЖИНА/НИТКА; Alt+клик = пин (на струне —
-#  резонатор f0/Q/накачка; на пустом — свободный мяч); Ctrl = удалить
-#  ПКМ зажать-отпустить = щипок; МЯЧ = бросить мяч; ПРОБЕЛ = смычок (стр.0)
-#  СЕТКА: размер радио-кнопками, спавн рядом с существующим, материал
-#  наследуется от выбранной струны
-#  Взрывы исключены: импульсные пределы + кламп скорости; лог -> окно+файл
+# ЭТАП 0-LIVE (v16) — рисование сетей (mini-miPhysics)
+#  ИСПРАВЛЕНО против v15:
+#   * ИЗГИБНАЯ ЖЁСТКОСТЬ: струна не складывается и не «кликает»
+#   * АНТИ-СЛЕПЛЕНИЕ: узлы одной струны отталкиваются (< 1/3 сегмента)
+#   * РЕСЕТ = пересборка прямой по концам (выпрямляет свёрнутое)
+#   * ПЕРЕСЕЧЕНИЯ: рисуй сквозь другую линию -> общие узлы -> сеть
+#   * ПКМ-щипок стабильнее (нормировка на сегмент), амплитуды видны
+#  ЛКМ рука/рисовать (РИСОВАТЬ по умолчанию!), Shift=связь, Alt=пин,
+#  Ctrl=удалить, ПКМ=щипок, ПРОБЕЛ=смычок, r=ресет, T=ТЕСТ
 # Зависимости: python -m pip install numpy sounddevice numba
 # ============================================================
 import os, sys, math, time, wave, datetime
@@ -17,19 +18,25 @@ os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
 import numpy as np
 from numba import njit
+import sounddevice as sd
 
 SR, BLOCK = 44100, 512
-ZOOM = 1000.0
-CANH = 420
-DX_M = 0.008
+ZOOM = 2000.0
+CANH = 460
+DX_M = 0.010
 MU = 0.04
 M0 = MU * DX_M
 K_SCALE = 1.1e5
-MAXM, MAXSPR, MAXLNK, MAXPIN, MAXPAIR = 1400, 3200, 48, 6, 6000
-R_NODE = 0.003
+KBEND = 0.35            # изгибная жёсткость (доля от k сегмента)
+DMIN_F = 0.34           # мин. дистанция узлов (доля сегмента)
+MAXM, MAXSPR, MAXLNK, MAXPIN, MAXPAIR = 1600, 4000, 48, 6, 8000
+MAXBEND = 2400
+R_NODE = 0.0035
 FR = 0.55
-VMAX = 50.0
-DVS, DVC, DVL, DVP, DVH = 2.0, 0.30, 0.60, 1.00, 0.02
+VMAX = 40.0
+DVS, DVC, DVL, DVP, DVH = 2.0, 0.30, 0.60, 1.00, 0.06
+PLUCK_AMT = 5.0e-3
+PULL_RATE = 0.05
 DCA = math.exp(-2.0 * math.pi * 25.0 / SR)
 
 X = np.zeros(MAXM); Y = np.zeros(MAXM)
@@ -40,6 +47,9 @@ RB = np.full(MAXM + MAXPIN, R_NODE)
 SI = np.zeros(MAXSPR, np.int64); SJ = np.zeros(MAXSPR, np.int64)
 SREST = np.zeros(MAXSPR); SSID = np.zeros(MAXSPR, np.int64)
 SK = np.zeros(MAXSPR); SC = np.zeros(MAXSPR); SNL = np.zeros(MAXSPR)
+BI = np.zeros(MAXBEND, np.int64); BJ = np.zeros(MAXBEND, np.int64)
+BK = np.zeros(MAXBEND, np.int64)   # центр изгиба (узел)
+BEND = np.zeros(MAXBEND)
 LI = np.zeros(MAXLNK, np.int64); LJ = np.zeros(MAXLNK, np.int64)
 LREST = np.zeros(MAXLNK); LTYPE = np.zeros(MAXLNK, np.int64)
 PNH = np.full(MAXPIN, -1, np.int64)
@@ -81,6 +91,7 @@ def broadphase(Xa, Ya, n, px, py, npin, sidm, fixm, rb, pi_, pj_, maxpair):
 @njit(cache=True, fastmath=True)
 def core2d(X, Y, VX, VY, FIXM, n,
            SI, SJ, SREST, SK, SC, SNL, nspr,
+           BI, BJ, BK, BEND, nbend, kbend_k,
            LI, LJ, LREST, LTYPE, nlnk, kl, cll,
            PI, PJ, npair, RB,
            PXP, PYP, PVX, PVY, PNH, mpin, npin, pk_att, pk_c, gpin,
@@ -115,6 +126,53 @@ def core2d(X, Y, VX, VY, FIXM, n,
                     VX[i] += dv * nx; VY[i] += dv * ny
                 if FIXM[j] == 0:
                     VX[j] -= dv * nx; VY[j] -= dv * ny
+            for q in range(nbend):                    # ИЗГИБ: тройки узлов
+                a = BI[q]; c = BJ[q]; b = BK[q]
+                ax = X[a]; ay = Y[a]; cx = X[c]; cy = Y[c]
+                bx = X[b]; by = Y[b]
+                # возвращающий момент как пара сил к выпрямлению
+                d1x = ax - bx; d1y = ay - by
+                d2x = cx - bx; d2y = cy - by
+                l1 = math.sqrt(d1x*d1x + d1y*d1y) + 1e-12
+                l2 = math.sqrt(d2x*d2x + d2y*d2y) + 1e-12
+                ang = (d1x/l1)*(d2y/l2) - (d1y/l1)*(d2x/l2)   # sin угла
+                Fm = kbend_k * ang
+                if Fm > dvs: Fm = dvs; clips += 1
+                elif Fm < -dvs: Fm = -dvs; clips += 1
+                fx1 = Fm * (-d1y/l1); fy1 = Fm * (d1x/l1)
+                fx2 = Fm * (d2y/l2);  fy2 = Fm * (-d2x/l2)
+                if FIXM[a] == 0:
+                    VX[a] += fx1 * im; VY[a] += fy1 * im
+                if FIXM[c] == 0:
+                    VX[c] += fx2 * im; VY[c] += fy2 * im
+                if FIXM[b] == 0:
+                    VX[b] -= (fx1+fx2) * im; VY[b] -= (fy1+fy2) * im
+            for a in range(n):                        # АНТИ-СЛЕПЛЕНИЕ (грубая
+                if FIXM[a] == 0:                      # сетка по индексам)
+                    ia = a - 1
+                    ib = a + 1
+                    lo = ia if ia > 0 else 0
+                    hi = ib if ib < n else n
+                    for b in range(lo, hi):
+                        if b == a or SIDM[b] != SIDM[a]:
+                            continue
+                        dx = X[b] - X[a]; dy = Y[b] - Y[a]
+                        d2 = dx*dx + dy*dy
+                        if d2 < 1e-10:
+                            VX[a] -= (0.5 - (a - b)) * 0.02
+                        else:
+                            md = 0.0034
+                            if d2 < md*md:
+                                d = math.sqrt(d2) + 1e-12
+                                push = (md - d) * 4.0e4
+                                if push > dvc: push = dvc
+                                elif push < -dvc: push = -dvc
+                                nx = dx / d; ny = dy / d
+                                VX[a] -= push * nx * im; VY[a] -= push * ny * im
+                                if FIXM[b] == 0:
+                                    VX[b] += push * nx * im
+                                    VY[b] += push * ny * im
+                                ncon += 1
             for a in range(n):
                 if FIXM[a] == 0:
                     VY[a] += GM[a] * dt
@@ -192,8 +250,8 @@ def core2d(X, Y, VX, VY, FIXM, n,
                         PYP[p] = 0.006
                         if PVY[p] < 0.0:
                             PVY[p] = -0.5 * PVY[p]
-                    elif PYP[p] > 0.50:
-                        PYP[p] = 0.50
+                    elif PYP[p] > 0.45:
+                        PYP[p] = 0.45
                         if PVY[p] > 0.0:
                             PVY[p] = -0.5 * PVY[p]
                     if PXP[p] < 0.01:
@@ -231,8 +289,8 @@ def core2d(X, Y, VX, VY, FIXM, n,
                         VX[h] += rx; VY[h] += ry
             if grab_i >= 0:
                 dx = gtx - X[grab_i]; dy = gty - Y[grab_i]
-                Fx = 120.0 * dx - 1.0 * VX[grab_i]
-                Fy = 120.0 * dy - 1.0 * VY[grab_i]
+                Fx = 250.0 * dx - 3.0 * VX[grab_i]
+                Fy = 250.0 * dy - 3.0 * VY[grab_i]
                 dvx = Fx * im
                 if dvx > dvh:
                     dvx = dvh
@@ -303,7 +361,7 @@ class Str:
     pass
 
 STS = []
-N = [0]; NSPR = [0]; NLNK = [0]; NPIN = [0]
+N = [0]; NSPR = [0]; NLNK = [0]; NPIN = [0]; NBEND = [0]
 MESHSZ = [14, 9]
 P = dict(R=0.0, speed=1.0, press=1.0, beta=0.10, noise=0.25,
          t=1.0, nl=0.04, ca=0.02, grav=0.0,
@@ -313,10 +371,10 @@ P = dict(R=0.0, speed=1.0, press=1.0, beta=0.10, noise=0.25,
 SEL = [0]
 STt = type("ST", (), {})()
 STt.ovs = 2; STt.t = 0.0; STt.on = 0.0; STt.R_now = 0.0
-STt.tool = "hand"; STt.ltype = 0; STt.lnk_start = -1
+STt.tool = "draw"; STt.ltype = 0; STt.lnk_start = -1
 STt.grab = None; STt.plk = None; STt.rec = False; STt.recl = []
 STt.pending_ovs = None; STt.level = 0.0; STt.gain = 0.0
-STt.cpu = 0.0; STt.underr = 0
+STt.cpu = 0.0; STt.underr = 0; STt.nmic = 0; STt.err_n = 0
 STt.logq = []; STt.draw_pts = None
 RNG = np.random.default_rng(7)
 
@@ -333,9 +391,21 @@ def log_flush(lines):
         pass
 
 def reset_positions():
-    m = N[0]
-    X[:m] = X0[:m]; Y[:m] = Y0[:m]
-    VX[:m] = 0.0; VY[:m] = 0.0
+    # РЕСЕТ = пересборка прямых по концам каждой струны
+    for s in STS:
+        nds = s.nodes
+        if len(nds) < 2:
+            continue
+        a0, a1 = nds[0], nds[-1]
+        m = len(nds)
+        for k in range(1, m - 1):
+            w = k / (m - 1)
+            X0[nds[k]] = X0[a0] + (X0[a1] - X0[a0]) * w
+            Y0[nds[k]] = Y0[a0] + (Y0[a1] - Y0[a0]) * w
+        for k in range(1, m - 1):
+            a = nds[k]
+            X[a] = X0[a]; Y[a] = Y0[a]
+            VX[a] = 0.0; VY[a] = 0.0
     for p in range(NPIN[0]):
         PXP[p] = PHX[p]; PYP[p] = PHY[p]; PVX[p] = 0.0; PVY[p] = 0.0
     DCS[0] = 0.0; DCS[1] = 0.0
@@ -348,18 +418,22 @@ def spawn_ball():
     PXP[p] = 0.40 + 0.2 * float(RNG.random())
     PYP[p] = 0.36
     PVX[p] = (float(RNG.random()) - 0.5) * 0.8
-    PVY[p] = 0.6
+    PVY[p] = 0.3
     PHX[p] = PXP[p]; PHY[p] = PYP[p]
     RB[N[0] + p] = P["pinr"] * 1e-3
     NPIN[0] += 1
-    log(f"МЯЧ #{p} брошен (грав={P['pg']:.2f}) — скачет по струнам и полу", True)
+    log(f"МЯЧ #{p} брошен", True)
 
 def f0_est(sid):
     s = STS[sid]
     nseg = len(s.nodes) - 1
     if nseg < 1:
         return 0.0
-    return math.sqrt(K_SCALE * s.sp["t"] / M0) / (2.0 * nseg)
+    Ltot = math.hypot(X0[s.nodes[-1]] - X0[s.nodes[0]],
+                      Y0[s.nodes[-1]] - Y0[s.nodes[0]])
+    if Ltot < 1e-6:
+        return 0.0
+    return math.sqrt(K_SCALE * s.sp["t"] / M0) / (2.0 * nseg) if nseg > 0 else 0.0
 
 def add_node(x, y, sid, fix):
     a = N[0]
@@ -375,65 +449,138 @@ def add_spring(i, j, sid):
     if q >= MAXSPR or i < 0 or j < 0 or i == j:
         return
     rest = math.hypot(X[j] - X[i], Y[j] - Y[i])
-    if rest < 2.0e-3:
+    if rest < 1.0e-3:
         return
     SREST[q] = rest
     SI[q] = i; SJ[q] = j; SSID[q] = sid
     NSPR[0] = q + 1
+
+def find_crossing(ax, ay, bx, by):
+    """пересечение отрезка (a->b) с существующими пружинами; вернуть узел или -1"""
+    best = -1; bd = 1e18
+    for q in range(NSPR[0]):
+        i, j = SI[q], SJ[q]
+        if SIDM[i] == SIDM[j] == -1:
+            continue
+        x1, y1, x2, y2 = X[i], Y[i], X[j], Y[j]
+        rx, ry = bx - ax, by - ay
+        ex, ey = x2 - x1, y2 - y1
+        den = rx * ey - ry * ex
+        if abs(den) < 1e-12:
+            continue
+        t = ((x1 - ax) * ey - (y1 - ay) * ex) / den
+        u = ((x1 - ax) * ry - (y1 - ay) * rx) / den
+        if 0.02 < t < 0.98 and 0.02 < u < 0.98:
+            px_ = ax + rx * t; py_ = ay + ry * t
+            # ближайший узел пересекаемой пружины
+            for cand in (i, j):
+                d = (X[cand] - px_) ** 2 + (Y[cand] - py_) ** 2
+                if d < bd:
+                    bd = d; best = cand
+    return best
 
 def draw_string(pts):
     if N[0] + 2 >= MAXM:
         log("лимит масс — ОЧИСТИТЬ сцену", True); return
     sid = len(STS)
     s = Str()
-    s.sp = dict(t=P["t"], nl=P["nl"], ca=P["ca"], grav=P["grav"])
+    if STS:
+        sp = STS[min(SEL[0], len(STS) - 1)].sp
+        s.sp = dict(sp)
+    else:
+        s.sp = dict(t=P["t"], nl=P["nl"], ca=P["ca"], grav=P["grav"])
     s.nodes = []
-    a0 = add_node(pts[0][0], pts[0][1], sid, 1)
+    # сгущение: не чаще DX_M
+    dense = [pts[0]]
+    for p_ in pts[1:]:
+        if math.hypot(p_[0] - dense[-1][0], p_[1] - dense[-1][1]) >= DX_M:
+            dense.append(p_)
+    if len(dense) < 2:
+        return
+    a0 = add_node(dense[0][0], dense[0][1], sid, 1)
     if a0 < 0:
         return
     s.nodes.append(a0)
-    last = pts[0]
-    for (mx, my) in pts[1:]:
-        if math.hypot(mx - last[0], my - last[1]) >= DX_M:
-            a = add_node(mx, my, sid, 0)
-            if a < 0:
+    prev = (dense[0][0], dense[0][1])
+    cross_links = 0
+    for (mx, my) in dense[1:]:
+        # пересечение с существующими линиями -> общая масса
+        cn = find_crossing(prev[0], prev[1], mx, my)
+        if cn >= 0 and SIDM[cn] != sid:
+            s.nodes.append(cn)          # общий узел с другой струной!
+            add_spring(s.nodes[-1], cn, sid)
+            cross_links += 1
+            prev = (mx, my)
+            continue
+        a = add_node(mx, my, sid, 0)
+        if a < 0:
+            break
+        add_spring(s.nodes[-1], a, sid)
+        s.nodes.append(a)
+        prev = (mx, my)
+    # конечная точка: если попала на существующий узел — связываем, иначе фикс
+    cn = find_crossing(prev[0], prev[1], prev[0] + 1e-6, prev[1] + 1e-6)
+    a_end = -1
+    for q in range(NSPR[0]):
+        for cand in (SI[q], SJ[q]):
+            if math.hypot(X[cand] - prev[0], Y[cand] - prev[1]) < 0.012 \
+                    and SIDM[cand] != sid:
+                a_end = cand
                 break
-            add_spring(s.nodes[-1], a, sid)
-            s.nodes.append(a)
-            last = (mx, my)
-    if math.hypot(pts[-1][0] - X[s.nodes[-1]],
-                  pts[-1][1] - Y[s.nodes[-1]]) >= DX_M * 0.5:
-        a = add_node(pts[-1][0], pts[-1][1], sid, 1)
+        if a_end >= 0:
+            break
+    if a_end >= 0:
+        s.nodes.append(a_end)
+        add_spring(s.nodes[-1], a_end, sid)
+        cross_links += 1
+    else:
+        a = add_node(prev[0], prev[1], sid, 1)
         if a >= 0:
             add_spring(s.nodes[-1], a, sid)
             s.nodes.append(a)
+    # изгибные тройки
+    for k in range(1, len(s.nodes) - 1):
+        q = NBEND[0]
+        if q < MAXBEND:
+            BI[q] = s.nodes[k - 1]; BJ[q] = s.nodes[k + 1]; BK[q] = s.nodes[k]
+            NBEND[0] = q + 1
     if len(s.nodes) >= 2:
         STS.append(s)
         SEL[0] = sid
-        log(f"СТРУНА #{sid}: {len(s.nodes)} узлов, f0≈{f0_est(sid):.0f} Гц "
-            f"(материал t={s.sp['t']:.2f})")
+        log(f"СТРУНА #{sid}: {len(s.nodes)} узлов, f0≈{f0_est(sid):.0f} Гц, "
+            f"пересечений: {cross_links}", True)
+    else:
+        N[0] -= 1
 
 def add_mesh():
     cols, rows = MESHSZ[0], MESHSZ[1]
+    sp = 0.012 if cols > 14 else 0.014
+    w = (cols - 1) * sp; h = (rows - 1) * sp
     if N[0] + cols * rows >= MAXM:
         log("лимит масс — ОЧИСТИТЬ сцену", True); return
     if N[0] > 0:
-        maxx = 0.0
+        maxx = 0.0; maxy = 0.0
         for a in range(N[0]):
-            if X[a] > maxx:
-                maxx = X[a]
-        x00 = min(maxx + 0.06, 0.88 - cols * 0.014)
-        x00 = max(x00, 0.02)
-        y00 = 0.30
+            if X[a] > maxx: maxx = X[a]
+            if Y[a] > maxy: maxy = Y[a]
+        x00 = maxx + 0.05
+        y00 = 0.02
+        if x00 + w > 0.98:
+            x00 = 0.02
+            y00 = maxy + 0.05
+        if y00 + h > 0.45:
+            log("нет места под сетку", True); return
     else:
-        x00, y00 = 0.30, 0.30
-    src = STS[min(SEL[0], len(STS) - 1)].sp if STS else \
-        dict(t=P["t"], nl=P["nl"], ca=P["ca"], grav=P["grav"])
+        x00, y00 = 0.30, 0.12
+    src_sel = STS[min(SEL[0], len(STS) - 1)].sp if STS else None
+    if src_sel is not None and src_sel["t"] >= 0.1:
+        src = dict(src_sel); src_name = f"выбранная стр.{SEL[0]}"
+    else:
+        src = dict(t=1.0, nl=0.04, ca=0.02, grav=0.0); src_name = "стандарт"
     sid = len(STS)
     s = Str()
-    s.sp = dict(t=src["t"], nl=src["nl"], ca=src["ca"], grav=src["grav"])
+    s.sp = src
     s.nodes = []
-    sp = 0.014
     grid = []
     for r in range(rows):
         row = []
@@ -454,8 +601,8 @@ def add_mesh():
         return
     STS.append(s)
     SEL[0] = sid
-    log(f"СЕТКА {cols}x{rows} @({x00:.2f},{y00:.2f})м, материал t={s.sp['t']:.2f}, "
-        f"f0≈{f0_est(sid):.0f} Гц — выбрана")
+    log(f"СЕТКА {cols}x{rows} @({x00:.2f},{y00:.2f})м материал t={src['t']:.2f}",
+        True)
 
 def to_world(e):
     return (e.x / ZOOM, (CANH - e.y) / ZOOM)
@@ -494,7 +641,7 @@ def process_block(frames):
     for a in range(n):
         sp = STS[SIDM[a]].sp
         CAMM[a] = sp["ca"]
-        GM[a] = -sp["grav"] * 3.0
+        GM[a] = -sp["grav"] * 9.8
     npin = NPIN[0]
     mpin = P["pm"] * M0
     w = 2.0 * math.pi * P["pf0"]
@@ -522,12 +669,13 @@ def process_block(frames):
         if nmic < 16:
             MN[nmic] = n + p; MNX[nmic] = 0.0; MNY[nmic] = 1.0
             MW[nmic] = 0.6; nmic += 1
+    STt.nmic = nmic
     grab_i, gtx, gty = -1, 0.0, 0.0
     if STt.grab is not None:
         grab_i, gtx, gty = STt.grab
     if STt.plk is not None:
         gi, dxn, dyn, t0 = STt.plk
-        amt = min(1.5e-3, 0.045 * (time.time() - t0))
+        amt = min(PLUCK_AMT, PULL_RATE * (time.time() - t0))
         grab_i = gi
         gtx = X0[gi] + dxn * amt; gty = Y0[gi] + dyn * amt
     bow_on = 0.0; jb = 0; bnx = 0.0; bny = 1.0
@@ -553,15 +701,17 @@ def process_block(frames):
     vf = 0.004 + 0.030 * float(Rarr[-1])
     nzarr = RNG.standard_normal(frames * ovs)
     aLP = 1.0 - math.exp(-2.0 * math.pi * 2500.0 * dt)
+    kbend_k = KBEND * K_SCALE * 0.02
     out = np.empty(frames)
     t0c = time.perf_counter()
     core2d(X, Y, VX, VY, FIXM, n,
            SI, SJ, SREST, SK, SC, SNL, nspr,
+           BI, BJ, BK, BEND, NBEND[0], kbend_k,
            LI, LJ, LREST, LTYPE, NLNK[0], P["linkk"],
            0.15 * math.sqrt(P["linkk"] * M0),
            PI, PJ, npair, RB,
            PXP, PYP, PVX, PVY, PNH, mpin, npin, pk_att, pk_c,
-           P["pg"] * 3.0,
+           P["pg"] * 9.8,
            GM, CAMM,
            grab_i, gtx, gty, DVH,
            bow_on, jb, bnx, bny, vb, fn0, vf, FR, P["noise"], nzarr, aLP,
@@ -572,12 +722,9 @@ def process_block(frames):
     if not (np.isfinite(X[:n]).all() and np.isfinite(VX[:n]).all()):
         reset_positions()
         out[:] = 0.0
-        log("АВАРИЯ (NaN) -> полный сброс. Пришли лог!", True)
-    if (STATS[0] > frames * ovs * 0.02 or STATS[1] > 10) and P["verb"]:
-        log(f"клипы: сил {int(STATS[0])}/блок, скоростей {int(STATS[1])}", True)
-        if P["autoreset"] and STATS[0] > frames * ovs * 0.2:
-            reset_positions()
-            log("авто-ресет по перегрузу", True)
+        log("АВАРИЯ (NaN) -> сброс", True)
+    if STATS[1] > 10 and P["verb"]:
+        log(f"клипы: сил {int(STATS[0])}/блок, скор {int(STATS[1])}", True)
     y = np.empty(frames)
     dcx, dcy = DCS[0], DCS[1]
     for i in range(frames):
@@ -609,8 +756,10 @@ def audio_cb(outdata, frames, ti, status):
         if STt.rec:
             STt.recl.append(outdata[:, 0].copy())
     except Exception:
-        import traceback
-        traceback.print_exc()
+        STt.err_n += 1
+        if STt.err_n <= 3:
+            import traceback
+            traceback.print_exc()
         outdata[:] = 0
 
 # ---------------- GUI ----------------
@@ -619,7 +768,7 @@ BG, FG = "#14141c", "#e0e0e8"
 def run_gui():
     import tkinter as tk
     root = tk.Tk()
-    root.title("physmod live v13.3 — 2D сеть масс")
+    root.title("physmod live v16 — рисование сетей")
     root.configure(bg=BG)
     W = 1000
     cv = tk.Canvas(root, width=W, height=CANH, bg="#0d0d14",
@@ -631,24 +780,34 @@ def run_gui():
     def draw():
         try:
             cv.delete("all")
-            cv.create_text(10, 12, text="ЛКМ: рука/рисовать | Shift: связь | "
-                           "Alt: пин | Ctrl: удалить | ПКМ: щипок | колесо: смычок",
+            cv.create_text(10, 12, text="РИСОВАТЬ по умолчанию: веди линию; "
+                           "сквозь чужую = связь | ЛКМ+узел=хват | Shift: связь | "
+                           "Alt: пин | Ctrl: удалить | ПКМ: щипок",
                            fill="#666680", anchor="w", font=("TkDefaultFont", 9))
-            for si, s in enumerate(STS):
-                pts = []
-                for a in s.nodes:
-                    x_, y_ = node_xy(a)
-                    pts += [x_, y_]
-                if len(pts) >= 4:
-                    col = "#4cc2a0" if si == SEL[0] else "#c8c8d8"
-                    cv.create_line(*pts, fill=col,
-                                   width=2 if si == SEL[0] else 1)
             for q in range(NLNK[0]):
                 x1_, y1_ = node_xy(LI[q])
                 x2_, y2_ = node_xy(LJ[q])
                 cv.create_line(x1_, y1_, x2_, y2_,
                                fill="#ffd040" if LTYPE[q] == 0 else "#ff70a0",
                                width=1)
+            for si, s in enumerate(STS):
+                col = ("#ff5050" if s.sp["t"] < 0.1
+                       else ("#4cc2a0" if si == SEL[0] else "#c8c8d8"))
+                pts = []
+                for a in s.nodes:
+                    x_, y_ = node_xy(a)
+                    pts += [x_, y_]
+                if len(pts) >= 4:
+                    cv.create_line(*pts, fill=col,
+                                   width=2 if si == SEL[0] else 1)
+                for a in s.nodes:
+                    x_, y_ = node_xy(a)
+                    if FIXM[a] == 1:
+                        cv.create_rectangle(x_ - 3, y_ - 3, x_ + 3, y_ + 3,
+                                            fill="#8890a8", width=0)
+                    else:
+                        cv.create_oval(x_ - 2, y_ - 2, x_ + 2, y_ + 2,
+                                       fill=col, width=0)
             n = N[0]
             for p in range(NPIN[0]):
                 px_, py_ = PXP[p] * ZOOM, CANH - PYP[p] * ZOOM
@@ -667,6 +826,13 @@ def run_gui():
                 x_, y_ = node_xy(STt.lnk_start)
                 cv.create_oval(x_ - 7, y_ - 7, x_ + 7, y_ + 7,
                                outline="#ffd040", width=2)
+            if STt.draw_pts:
+                for i2 in range(1, len(STt.draw_pts)):
+                    x1_, y1_ = STt.draw_pts[i2-1]
+                    x2_, y2_ = STt.draw_pts[i2]
+                    cv.create_line(x1_*ZOOM, CANH - y1_*ZOOM,
+                                   x2_*ZOOM, CANH - y2_*ZOOM,
+                                   fill="#ffffff", width=1)
             lv = min(1.0, STt.level * 4)
             cv.create_rectangle(10, CANH - 14, 10 + int((W - 20) * lv), CANH - 4,
                                 fill="#40c080", width=0)
@@ -734,14 +900,45 @@ def run_gui():
         b_ar.config(text="АВТО-РЕСЕТ: ВКЛ" if P["autoreset"]
                     else "АВТО-РЕСЕТ: выкл")
     def do_clear():
-        N[0] = 0; NSPR[0] = 0; NLNK[0] = 0; NPIN[0] = 0
+        N[0] = 0; NSPR[0] = 0; NLNK[0] = 0; NPIN[0] = 0; NBEND[0] = 0
         STS.clear(); STt.lnk_start = -1; SEL[0] = 0
         bow_dot[0] = 0
         log("ОЧИСТКА сцены")
     def do_reset():
         reset_positions()
-        log("СБРОС (в позиции покоя)")
-    b_tool = dbtn(buts, "ИНСТРУМЕНТ: РУКА", toggle_tool, 18)
+        log("СБРОС (выпрямление струн)")
+    def do_std():
+        for k2, v2 in (("t", 1.0), ("nl", 0.04), ("ca", 0.02), ("grav", 0.0)):
+            P[k2] = v2
+            mat_sliders[k2].set(v2)
+        mat_apply()
+        log("МАТЕРИАЛ: СТАНДАРТ", True)
+    def pluck_node_normal(a, sgn=1.0):
+        sid = SIDM[a]
+        nds = STS[sid].nodes
+        k = nds.index(a)
+        if len(nds) >= 3 and 0 < k < len(nds) - 1:
+            tx = X[nds[k + 1]] - X[nds[k - 1]]
+            ty = Y[nds[k + 1]] - Y[nds[k - 1]]
+        else:
+            tx, ty = 1.0, 0.0
+        tl = math.hypot(tx, ty) + 1e-12
+        STt.plk = (a, -ty / tl * sgn, tx / tl * sgn, time.time())
+    def do_test():
+        pts = [(0.15 + i * 0.70 / 30, 0.15) for i in range(31)]
+        draw_string(pts)
+        if not STS:
+            return
+        s = STS[-1]
+        s.sp.update(t=1.0, nl=0.04, ca=0.02, grav=0.0)
+        SEL[0] = len(STS) - 1
+        for k2, v2 in (("t", 1.0), ("nl", 0.04), ("ca", 0.02), ("grav", 0.0)):
+            P[k2] = v2
+            mat_sliders[k2].set(v2)
+        mid = s.nodes[len(s.nodes) // 2]
+        log("ТЕСТ: струна t=1.0, автощипок через 0.6 c", True)
+        root.after(600, lambda: pluck_node_normal(mid, 1.0))
+    b_tool = dbtn(buts, "ИНСТРУМЕНТ: РИСОВАТЬ", toggle_tool, 20)
     b_lt = dbtn(buts, "СВЯЗЬ: ПРУЖИНА", toggle_ltype, 15)
     b_bow = dbtn(buts, "СМЫЧОК: выкл", toggle_bow, 13)
     b_log = dbtn(buts, "ЛОГ: ПОДРОБНО", toggle_verb, 14)
@@ -782,6 +979,8 @@ def run_gui():
                     w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
                     w.writeframes((x * 32767).astype("<i2").tobytes())
                 log(f"ЗАПИСЬ сохранена: {os.path.basename(fn)}")
+    b_test = dbtn(buts2, "ТЕСТ (T)", do_test, 10)
+    b_std = dbtn(buts2, "МАТЕРИАЛ: СТАНДАРТ", do_std, 18)
     b_ball = dbtn(buts2, "МЯЧ", spawn_ball, 8)
     b_rec = dbtn(buts2, "ЗАПИСЬ", rec_toggle, 9)
     qual = tk.OptionMenu(buts2, tk.StringVar(value="НОРМА"),
@@ -792,7 +991,7 @@ def run_gui():
     qual.config(width=6, bg="#1e1e2a", fg=FG, activebackground="#2a2a3c",
                 relief="flat", highlightthickness=0)
     b_quit = dbtn(buts2, "ВЫХОД", root.destroy, 7)
-    for b in (b_ball, b_rec, qual, b_quit):
+    for b in (b_test, b_std, b_ball, b_rec, qual, b_quit):
         b.pack(side="left", padx=2, pady=3)
     status = tk.Label(root, text="", anchor="w", bg=BG, fg="#9fdf9f")
     status.pack(fill="x")
@@ -821,21 +1020,25 @@ def run_gui():
             sel_ = min(SEL[0], max(0, len(STS) - 1)) if STS else 0
             cpu_pct = min(STt.cpu, 9.99) * 100.0
             status.config(text=f"CPU {cpu_pct:5.0f}%  сбои {STt.underr}  "
-                               f"масс {N[0]}  пружин {NSPR[0]}  связей {NLNK[0]}  "
-                               f"пинов {NPIN[0]}  выбрана стр.{sel_}  "
-                               f"R={STt.R_now:.2f}"
+                               f"масс {N[0]}  пружин {NSPR[0]}  изгибов {NBEND[0]}  "
+                               f"связей {NLNK[0]}  пинов {NPIN[0]}  "
+                               f"стр.{sel_}  R={STt.R_now:.2f}"
                                + ("  ЗАПИСЬ..." if STt.rec else ""))
         except Exception as e:
             print("tick:", e)
         root.after(200, tick)
-    def nearest_node_screen(e):
-        best, bd = -1, 1e18
+    def nearest_node_screen(e, maxd=30.0):
+        best, bd = -1, maxd * maxd
         for a in range(N[0]):
             x_, y_ = node_xy(a)
             d = (e.x - x_) ** 2 + (e.y - y_) ** 2
             if d < bd:
                 bd, best = d, a
         return best, math.sqrt(bd)
+    def sync_material_sliders(sp):
+        for k2 in ("t", "nl", "ca", "grav"):
+            P[k2] = sp[k2]
+            mat_sliders[k2].set(sp[k2])
     def pick(e):
         if e.state & 0x0004:
             bq, bd = -1, 1e18
@@ -880,8 +1083,7 @@ def run_gui():
                 LREST[NLNK[0]] = math.hypot(X[j] - X[i], Y[j] - Y[i])
                 LTYPE[NLNK[0]] = STt.ltype
                 log(f"СВЯЗЬ {'НИТКА' if STt.ltype else 'ПРУЖИНА'}: "
-                    f"{i}(стр.{SIDM[i]}) ↔ {j}(стр.{SIDM[j]}), "
-                    f"{LREST[NLNK[0]]*1e3:.0f} мм")
+                    f"{i}(стр.{SIDM[i]}) ↔ {j}(стр.{SIDM[j]})")
                 NLNK[0] += 1
                 STt.lnk_start = -1
             return
@@ -900,10 +1102,9 @@ def run_gui():
             PHX[p] = wx; PHY[p] = wy
             RB[N[0] + p] = P["pinr"] * 1e-3
             if a >= 0:
-                log(f"ПИН #{p} → резонатор на узле {a} (стр.{SIDM[a]}), "
-                    f"f0={P['pf0']:.0f} Q={P['pq']:.0f}")
+                log(f"ПИН #{p} → резонатор на узле {a} (стр.{SIDM[a]})")
             else:
-                log(f"ПИН #{p} СВОБОДНЫЙ (мяч), грав={P['pg']:.2f}")
+                log(f"ПИН #{p} СВОБОДНЫЙ (мяч)")
             NPIN[0] += 1
             return
         if STt.tool == "draw":
@@ -914,14 +1115,9 @@ def run_gui():
         if a >= 0 and d < 30:
             SEL[0] = SIDM[a]
             STt.grab = (a, X[a], Y[a])
-            sp = STS[SEL[0]].sp
-            P["t"], P["nl"], P["ca"], P["grav"] = \
-                sp["t"], sp["nl"], sp["ca"], sp["grav"]
-            for k2 in ("t", "nl", "ca", "grav"):
-                mat_sliders[k2].set(P[k2])
+            sync_material_sliders(STS[SEL[0]].sp)
             mat_apply()
-            log(f"стр.{SEL[0]} выбрана: t={sp['t']:.2f} nl={sp['nl']:.2f} "
-                f"ca={sp['ca']:.2f} grav={sp['grav']:.2f} (слайдеры синхронизированы)")
+            log(f"стр.{SEL[0]} выбрана (хват)")
     def motion(e):
         if STt.tool == "draw" and STt.draw_pts is not None:
             wx, wy = to_world(e)
@@ -945,9 +1141,19 @@ def run_gui():
         a, d = nearest_node_screen(e)
         if a >= 0 and d < 30:
             wx, wy = to_world(e)
-            dx = wx - X[a]; dy = wy - Y[a]
-            dl = math.hypot(dx, dy) + 1e-9
-            STt.plk = (a, dx / dl, dy / dl, time.time())
+            sid = SIDM[a]
+            nds = STS[sid].nodes
+            k = nds.index(a)
+            if len(nds) >= 3 and 0 < k < len(nds) - 1:
+                tx = X[nds[k + 1]] - X[nds[k - 1]]
+                ty = Y[nds[k + 1]] - Y[nds[k - 1]]
+            else:
+                tx, ty = 1.0, 0.0
+            tl = math.hypot(tx, ty) + 1e-12
+            nx_ = -ty / tl; ny_ = tx / tl
+            side = (wx - X[a]) * nx_ + (wy - Y[a]) * ny_
+            sgn = 1.0 if side >= 0 else -1.0
+            STt.plk = (a, nx_ * sgn, ny_ * sgn, time.time())
     cv.bind("<Button-1>", pick)
     cv.bind("<B1-Motion>", motion)
     cv.bind("<ButtonRelease-1>", release)
@@ -955,44 +1161,44 @@ def run_gui():
     cv.bind("<ButtonRelease-3>", release)
     root.bind("<space>", lambda e: toggle_bow())
     root.bind("<r>", lambda e: do_reset())
-    root.bind_all("<MouseWheel>", lambda e: P.__setitem__(
-        "beta", max(0.02, min(0.5, P["beta"] + 0.01 * (1 if e.delta > 0 else -1)))))
+    root.bind("<t>", lambda e: do_test())
     root.protocol("WM_DELETE_WINDOW", root.destroy)
-    log("v13.3: ИНСТРУМЕНТ→РИСОВАТЬ = рисуй струны; клик по струне = выбрать её;")
-    log("слайдеры 'Материал' применяются к выбранной live; СЕТКА — размер сверху;")
-    log("Shift+клик x2 = связь; Alt+клик = пин; МЯЧ = бросок; ПКМ = щипок.")
+    log("v16: РИСОВАТЬ по умолчанию — веди линию (пересечения = общие узлы).")
+    log("Струна теперь с изгибной жёсткостью: не складывается, не кликает.")
+    log("СБРОС выпрямляет струны. T = ТЕСТ, ПРОБЕЛ = смычок, ПКМ = щипок.")
+    try:
+        dev = sd.query_devices(None, 'output')
+        log(f"аудио-выход: {dev['name']}")
+    except Exception as e:
+        log(f"аудио-выход не найден: {e}", True)
     stream = None
     try:
         stream = sd.OutputStream(samplerate=SR, blocksize=BLOCK, channels=1,
                                  callback=audio_cb, latency="low")
         stream.start()
-    except Exception as e:
-        log(f"АУДИО НЕ ОТКРЫЛОСЬ: {e}", True)
+    except Exception as e1:
+        try:
+            stream = sd.OutputStream(samplerate=SR, blocksize=BLOCK, channels=1,
+                                     callback=audio_cb, latency="high")
+            stream.start()
+            log("аудио: fallback high latency")
+        except Exception as e2:
+            log(f"АУДИО НЕ ОТКРЫЛОСЬ: {e2}", True)
     draw(); tick(); root.mainloop()
     if stream:
         stream.stop(); stream.close()
 
 def main():
     print(f"python {sys.version.split()[0]} | numpy {np.__version__}")
-    try:
-        import sounddevice as sd
-    except Exception:
-        import traceback
-        traceback.print_exc()
-        print("Нет sounddevice: python -m pip install sounddevice")
-        return
     if "diag" in [a.lower() for a in sys.argv[1:]]:
-        print(sd.query_devices())
-        print("default:", sd.default.device)
-        return
-    print("компиляция ядра (до ~20 c)...")
+        print(sd.query_devices()); print("default:", sd.default.device); return
+    print("компиляция ядра (до ~25 c)...")
     t0 = time.time()
-    draw_string([(0.1, 0.2), (0.8, 0.2)])
+    draw_string([(0.1, 0.2), (0.45, 0.2), (0.8, 0.2)])
     process_block(64)
-    N[0] = 0; NSPR[0] = 0; NLNK[0] = 0; NPIN[0] = 0
+    N[0] = 0; NSPR[0] = 0; NLNK[0] = 0; NPIN[0] = 0; NBEND[0] = 0
     STS.clear(); SEL[0] = 0
-    STt.logq.clear()
-    DCS[0] = 0.0; DCS[1] = 0.0
+    STt.logq.clear(); DCS[0] = 0.0; DCS[1] = 0.0; STATS[:] = 0.0
     print(f"ядро готово за {time.time()-t0:.1f} c")
     run_gui()
 

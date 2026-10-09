@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<JUCERPROJECT id="CsLab" name="CombScannerLab" projectType="audioplug" version="1.0.0" jucerFormatVersion="1" cppLanguageStandard="17" companyName="MonomachineNova" bundleIdentifier="com.monomachinenova.combscannerlab" pluginName="Comb Scanner Lab" pluginDesc="Comb Scanner Lab" pluginManufacturer="MonomachineNova" pluginManufacturerCode="MnOn" pluginCode="CsLb" pluginFormats="buildVST3" pluginVST3Category="Fx" useAppConfig="1" addUsingNamespaceToJuceHeader="0" defines="JUCE_VST3_CAN_REPLACE_VST2=0">
+  <MAINGROUP id="CsLabMain" name="CombScannerLab">
+    <GROUP id="gRoot" name="Source">
+      <FILE id="f1" name="PluginEditor.cpp" compile="1" resource="0" file="Source/PluginEditor.cpp" />
+      <FILE id="f2" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h" />
+      <FILE id="f3" name="PluginProcessor.cpp" compile="1" resource="0" file="Source/PluginProcessor.cpp" />
+      <FILE id="f4" name="PluginProcessor.h" compile="0" resource="0" file="Source/PluginProcessor.h" />
+      <GROUP id="gLab" name="lab">
+        <FILE id="f5" name="Engine.h" compile="0" resource="0" file="Source/lab/Engine.h" />
+        <FILE id="f6" name="EngineRegistry.cpp" compile="1" resource="0" file="Source/lab/EngineRegistry.cpp" />
+        <FILE id="f7" name="EngineRegistry.h" compile="0" resource="0" file="Source/lab/EngineRegistry.h" />
+      </GROUP>
+      <GROUP id="gUi" name="ui">
+        <FILE id="f8" name="SlotPage.cpp" compile="1" resource="0" file="Source/ui/SlotPage.cpp" />
+        <FILE id="f9" name="SlotPage.h" compile="0" resource="0" file="Source/ui/SlotPage.h" />
+      </GROUP>
+      <GROUP id="gEng" name="engines">
+        <FILE id="f14" name="CombScannerVariants1Fav.cpp" compile="1" resource="0" file="Source/engines/CombScannerVariants1Fav.cpp" />
+        <FILE id="f15" name="CombScannerVariants1Fav.h" compile="0" resource="0" file="Source/engines/CombScannerVariants1Fav.h" />
+        <FILE id="f16" name="CombScannerVariants2.cpp" compile="1" resource="0" file="Source/engines/CombScannerVariants2.cpp" />
+        <FILE id="f17" name="CombScannerVariants2.h" compile="0" resource="0" file="Source/engines/CombScannerVariants2.h" />
+        <FILE id="f18" name="CombScannerVariants3.cpp" compile="1" resource="0" file="Source/engines/CombScannerVariants3.cpp" />
+        <FILE id="f19" name="CombScannerVariants3.h" compile="0" resource="0" file="Source/engines/CombScannerVariants3.h" />
+        <FILE id="f24" name="CombScannerVariants4.cpp" compile="1" resource="0" file="Source/engines/CombScannerVariants4.cpp" />
+        <FILE id="f25" name="CombScannerVariants4.h" compile="0" resource="0" file="Source/engines/CombScannerVariants4.h" />
+        <FILE id="f20" name="CsMmVariants.cpp" compile="1" resource="0" file="Source/engines/CsMmVariants.cpp" />
+        <FILE id="f21" name="CsMmVariants.h" compile="0" resource="0" file="Source/engines/CsMmVariants.h" />
+        <FILE id="f22" name="ZigZag.cpp" compile="1" resource="0" file="Source/engines/ZigZag.cpp" />
+        <FILE id="f23" name="ZigZag.h" compile="0" resource="0" file="Source/engines/ZigZag.h" />
+      </GROUP>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" targetName="Comb Scanner Lab" optimisation="1" winArchitecture="x64" extraCompilerFlags="/utf-8" />
+        <CONFIGURATION name="Release" isDebug="0" targetName="Comb Scanner Lab" optimisation="3" winArchitecture="x64" linkTimeOptimisation="0" extraCompilerFlags="/utf-8" />
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors_headless" path="C:/JUCE/modules" />
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1" />
+  </MODULES>
+  <JUCEOPTIONS JUCE_WEB_BROWSER="0" JUCE_USE_CURL="0" JUCE_VST3_CAN_REPLACE_VST2="0" />
+</JUCERPROJECT>
