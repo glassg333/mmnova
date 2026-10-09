@@ -1,0 +1,57 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "windows-vs2026",
+      "displayName": "Visual Studio 2026 (x64)",
+      "description": "Основной пресет. Нужен CMake, который знает генератор Visual Studio 18 2026 (VS 2026 в комплекте уже такой).",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/vs2026",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+      }
+    },
+    {
+      "name": "windows-vs2022",
+      "displayName": "Visual Studio 2022 (x64) — запасной вариант",
+      "description": "Если ваш CMake ещё не знает генератор VS 2026, соберите этим пресетом: solution тот же MSBuild из VS 2026.",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+      }
+    },
+    {
+      "name": "linux-debug-verify",
+      "displayName": "Linux Ninja (только для проверки компиляции)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-vs2026-release",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-vs2026-debug",
+      "configurePreset": "windows-vs2026",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-vs2022-release",
+      "configurePreset": "windows-vs2022",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-debug-verify",
+      "configurePreset": "linux-debug-verify"
+    }
+  ]
+}

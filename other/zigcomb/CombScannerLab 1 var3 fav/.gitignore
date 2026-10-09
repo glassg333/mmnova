@@ -1,0 +1,6 @@
+build/
+Builds/
+JuceLibraryCode/
+.vs/
+out/
+*.user
