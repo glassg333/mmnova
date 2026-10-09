@@ -9,6 +9,10 @@ https://github.com/arasgungore/mass-spring-damper-system damp
 https://github.com/lucasw/tao_synth physical mod
 https://github.com/glassg333/mmnova/blob/main/other/massspring/massspring%20промпт.txt genesis
 
+Остальные в этой и соседних категориях:
+
+miPhysics (mi-creative, Zappi/Leonard) + редактор MIMS + miRack — открытая реализация mass-interaction (CORDIS-ANIMA lineage: IRCAM GENESIS, ACROE), каноническая DSP-библиотека (miphys.lib для Faust) — у тебя она уже в списке ссылок
+Modalys (IRCAM) — возбудитель + резонатор, модальный физмод
 
 я готовлюсь сделать плагин масс дамп физикал моделинг синт + резонатор желательно что бы я мог потом в качестве источника
  выбирать какие то другие модули например фм синтез вейвгайд гибриды вместо обычного шума типо карплус стронга. 
